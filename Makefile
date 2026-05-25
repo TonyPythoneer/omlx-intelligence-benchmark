@@ -1,4 +1,6 @@
-.PHONY: test setup
+PORT ?= 8080
+
+.PHONY: setup test serve
 
 setup:
 	python3 -m venv .venv
@@ -6,3 +8,6 @@ setup:
 
 test:
 	.venv/bin/pytest tests/ -v
+
+serve:
+	python3 -m http.server $(PORT) --directory app

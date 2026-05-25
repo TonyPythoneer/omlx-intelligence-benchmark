@@ -7,10 +7,10 @@ Static benchmark comparison page for oMLX/MLX model results. Single HTML file, n
 ## Architecture
 
 ```
-index.html          — single-page benchmark viewer (HTML + CSS + vanilla JS)
+app/index.html      — single-page benchmark viewer (HTML + CSS + vanilla JS)
 add_data.py         — CLI: parse benchmark output → append to device JS data file
-app/settings.js     — device config (defaultDevice, device metadata)
-app/data/*.js       — device-specific benchmark data (window.BENCHMARK_DATA = [...])
+app/settings.json   — device config (defaultDevice, device metadata)
+app/data/*.json     — device-specific benchmark data
 app/data/device.js.template  — empty template for new devices
 tests/test_add_result.py  — pytest suite
 .github/workflows/ci.yml  — pytest on push/PR
@@ -40,11 +40,15 @@ window.BENCHMARK_DATA = [
 ## Usage
 
 ```bash
+make serve   # http://localhost:8080
+
 # Add benchmark results (from file or stdin)
 python add_data.py output.txt --device m1-max-64GB-32c --params 35 --quant 4bit --size 19.5
 
 # With MTP flag
 python add_data.py output.txt --device m1-max-64GB-32c --params 35 --quant 4bit --size 19.5 --mtp
+
+# Output is written to app/data/{device}.json
 
 # Tests (first time)
 make setup && make test
