@@ -1,0 +1,10 @@
+window.SETTINGS = {
+  defaultDevice: "devicename",
+  devices: {
+    "devicename": {
+      chip: "M1 Max",
+      memory: "64GB",
+      gpus: 32,
+    }
+  }
+}
