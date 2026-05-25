@@ -7,9 +7,9 @@ import argparse
 from pathlib import Path
 from datetime import date
 
-APP_DIR      = Path('app')
+APP_DIR       = Path('app')
 SETTINGS_FILE = APP_DIR / 'settings.js'
-DATA_DIR     = APP_DIR / 'data'
+DATA_DIR      = APP_DIR / 'data'
 
 
 def parse_input(text: str) -> list[dict]:
@@ -42,18 +42,23 @@ def parse_input(text: str) -> list[dict]:
     return results
 
 
-def model_exists(content: str, model_name: str) -> bool:
-    return f'model: "{model_name}"' in content
+class DataFile:
+    """Manages reading, appending, and saving a device's benchmark JS data file."""
 
+    def __init__(self, device_key: str):
+        self.path = DATA_DIR / f'{device_key}.js'
+        self.content = self.path.read_text() if self.path.exists() else 'window.BENCHMARK_DATA = []\n'
 
-def append_entry(content: str, entry: dict) -> str:
-    """Insert a new JS object before the closing ] of window.BENCHMARK_DATA."""
-    scores_lines = [
-        f'      {bench}: {{ accuracy: {s["accuracy"]}, samples: {s["samples"]}, time_s: {s["time_s"]} }},'
-        for bench, s in entry['scores'].items()
-    ]
-    scores_block = '\n'.join(scores_lines)
-    new_obj = f"""  {{
+    def model_exists(self, model_name: str) -> bool:
+        return f'model: "{model_name}"' in self.content
+
+    def append(self, entry: dict) -> None:
+        scores_lines = [
+            f'      {bench}: {{ accuracy: {s["accuracy"]}, samples: {s["samples"]}, time_s: {s["time_s"]} }},'
+            for bench, s in entry['scores'].items()
+        ]
+        scores_block = '\n'.join(scores_lines)
+        new_obj = f"""  {{
     model: "{entry['model']}",
     date: "{entry['date']}",
     spec: {{
@@ -69,24 +74,10 @@ def append_entry(content: str, entry: dict) -> str:
 {scores_block}
     }}
   }},"""
-    close_bracket = content.rfind(']')
-    trimmed = content[:close_bracket].rstrip()
-    separator = ',\n' if trimmed.endswith('}') else ''
-    return trimmed + separator + '\n' + new_obj + '\n]\n'
-
-
-class DataFile:
-    """Manages reading, appending, and saving a device's benchmark JS data file."""
-
-    def __init__(self, device_key: str):
-        self.path = DATA_DIR / f'{device_key}.js'
-        self.content = self.path.read_text() if self.path.exists() else 'window.BENCHMARK_DATA = []\n'
-
-    def model_exists(self, model_name: str) -> bool:
-        return model_exists(self.content, model_name)
-
-    def append(self, entry: dict) -> None:
-        self.content = append_entry(self.content, entry)
+        close_bracket = self.content.rfind(']')
+        trimmed = self.content[:close_bracket].rstrip()
+        separator = ',\n' if trimmed.endswith('}') else ''
+        self.content = trimmed + separator + '\n' + new_obj + '\n]\n'
 
     def save(self) -> None:
         self.path.parent.mkdir(exist_ok=True)

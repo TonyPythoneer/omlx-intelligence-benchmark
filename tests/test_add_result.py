@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from add_data import parse_input, model_exists, append_entry, read_default_device
+from add_data import parse_input, DataFile, read_default_device
 
 SAMPLE_INPUT = """
 --- Detail ---
@@ -23,76 +23,6 @@ MMLU                 83.3%        25      30    2398.2     Yes
 TRUTHFULQA           93.3%        28      30    1613.0     Yes
 """
 
-
-def test_parse_returns_two_models():
-    results = parse_input(SAMPLE_INPUT)
-    assert len(results) == 2
-
-
-def test_parse_model_name():
-    results = parse_input(SAMPLE_INPUT)
-    assert results[0]['model'] == 'Qwen3.6-35B-A3B-TurboQuant-MLX-4bit'
-
-
-def test_parse_scores_complete():
-    results = parse_input(SAMPLE_INPUT)
-    scores = results[0]['scores']
-    assert set(scores.keys()) == {'MMLU', 'TRUTHFULQA', 'HUMANEVAL', 'MBPP', 'LIVECODEBENCH'}
-    assert scores['MMLU']['accuracy'] == 83.3
-    assert scores['MMLU']['samples'] == 30
-    assert scores['MMLU']['time_s'] == 835.1
-
-
-def test_parse_thinking_flag():
-    results = parse_input(SAMPLE_INPUT)
-    assert results[0]['thinking'] is True
-
-
-def test_parse_partial_model():
-    results = parse_input(SAMPLE_INPUT)
-    partial = results[1]
-    assert set(partial['scores'].keys()) == {'MMLU', 'TRUTHFULQA'}
-
-
-def test_model_exists_true():
-    js = 'window.BENCHMARK_DATA = [{ model: "MyModel", scores: {} }]\n'
-    assert model_exists(js, 'MyModel') is True
-
-
-def test_model_exists_false():
-    js = 'window.BENCHMARK_DATA = []\n'
-    assert model_exists(js, 'MyModel') is False
-
-
-def test_append_entry_adds_model():
-    js = 'window.BENCHMARK_DATA = []\n'
-    entry = {
-        'model': 'TestModel',
-        'date': '2026-05-25',
-        'spec': {'parameters_b': 7, 'quantization': '4bit', 'size_gb': 4.10},
-        'abilities': {'thinking': True, 'mtp': False},
-        'scores': {'MMLU': {'accuracy': 80.0, 'samples': 30, 'time_s': 100.0}},
-    }
-    result = append_entry(js, entry)
-    assert 'model: "TestModel"' in result
-    assert 'MMLU' in result
-    assert result.strip().endswith(']')
-
-
-def test_append_entry_valid_js_structure():
-    js = 'window.BENCHMARK_DATA = []\n'
-    entry = {
-        'model': 'A',
-        'date': '2026-05-25',
-        'spec': {'parameters_b': 7, 'quantization': '4bit', 'size_gb': 4.10},
-        'abilities': {'thinking': False, 'mtp': False},
-        'scores': {'MMLU': {'accuracy': 75.0, 'samples': 30, 'time_s': 50.0}},
-    }
-    result = append_entry(js, entry)
-    assert result.startswith('window.BENCHMARK_DATA')
-    assert ']' in result
-
-
 NO_THINK_INPUT = """
 --- Detail ---
 
@@ -102,12 +32,81 @@ Benchmark         Accuracy   Correct   Total   Time(s)   Think
 MMLU                 70.0%        21      30     500.0     No
 """
 
+SAMPLE_ENTRY = {
+    'model': 'TestModel',
+    'date': '2026-05-25',
+    'spec': {'parameters_b': 7, 'quantization': '4bit', 'size_gb': 4.10},
+    'abilities': {'thinking': True, 'mtp': False},
+    'scores': {'MMLU': {'accuracy': 80.0, 'samples': 30, 'time_s': 100.0}},
+}
+
+
+def make_data_file(tmp_path, content='window.BENCHMARK_DATA = []\n', key='test') -> DataFile:
+    data_dir = tmp_path / 'app' / 'data'
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (data_dir / f'{key}.js').write_text(content)
+    df = DataFile.__new__(DataFile)
+    df.path = data_dir / f'{key}.js'
+    df.content = content
+    return df
+
+
+# ── parse_input ──────────────────────────────────────────────────────────────
+
+def test_parse_returns_two_models():
+    assert len(parse_input(SAMPLE_INPUT)) == 2
+
+def test_parse_model_name():
+    assert parse_input(SAMPLE_INPUT)[0]['model'] == 'Qwen3.6-35B-A3B-TurboQuant-MLX-4bit'
+
+def test_parse_scores_complete():
+    scores = parse_input(SAMPLE_INPUT)[0]['scores']
+    assert set(scores.keys()) == {'MMLU', 'TRUTHFULQA', 'HUMANEVAL', 'MBPP', 'LIVECODEBENCH'}
+    assert scores['MMLU'] == {'accuracy': 83.3, 'samples': 30, 'time_s': 835.1}
+
+def test_parse_thinking_flag():
+    assert parse_input(SAMPLE_INPUT)[0]['thinking'] is True
 
 def test_parse_thinking_false():
-    results = parse_input(NO_THINK_INPUT)
-    assert len(results) == 1
-    assert results[0]['thinking'] is False
+    assert parse_input(NO_THINK_INPUT)[0]['thinking'] is False
 
+def test_parse_partial_model():
+    assert set(parse_input(SAMPLE_INPUT)[1]['scores'].keys()) == {'MMLU', 'TRUTHFULQA'}
+
+
+# ── DataFile ─────────────────────────────────────────────────────────────────
+
+def test_model_exists_true(tmp_path):
+    df = make_data_file(tmp_path, 'window.BENCHMARK_DATA = [{ model: "MyModel" }]\n')
+    assert df.model_exists('MyModel') is True
+
+def test_model_exists_false(tmp_path):
+    df = make_data_file(tmp_path)
+    assert df.model_exists('MyModel') is False
+
+def test_append_adds_model(tmp_path):
+    df = make_data_file(tmp_path)
+    df.append(SAMPLE_ENTRY)
+    assert 'model: "TestModel"' in df.content
+    assert 'MMLU' in df.content
+    assert df.content.strip().endswith(']')
+
+def test_append_valid_js_structure(tmp_path):
+    df = make_data_file(tmp_path)
+    df.append(SAMPLE_ENTRY)
+    assert df.content.startswith('window.BENCHMARK_DATA')
+    assert ']' in df.content
+
+def test_append_two_models(tmp_path):
+    df = make_data_file(tmp_path)
+    df.append(SAMPLE_ENTRY)
+    df.append({**SAMPLE_ENTRY, 'model': 'ModelB'})
+    assert 'model: "TestModel"' in df.content
+    assert 'model: "ModelB"' in df.content
+    assert df.content.strip().endswith(']')
+
+
+# ── read_default_device ──────────────────────────────────────────────────────
 
 def test_read_default_device_from_settings(tmp_path, monkeypatch):
     (tmp_path / 'app').mkdir()
@@ -115,30 +114,6 @@ def test_read_default_device_from_settings(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     assert read_default_device() == 'mbp-m1max-64GB-32c'
 
-
 def test_read_default_device_missing(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     assert read_default_device() is None
-
-
-def test_append_entry_two_models():
-    js = 'window.BENCHMARK_DATA = []\n'
-    entry1 = {
-        'model': 'ModelA',
-        'date': '2026-05-25',
-        'spec': {'parameters_b': 7, 'quantization': '4bit', 'size_gb': 4.10},
-        'abilities': {'thinking': True, 'mtp': False},
-        'scores': {'MMLU': {'accuracy': 80.0, 'samples': 30, 'time_s': 100.0}},
-    }
-    entry2 = {
-        'model': 'ModelB',
-        'date': '2026-05-25',
-        'spec': {'parameters_b': 14, 'quantization': '4bit', 'size_gb': 8.20},
-        'abilities': {'thinking': False, 'mtp': True},
-        'scores': {'MMLU': {'accuracy': 85.0, 'samples': 30, 'time_s': 120.0}},
-    }
-    js = append_entry(js, entry1)
-    js = append_entry(js, entry2)
-    assert 'model: "ModelA"' in js
-    assert 'model: "ModelB"' in js
-    assert js.strip().endswith(']')
