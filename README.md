@@ -15,7 +15,7 @@ Open `http://localhost:8080` in your browser.
 
 Merging to `main` triggers GitHub Actions, which deploys the `app/` directory to GitHub Pages automatically.
 
-Live URL: `https://tonyyang.github.io/omlx-intelligence-benchmark/`
+Live URL: `https://TonyPythoneer.github.io/omlx-intelligence-benchmark/`
 
 ## Add benchmark results
 
