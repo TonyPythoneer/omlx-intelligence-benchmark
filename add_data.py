@@ -110,18 +110,25 @@ def main():
         print('No model data found in input.', file=sys.stderr)
         sys.exit(1)
 
+    data = DataFile(args.device)
+    new_items = []
+    for item in parsed:
+        if data.model_exists(item['model']):
+            print(f'SKIP (already exists): {item["model"]}', file=sys.stderr)
+        else:
+            new_items.append(item)
+    if not new_items:
+        sys.exit(0)
+    parsed = new_items
+
     if args.params is not None and args.quant and args.size is not None:
         spec = {'parameters_b': args.params, 'quantization': args.quant,
                 'size_gb': round(args.size, 2), 'mtp': args.mtp}
     else:
         spec = prompt_spec()
 
-    data = DataFile(args.device)
     added = 0
     for item in parsed:
-        if data.model_exists(item['model']):
-            print(f'SKIP (already exists): {item["model"]}')
-            continue
         data.append({
             'model':      item['model'],
             'date':       str(date.today()),

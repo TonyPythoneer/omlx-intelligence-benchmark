@@ -512,7 +512,7 @@
   <header>
     <h1>oMLX Intelligence Benchmark</h1>
     <div class="header-controls">
-      <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export JS</button>
+      <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export Data</button>
       <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label Tiers</button>
       <select id="tier-filter" class="btn btn-secondary" onclick="void(0)">
         <option value="all">All Tiers</option>
@@ -622,8 +622,7 @@
 
     function openModal() {
       if (!currentData) return
-      const data = showAll ? currentData : currentData.filter(e => !e.deprecated)
-      const formatted = JSON.stringify(data, null, 2) + "\n"
+      const formatted = JSON.stringify(currentData, null, 2) + "\n"
       document.getElementById('modal-code-preview').textContent = formatted
       document.getElementById('export-modal').classList.add('show')
     }
@@ -635,7 +634,7 @@
     function copyFromModal() {
       const code = document.getElementById('modal-code-preview').textContent
       navigator.clipboard.writeText(code).then(() => {
-        showToast("Copied updated JS to clipboard!")
+        showToast("Copied updated data to clipboard!")
         closeModal()
       }).catch(err => {
         console.error("Failed to copy text: ", err)

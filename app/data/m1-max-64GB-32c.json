@@ -26,7 +26,7 @@
         "time_s": 835.1
       },
       "TRUTHFULQA": {
-        "accuracy": 90.0,
+        "accuracy": 90,
         "samples": 30,
         "time_s": 406.5
       },
@@ -36,15 +36,20 @@
         "time_s": 1117.7
       },
       "MBPP": {
-        "accuracy": 90.0,
+        "accuracy": 90,
         "samples": 30,
         "time_s": 1275.5
       },
       "LIVECODEBENCH": {
-        "accuracy": 60.0,
+        "accuracy": 60,
         "samples": 30,
         "time_s": 5767.2
       }
+    },
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
     }
   },
   {
@@ -61,8 +66,8 @@
     },
     "deprecated": false,
     "tiers": {
-      "opus": true,
-      "sonnet": false,
+      "opus": false,
+      "sonnet": true,
       "haiku": false
     },
     "scores": {
@@ -82,7 +87,7 @@
         "time_s": 657.4
       },
       "MBPP": {
-        "accuracy": 80.0,
+        "accuracy": 80,
         "samples": 30,
         "time_s": 617.3
       },
@@ -99,15 +104,15 @@
     "spec": {
       "parameters_b": 40,
       "quantization": "8bit",
-      "size_gb": 43.0
+      "size_gb": 43
     },
     "abilities": {
       "thinking": true,
       "mtp": false
     },
-    "deprecated": false,
+    "deprecated": true,
     "tiers": {
-      "opus": true,
+      "opus": false,
       "sonnet": false,
       "haiku": false
     },
@@ -118,22 +123,22 @@
         "time_s": 2792.8
       },
       "TRUTHFULQA": {
-        "accuracy": 90.0,
+        "accuracy": 90,
         "samples": 30,
         "time_s": 2646.3
       },
       "HUMANEVAL": {
         "accuracy": 93.3,
         "samples": 30,
-        "time_s": 2718.0
+        "time_s": 2718
       },
       "MBPP": {
-        "accuracy": 90.0,
+        "accuracy": 90,
         "samples": 30,
         "time_s": 4975.5
       },
       "LIVECODEBENCH": {
-        "accuracy": 40.0,
+        "accuracy": 40,
         "samples": 30,
         "time_s": 31038.6
       }
@@ -145,13 +150,13 @@
     "spec": {
       "parameters_b": 27,
       "quantization": "4bit",
-      "size_gb": 14.0
+      "size_gb": 14
     },
     "abilities": {
       "thinking": true,
       "mtp": false
     },
-    "deprecated": false,
+    "deprecated": true,
     "tiers": {
       "opus": true,
       "sonnet": false,
@@ -166,7 +171,7 @@
       "TRUTHFULQA": {
         "accuracy": 93.3,
         "samples": 30,
-        "time_s": 1613.0
+        "time_s": 1613
       }
     }
   },
@@ -190,12 +195,12 @@
     },
     "scores": {
       "MMLU": {
-        "accuracy": 40.0,
+        "accuracy": 40,
         "samples": 30,
         "time_s": 64.6
       },
       "TRUTHFULQA": {
-        "accuracy": 60.0,
+        "accuracy": 60,
         "samples": 30,
         "time_s": 35.2
       },
@@ -205,7 +210,7 @@
         "time_s": 132.9
       },
       "MBPP": {
-        "accuracy": 60.0,
+        "accuracy": 60,
         "samples": 30,
         "time_s": 166.6
       }
