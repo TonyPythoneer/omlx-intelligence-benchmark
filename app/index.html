@@ -749,10 +749,11 @@
       const subGroupRow = document.createElement('tr')
       subGroupRow.className = 'group-row'
 
-      const addSubGroup = (label, colspan) => {
+      const addSubGroup = (label, colspan, isStart) => {
         const th = document.createElement('th')
         th.textContent = label
         th.colSpan = colspan
+        if (isStart) th.classList.add('group-start')
         subGroupRow.appendChild(th)
       }
 
@@ -780,7 +781,7 @@
         addNonScore('')
         ALL_BENCHMARKS.forEach((bench) => {
           const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
-          addSubGroup(firstInGroup ? bench : '', 2)
+          addSubGroup(firstInGroup ? bench : '', 2, firstInGroup)
         })
       }
       thead.appendChild(subGroupRow)
