@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from add_result import parse_input, model_exists, append_entry
+from add_result import parse_input, model_exists, append_entry, read_default_device
 
 SAMPLE_INPUT = """
 --- Detail ---
@@ -107,6 +107,18 @@ def test_parse_thinking_false():
     results = parse_input(NO_THINK_INPUT)
     assert len(results) == 1
     assert results[0]['thinking'] is False
+
+
+def test_read_default_device_from_settings(tmp_path, monkeypatch):
+    settings = tmp_path / 'settings.js'
+    settings.write_text('window.SETTINGS = { defaultDevice: "mbp-m1max-64GB-32c" }')
+    monkeypatch.chdir(tmp_path)
+    assert read_default_device() == 'mbp-m1max-64GB-32c'
+
+
+def test_read_default_device_missing(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    assert read_default_device() is None
 
 
 def test_append_entry_two_models():

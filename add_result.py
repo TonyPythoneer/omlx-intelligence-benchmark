@@ -99,10 +99,24 @@ def prompt_spec() -> dict:
     }
 
 
+def read_default_device() -> str | None:
+    settings = Path('settings.js')
+    if not settings.exists():
+        return None
+    m = re.search(r'defaultDevice:\s*"([^"]+)"', settings.read_text())
+    return m.group(1) if m else None
+
+
 def main():
+    default_device = read_default_device()
     parser = argparse.ArgumentParser(description='Append benchmark results to data JS file.')
     parser.add_argument('input', nargs='?', help='Path to benchmark output file (default: stdin)')
-    parser.add_argument('--device', required=True, help='Device key, e.g. mbp-m1max-64GB-32c')
+    parser.add_argument(
+        '--device',
+        default=default_device,
+        required=default_device is None,
+        help=f'Device key (default: {default_device or "required"})',
+    )
     parser.add_argument('--params',  type=int,   help='parameters_b')
     parser.add_argument('--quant',               help='quantization string, e.g. 4bit')
     parser.add_argument('--size',    type=float, help='size_gb')
