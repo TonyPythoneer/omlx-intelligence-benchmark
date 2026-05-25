@@ -73,11 +73,15 @@ class DataFile:
 
 
 def prompt_spec() -> dict:
-    print('Enter model spec:')
-    params_b = int(input('  parameters_b (e.g. 35): ').strip())
-    quant    = input('  quantization (e.g. 4bit): ').strip()
-    size_gb  = round(float(input('  size_gb (e.g. 19.50): ').strip()), 2)
-    mtp_raw  = input('  mtp? (y/N): ').strip().lower()
+    with open('/dev/tty') as tty:
+        def ask(prompt):
+            print(prompt, end='', flush=True)
+            return tty.readline().strip()
+        print('Enter model spec:')
+        params_b = int(ask('  parameters_b (e.g. 35): '))
+        quant    = ask('  quantization (e.g. 4bit): ')
+        size_gb  = round(float(ask('  size_gb (e.g. 19.50): ')), 2)
+        mtp_raw  = ask('  mtp? (y/N): ').lower()
     return {'parameters_b': params_b, 'quantization': quant, 'size_gb': size_gb, 'mtp': mtp_raw == 'y'}
 
 
@@ -97,7 +101,10 @@ def main():
     parser.add_argument('--mtp',    action='store_true', default=False)
     args = parser.parse_args()
 
-    text = Path(args.input).read_text() if args.input else sys.stdin.read()
+    if args.input:
+        text = Path(args.input).read_text()
+    else:
+        text = sys.stdin.read()
     parsed = parse_input(text)
     if not parsed:
         print('No model data found in input.', file=sys.stderr)
@@ -116,12 +123,14 @@ def main():
             print(f'SKIP (already exists): {item["model"]}')
             continue
         data.append({
-            'model':     item['model'],
-            'date':      str(date.today()),
-            'spec':      {'parameters_b': spec['parameters_b'], 'quantization': spec['quantization'],
-                          'size_gb': spec['size_gb']},
-            'abilities': {'thinking': item['thinking'], 'mtp': spec['mtp']},
-            'scores':    item['scores'],
+            'model':      item['model'],
+            'date':       str(date.today()),
+            'spec':       {'parameters_b': spec['parameters_b'], 'quantization': spec['quantization'],
+                           'size_gb': spec['size_gb']},
+            'abilities':  {'thinking': item['thinking'], 'mtp': spec['mtp']},
+            'deprecated': False,
+            'tiers':      {'opus': False, 'sonnet': False, 'haiku': False},
+            'scores':     item['scores'],
         })
         print(f'Added: {item["model"]}')
         added += 1

@@ -740,6 +740,7 @@
         addGroup('Abilities', 2, true)
         addGroup('Score', scoreCols, true)
       } else {
+        addGroup('Deprecated', 1, true)
         addGroup('Tiers (Labeling)', 3, true)
       }
 
@@ -765,6 +766,7 @@
       }
 
       if (labelingMode) {
+        addNonScore('')
         addNonScore('')
         const th = document.createElement('th')
         th.setAttribute('colspan', '3')
@@ -801,9 +803,10 @@
 
       addLeaf('Model', 'model', false)
       if (labelingMode) {
-        addLeaf('Opus',   'tiers.opus',   true)
-        addLeaf('Sonnet', 'tiers.sonnet', false)
-        addLeaf('Haiku',  'tiers.haiku',  false)
+        addLeaf('Deprecated', 'deprecated',  true)
+        addLeaf('Opus',       'tiers.opus',   false)
+        addLeaf('Sonnet',     'tiers.sonnet', false)
+        addLeaf('Haiku',      'tiers.haiku',  false)
       } else {
         addLeaf('Params', 'spec.parameters_b',  true)
         addLeaf('Quant',  'spec.quantization',  false)
@@ -881,9 +884,26 @@
           return label
         }
 
-        addTd(createSwitch('opus'),   'cell-switch', true)
-        addTd(createSwitch('sonnet'), 'cell-switch', false)
-        addTd(createSwitch('haiku'),  'cell-switch', false)
+        const createDeprecatedSwitch = () => {
+          const label = document.createElement('label')
+          label.className = 'switch'
+          const input = document.createElement('input')
+          input.type = 'checkbox'
+          input.checked = !!entry.deprecated
+          input.addEventListener('change', (e) => {
+            entry.deprecated = e.target.checked
+          })
+          const slider = document.createElement('span')
+          slider.className = 'slider'
+          label.appendChild(input)
+          label.appendChild(slider)
+          return label
+        }
+
+        addTd(createDeprecatedSwitch(), 'cell-switch', true)
+        addTd(createSwitch('opus'),     'cell-switch', false)
+        addTd(createSwitch('sonnet'),   'cell-switch', false)
+        addTd(createSwitch('haiku'),    'cell-switch', false)
       } else {
         addTd(`${entry.spec.parameters_b}B`, 'num', true)
         addTd(entry.spec.quantization, '', false)

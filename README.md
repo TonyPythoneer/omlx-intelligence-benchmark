@@ -1,6 +1,6 @@
 # oMLX Intelligence Benchmark
 
-Personal benchmark comparison page for oMLX model results.
+Value the human time and looking for the alternative solution to set up the local model to maximize the working efficiency in the Mac device.
 
 ## Local development
 
