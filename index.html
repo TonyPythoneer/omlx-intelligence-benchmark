@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oMLX Intelligence Benchmark</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #fff;
+      color: #111;
+      padding: 32px 40px;
+      line-height: 1.5;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 32px;
+    }
+
+    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+
+    #device-select {
+      font-size: 0.875rem;
+      padding: 6px 10px;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      background: #fff;
+      cursor: pointer;
+    }
+
+    .table-wrapper { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+    }
+
+    th, td {
+      padding: 8px 14px;
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    thead tr.group-row th {
+      background: #f9fafb;
+      font-size: 0.7rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #6b7280;
+      border-bottom: 1px solid #e5e7eb;
+    }
+
+    thead tr.leaf-row th {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #374151;
+      border-bottom: 2px solid #e5e7eb;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    thead tr.leaf-row th:hover { background: #f3f4f6; }
+
+    thead tr.leaf-row th.sort-asc::after  { content: ' ↑'; color: #2563eb; }
+    thead tr.leaf-row th.sort-desc::after { content: ' ↓'; color: #2563eb; }
+    thead tr.leaf-row th.sort-asc,
+    thead tr.leaf-row th.sort-desc { color: #2563eb; }
+
+    tbody tr { border-bottom: 1px solid #f3f4f6; }
+    tbody tr:hover { background: #f9fafb; }
+
+    td.model-name { font-weight: 500; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+
+    td.num { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; }
+    td.score { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; }
+    td.missing { color: #9ca3af; font-family: 'SF Mono', 'Fira Code', monospace; }
+
+    .ability-yes { color: #16a34a; font-weight: 700; }
+    .ability-no  { color: #d1d5db; }
+
+    /* Group boundary: left border on first column of each group */
+    .group-start { border-left: 2px solid #e5e7eb; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>oMLX Intelligence Benchmark</h1>
+    <select id="device-select"></select>
+  </header>
+  <div class="table-wrapper">
+    <table id="benchmark-table">
+      <thead></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script src="settings.js"></script>
+  <script>
+    // ── Config ──────────────────────────────────────────────────────────────
+
+    const CATEGORIES = {
+      "Knowledge":               ["MMLU"],
+      "Commonsense & Reasoning": ["TRUTHFULQA"],
+      "Coding":                  ["HUMANEVAL", "MBPP", "LIVECODEBENCH"],
+    }
+
+    // All benchmark keys in display order
+    const ALL_BENCHMARKS = Object.values(CATEGORIES).flat()
+
+    // ── Sort state ───────────────────────────────────────────────────────────
+
+    let sortCol = null
+    let sortDir = 1   // 1 = ascending, -1 = descending
+
+    // ── Helpers ──────────────────────────────────────────────────────────────
+
+    function formatTime(time_s) {
+      if (time_s < 60) return `${Math.round(time_s)}s`
+      return `${Math.round(time_s / 60)}m`
+    }
+
+    function formatScore(scoreObj) {
+      if (!scoreObj) return null
+      return `${scoreObj.accuracy.toFixed(1)}% (${formatTime(scoreObj.time_s)})`
+    }
+
+    function getSortValue(entry, col) {
+      if (col === 'model')              return entry.model
+      if (col === 'spec.parameters_b') return entry.spec.parameters_b
+      if (col === 'spec.quantization') return entry.spec.quantization
+      if (col === 'spec.size_gb')      return entry.spec.size_gb
+      if (col === 'abilities.thinking')return entry.abilities.thinking ? 1 : 0
+      if (col === 'abilities.mtp')     return entry.abilities.mtp     ? 1 : 0
+      const score = entry.scores[col]
+      return score ? score.accuracy : null
+    }
+
+    function sortData(data) {
+      if (!sortCol) return data
+      return [...data].sort((a, b) => {
+        const av = getSortValue(a, sortCol)
+        const bv = getSortValue(b, sortCol)
+        if (av === null && bv === null) return 0
+        if (av === null) return 1   // missing always last
+        if (bv === null) return -1
+        if (typeof av === 'string') return sortDir * av.localeCompare(bv)
+        return sortDir * (av - bv)
+      })
+    }
+
+    // ── Render ───────────────────────────────────────────────────────────────
+
+    function buildHeaders() {
+      const thead = document.querySelector('#benchmark-table thead')
+      thead.innerHTML = ''
+
+      // Row 1: group headers
+      const groupRow = document.createElement('tr')
+      groupRow.className = 'group-row'
+
+      const addGroup = (label, colspan, isStart) => {
+        const th = document.createElement('th')
+        th.textContent = label
+        th.colSpan = colspan
+        if (isStart) th.classList.add('group-start')
+        groupRow.appendChild(th)
+      }
+
+      addGroup('Model', 1, false)
+      addGroup('Spec', 3, true)
+      addGroup('Abilities', 2, true)
+      Object.entries(CATEGORIES).forEach(([cat, benches]) => {
+        addGroup(cat, benches.length, true)
+      })
+      thead.appendChild(groupRow)
+
+      // Row 2: leaf headers (sortable)
+      const leafRow = document.createElement('tr')
+      leafRow.className = 'leaf-row'
+
+      const addLeaf = (label, col, isStart) => {
+        const th = document.createElement('th')
+        th.textContent = label
+        th.dataset.col = col
+        if (isStart) th.classList.add('group-start')
+        if (sortCol === col) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc')
+        th.addEventListener('click', () => onSort(col))
+        leafRow.appendChild(th)
+      }
+
+      addLeaf('Model',   'model',            false)
+      addLeaf('Params',  'spec.parameters_b', true)
+      addLeaf('Quant',   'spec.quantization', false)
+      addLeaf('Size',    'spec.size_gb',      false)
+      addLeaf('Think',   'abilities.thinking', true)
+      addLeaf('MTP',     'abilities.mtp',      false)
+      ALL_BENCHMARKS.forEach((bench) => {
+        const firstInGroup = Object.values(CATEGORIES).some(arr => arr[0] === bench)
+        addLeaf(bench, bench, firstInGroup)
+      })
+      thead.appendChild(leafRow)
+    }
+
+    function buildRow(entry) {
+      const tr = document.createElement('tr')
+
+      const addTd = (content, cls, isStart) => {
+        const td = document.createElement('td')
+        td.innerHTML = content
+        if (cls)     td.className = cls
+        if (isStart) td.classList.add('group-start')
+        tr.appendChild(td)
+      }
+
+      addTd(entry.model, 'model-name', false)
+      addTd(`${entry.spec.parameters_b}B`, 'num', true)
+      addTd(entry.spec.quantization, '', false)
+      addTd(`${entry.spec.size_gb.toFixed(2)} GB`, 'num', false)
+      addTd(
+        entry.abilities.thinking
+          ? '<span class="ability-yes">✓</span>'
+          : '<span class="ability-no">✗</span>',
+        '', true
+      )
+      addTd(
+        entry.abilities.mtp
+          ? '<span class="ability-yes">✓</span>'
+          : '<span class="ability-no">✗</span>',
+        '', false
+      )
+      ALL_BENCHMARKS.forEach(bench => {
+        const score = entry.scores[bench]
+        const formatted = formatScore(score)
+        const firstInGroup = Object.values(CATEGORIES).some(arr => arr[0] === bench)
+        if (formatted) {
+          addTd(formatted, 'score', firstInGroup)
+        } else {
+          addTd('—', 'missing', firstInGroup)
+        }
+      })
+
+      return tr
+    }
+
+    function renderTable(data) {
+      const sorted = sortData(data)
+      buildHeaders()
+      const tbody = document.querySelector('#benchmark-table tbody')
+      tbody.innerHTML = ''
+      sorted.forEach(entry => tbody.appendChild(buildRow(entry)))
+    }
+
+    // ── Sort handler ─────────────────────────────────────────────────────────
+
+    function onSort(col) {
+      if (sortCol === col) {
+        sortDir = sortDir === 1 ? -1 : 1
+      } else {
+        sortCol = col
+        sortDir = 1
+      }
+      if (window.BENCHMARK_DATA) renderTable(window.BENCHMARK_DATA)
+    }
+
+    // ── Device loading ───────────────────────────────────────────────────────
+
+    function loadDevice(deviceKey) {
+      const old = document.getElementById('data-script')
+      if (old) old.remove()
+      window.BENCHMARK_DATA = null
+      const script = document.createElement('script')
+      script.id = 'data-script'
+      script.src = `data/${deviceKey}.js`
+      script.onload = () => renderTable(window.BENCHMARK_DATA)
+      document.head.appendChild(script)
+    }
+
+    function initDeviceDropdown() {
+      const select = document.getElementById('device-select')
+      Object.entries(window.SETTINGS.devices).forEach(([key, info]) => {
+        const opt = document.createElement('option')
+        opt.value = key
+        opt.textContent = `${info.chip} · ${info.memory} · ${info.gpus}c`
+        if (key === window.SETTINGS.defaultDevice) opt.selected = true
+        select.appendChild(opt)
+      })
+      select.addEventListener('change', e => loadDevice(e.target.value))
+    }
+
+    // ── Boot ─────────────────────────────────────────────────────────────────
+
+    initDeviceDropdown()
+    loadDevice(window.SETTINGS.defaultDevice)
+  </script>
+</body>
+</html>
