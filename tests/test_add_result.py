@@ -1,8 +1,14 @@
 import sys
+import json
 from pathlib import Path
+
+import pytest
+
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from add_data import parse_input, DataFile, read_default_device
+from add_data import DataFile, parse_input
+
+TMPL_PATH = Path(__file__).parent.parent / 'app' / 'data' / 'device.js.template'
 
 SAMPLE_INPUT = """
 --- Detail ---
@@ -33,87 +39,122 @@ MMLU                 70.0%        21      30     500.0     No
 """
 
 SAMPLE_ENTRY = {
-    'model': 'TestModel',
-    'date': '2026-05-25',
-    'spec': {'parameters_b': 7, 'quantization': '4bit', 'size_gb': 4.10},
-    'abilities': {'thinking': True, 'mtp': False},
-    'scores': {'MMLU': {'accuracy': 80.0, 'samples': 30, 'time_s': 100.0}},
+    "model": "TestModel",
+    "date": "2026-05-25",
+    "spec": {"parameters_b": 7, "quantization": "4bit", "size_gb": 4.10},
+    "abilities": {"thinking": True, "mtp": False},
+    "scores": {"MMLU": {"accuracy": 80.0, "samples": 30, "time_s": 100.0}},
 }
 
 
-def make_data_file(tmp_path, content='window.BENCHMARK_DATA = []\n', key='test') -> DataFile:
-    data_dir = tmp_path / 'app' / 'data'
-    data_dir.mkdir(parents=True, exist_ok=True)
-    (data_dir / f'{key}.js').write_text(content)
-    df = DataFile.__new__(DataFile)
-    df.path = data_dir / f'{key}.js'
-    df.content = content
-    return df
+@pytest.fixture
+def make_data_file():
+    tmpl_raw = TMPL_PATH.read_text().removeprefix('window.BENCHMARK_DATA = ').rstrip().rstrip(';')
+    tmpl_data = json.loads(tmpl_raw)
+
+    def _factory(entries=None) -> DataFile:
+        df = DataFile.__new__(DataFile)
+        df.path = None
+        df._data = list(entries) if entries is not None else list(tmpl_data)
+        return df
+
+    return _factory
 
 
 # ── parse_input ──────────────────────────────────────────────────────────────
 
+
 def test_parse_returns_two_models():
     assert len(parse_input(SAMPLE_INPUT)) == 2
 
+
 def test_parse_model_name():
-    assert parse_input(SAMPLE_INPUT)[0]['model'] == 'Qwen3.6-35B-A3B-TurboQuant-MLX-4bit'
+    assert (
+        parse_input(SAMPLE_INPUT)[0]["model"] == "Qwen3.6-35B-A3B-TurboQuant-MLX-4bit"
+    )
+
 
 def test_parse_scores_complete():
-    scores = parse_input(SAMPLE_INPUT)[0]['scores']
-    assert set(scores.keys()) == {'MMLU', 'TRUTHFULQA', 'HUMANEVAL', 'MBPP', 'LIVECODEBENCH'}
-    assert scores['MMLU'] == {'accuracy': 83.3, 'samples': 30, 'time_s': 835.1}
+    scores = parse_input(SAMPLE_INPUT)[0]["scores"]
+    assert set(scores.keys()) == {
+        "MMLU",
+        "TRUTHFULQA",
+        "HUMANEVAL",
+        "MBPP",
+        "LIVECODEBENCH",
+    }
+    assert scores["MMLU"] == {"accuracy": 83.3, "samples": 30, "time_s": 835.1}
 
-def test_parse_thinking_flag():
-    assert parse_input(SAMPLE_INPUT)[0]['thinking'] is True
 
-def test_parse_thinking_false():
-    assert parse_input(NO_THINK_INPUT)[0]['thinking'] is False
+@pytest.mark.parametrize(
+    "text,expected",
+    [
+        (SAMPLE_INPUT, True),
+        (NO_THINK_INPUT, False),
+    ],
+    ids=["thinking", "no_thinking"],
+)
+def test_parse_thinking_flag(text, expected):
+    assert parse_input(text)[0]["thinking"] is expected
+
 
 def test_parse_partial_model():
-    assert set(parse_input(SAMPLE_INPUT)[1]['scores'].keys()) == {'MMLU', 'TRUTHFULQA'}
+    assert set(parse_input(SAMPLE_INPUT)[1]["scores"].keys()) == {"MMLU", "TRUTHFULQA"}
 
 
 # ── DataFile ─────────────────────────────────────────────────────────────────
 
-def test_model_exists_true(tmp_path):
-    df = make_data_file(tmp_path, 'window.BENCHMARK_DATA = [{ model: "MyModel" }]\n')
-    assert df.model_exists('MyModel') is True
 
-def test_model_exists_false(tmp_path):
-    df = make_data_file(tmp_path)
-    assert df.model_exists('MyModel') is False
+@pytest.mark.parametrize(
+    "entries,name,expected",
+    [
+        ([{"model": "MyModel"}], "MyModel", True),
+        ([], "MyModel", False),
+    ],
+    ids=["model_present", "model_absent"],
+)
+def test_model_exists(make_data_file, entries, name, expected):
+    assert make_data_file(entries).model_exists(name) is expected
 
-def test_append_adds_model(tmp_path):
-    df = make_data_file(tmp_path)
+
+def test_append_adds_model(make_data_file):
+    df = make_data_file()
     df.append(SAMPLE_ENTRY)
-    assert 'model: "TestModel"' in df.content
-    assert 'MMLU' in df.content
-    assert df.content.strip().endswith(']')
+    assert any(e["model"] == "TestModel" for e in df._data)
+    assert "MMLU" in df._data[0]["scores"]
 
-def test_append_valid_js_structure(tmp_path):
-    df = make_data_file(tmp_path)
-    df.append(SAMPLE_ENTRY)
-    assert df.content.startswith('window.BENCHMARK_DATA')
-    assert ']' in df.content
 
-def test_append_two_models(tmp_path):
-    df = make_data_file(tmp_path)
+def test_append_valid_js_structure(tmp_path, make_data_file):
+    df = make_data_file()
+    df.path = tmp_path / "test.js"
     df.append(SAMPLE_ENTRY)
-    df.append({**SAMPLE_ENTRY, 'model': 'ModelB'})
-    assert 'model: "TestModel"' in df.content
-    assert 'model: "ModelB"' in df.content
-    assert df.content.strip().endswith(']')
+    df.save()
+    text = df.path.read_text()
+    assert text.startswith("window.BENCHMARK_DATA")
+    assert text.strip().endswith("]")
+
+
+def test_append_two_models(make_data_file):
+    df = make_data_file()
+    df.append(SAMPLE_ENTRY)
+    df.append({**SAMPLE_ENTRY, "model": "ModelB"})
+    models = [e["model"] for e in df._data]
+    assert "TestModel" in models
+    assert "ModelB" in models
 
 
 # ── read_default_device ──────────────────────────────────────────────────────
 
+
 def test_read_default_device_from_settings(tmp_path, monkeypatch):
-    (tmp_path / 'app').mkdir()
-    (tmp_path / 'app' / 'settings.js').write_text('window.SETTINGS = { defaultDevice: "mbp-m1max-64GB-32c" }')
+    (tmp_path / "app").mkdir()
+    (tmp_path / "app" / "settings.js").write_text(
+        'window.SETTINGS = { defaultDevice: "mbp-m1max-64GB-32c" }'
+    )
     monkeypatch.chdir(tmp_path)
-    assert read_default_device() == 'mbp-m1max-64GB-32c'
+    assert DataFile.read_default_device() == "mbp-m1max-64GB-32c"
+
 
 def test_read_default_device_missing(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
-    assert read_default_device() is None
+    assert DataFile.read_default_device() is None
