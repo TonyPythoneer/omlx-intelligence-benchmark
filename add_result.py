@@ -13,6 +13,7 @@ def parse_input(text: str) -> list[dict]:
     results = []
     # Each model block starts with "Model:"
     blocks = re.split(r'(?=^Model:)', text, flags=re.MULTILINE)
+    # Column layout: Benchmark  Accuracy%  Correct(skipped)  Total(=samples)  Time(s)  Think
     score_re = re.compile(
         r'^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)',
         re.MULTILINE,
@@ -28,7 +29,7 @@ def parse_input(text: str) -> list[dict]:
         for m in score_re.finditer(block):
             bench    = m.group(1)
             accuracy = float(m.group(2))
-            samples  = int(m.group(3))
+            samples  = int(m.group(3))  # group(3) = Total column; Correct column is skipped
             time_s   = float(m.group(4))
             think    = m.group(5).lower() == 'yes'
             scores[bench] = {'accuracy': accuracy, 'samples': samples, 'time_s': time_s}
@@ -85,7 +86,7 @@ def append_entry(js_content: str, entry: dict) -> str:
 
 
 def prompt_spec() -> dict:
-    print('Enter model spec (press Enter to skip optional fields):')
+    print('Enter model spec:')
     params_b = int(input('  parameters_b (e.g. 35): ').strip())
     quant    = input('  quantization (e.g. 4bit): ').strip()
     size_gb  = round(float(input('  size_gb (e.g. 19.50): ').strip()), 2)
@@ -119,7 +120,7 @@ def main():
         sys.exit(1)
 
     # Resolve spec — CLI flags take priority, otherwise prompt
-    if args.params and args.quant and args.size is not None:
+    if args.params is not None and args.quant and args.size is not None:
         spec = {
             'parameters_b': args.params,
             'quantization': args.quant,

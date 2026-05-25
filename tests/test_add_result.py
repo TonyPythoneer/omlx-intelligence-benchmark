@@ -91,3 +91,42 @@ def test_append_entry_valid_js_structure():
     result = append_entry(js, entry)
     assert result.startswith('window.BENCHMARK_DATA')
     assert ']' in result
+
+
+NO_THINK_INPUT = """
+--- Detail ---
+
+Model: SomeModel-NoThink
+Benchmark         Accuracy   Correct   Total   Time(s)   Think
+--------------------------------------------------------------
+MMLU                 70.0%        21      30     500.0     No
+"""
+
+
+def test_parse_thinking_false():
+    results = parse_input(NO_THINK_INPUT)
+    assert len(results) == 1
+    assert results[0]['thinking'] is False
+
+
+def test_append_entry_two_models():
+    js = 'window.BENCHMARK_DATA = []\n'
+    entry1 = {
+        'model': 'ModelA',
+        'date': '2026-05-25',
+        'spec': {'parameters_b': 7, 'quantization': '4bit', 'size_gb': 4.10},
+        'abilities': {'thinking': True, 'mtp': False},
+        'scores': {'MMLU': {'accuracy': 80.0, 'samples': 30, 'time_s': 100.0}},
+    }
+    entry2 = {
+        'model': 'ModelB',
+        'date': '2026-05-25',
+        'spec': {'parameters_b': 14, 'quantization': '4bit', 'size_gb': 8.20},
+        'abilities': {'thinking': False, 'mtp': True},
+        'scores': {'MMLU': {'accuracy': 85.0, 'samples': 30, 'time_s': 120.0}},
+    }
+    js = append_entry(js, entry1)
+    js = append_entry(js, entry2)
+    assert 'model: "ModelA"' in js
+    assert 'model: "ModelB"' in js
+    assert js.strip().endswith(']')
