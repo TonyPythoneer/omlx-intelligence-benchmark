@@ -512,6 +512,7 @@
   <header>
     <h1>oMLX Intelligence Benchmark</h1>
     <div class="header-controls">
+      <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export JS</button>
       <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label Tiers</button>
       <select id="tier-filter" class="btn btn-secondary" onclick="void(0)">
         <option value="all">All Tiers</option>
@@ -523,7 +524,6 @@
         <input type="checkbox" id="show-all-cb" onchange="toggleShowAll()">
         Show Deprecated
       </label>
-      <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export JS</button>
       <select id="device-select"></select>
     </div>
   </header>
