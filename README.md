@@ -28,10 +28,6 @@ python add_result.py output.txt \
 ## Run tests
 
 ```bash
-# Set up venv (first time)
-python3 -m venv .venv
-.venv/bin/pip install pytest
-
-# Run tests
-.venv/bin/pytest tests/test_add_result.py -v
+make setup   # first time only
+make test
 ```
