@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>oMLX Intelligence Benchmark</title>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -38,7 +39,7 @@
     .header-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
 
     #device-select {
@@ -65,6 +66,29 @@
       border-color: #2563eb;
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
+
+    #tier-filter {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 6px 12px;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      background: #fff;
+      color: #334155;
+      cursor: pointer;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      outline: none;
+    }
+
+    #tier-filter:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .score-high { color: #059669; font-weight: 600; }
+    .score-mid  { color: #d97706; font-weight: 500; }
+    .score-low  { color: #dc2626; font-weight: 500; }
 
     .btn {
       font-family: inherit;
@@ -454,6 +478,14 @@
       justify-content: flex-end;
       gap: 12px;
     }
+
+    footer {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-top: 24px;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -461,6 +493,12 @@
     <h1>oMLX Intelligence Benchmark</h1>
     <div class="header-controls">
       <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">Label Tiers</button>
+      <select id="tier-filter" class="btn btn-secondary" style="display:none;" onclick="void(0)">
+        <option value="all">All Tiers</option>
+        <option value="opus">Opus</option>
+        <option value="sonnet">Sonnet</option>
+        <option value="haiku">Haiku</option>
+      </select>
       <button id="show-all-btn" class="btn btn-secondary" onclick="toggleShowAll()">Show All</button>
       <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export JS</button>
       <select id="device-select"></select>
@@ -472,6 +510,8 @@
       <tbody></tbody>
     </table>
   </div>
+
+  <footer>created by TonyPythoneer</footer>
 
   <!-- Export Modal -->
   <div id="export-modal" class="modal-overlay">
@@ -510,24 +550,48 @@
     // Precomputed set of benchmarks that start a category group
     const GROUP_START_BENCHMARKS = new Set(Object.values(CATEGORIES).map(arr => arr[0]))
 
-    // ── Labeling state & logic ────────────────────────────────────────────────
+    // ── Labeling (edit) state & logic ─────────────────────────────────────────
     let labelingMode = false
 
     function toggleLabeling() {
       labelingMode = !labelingMode
       const btn = document.getElementById('toggle-labeling')
       const exportBtn = document.getElementById('export-data')
+      const tierFilter = document.getElementById('tier-filter')
       if (labelingMode) {
         btn.classList.add('active')
-        btn.textContent = 'Exit Labeling'
+        btn.textContent = '✏ Edit Tiers'
         exportBtn.style.display = 'inline-flex'
+        tierFilter.style.display = 'inline-flex'
       } else {
         btn.classList.remove('active')
         btn.textContent = 'Label Tiers'
         exportBtn.style.display = 'none'
+        tierFilter.style.display = 'none'
+        tierFilter.value = 'all'
+        tierFilterIdx = -1
       }
       buildHeaders()
       renderTable(window.BENCHMARK_DATA)
+    }
+
+    // ── Tier filter ──────────────────────────────────────────────────────────
+    let tierFilterIdx = -1   // -1 = all, 0 = opus, 1 = sonnet, 2 = haiku
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const tf = document.getElementById('tier-filter')
+      tf.addEventListener('change', () => {
+        tierFilterIdx = tf.value === 'all' ? -1 : { opus: 0, sonnet: 1, haiku: 2 }[tf.value]
+        renderTable(window.BENCHMARK_DATA)
+      })
+    })
+
+    function getTierFilterMatch(entry) {
+      if (tierFilterIdx < 0) return true
+      const tiers = entry.tiers
+      if (!tiers) return false
+      const tierKeys = ['opus', 'sonnet', 'haiku']
+      return tiers[tierKeys[tierFilterIdx]]
     }
 
     // ── Deprecated filter ─────────────────────────────────────────────────────
@@ -584,14 +648,27 @@
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
-    function formatTime(time_s) {
-      if (time_s < 60) return `${Math.round(time_s)}s`
-      return `${Math.round(time_s / 60)}m`
+    function formatTimeShort(time_s) {
+      const secs = Math.round(time_s)
+      if (secs < 60) return `${secs}s`
+      const mins = Math.round(secs / 60)
+      return `${mins}m`
     }
 
-    function formatScore(scoreObj) {
-      if (!scoreObj) return null
-      return `${scoreObj.accuracy.toFixed(1)}% (${formatTime(scoreObj.time_s)})`
+    function scoreColorClass(accuracy) {
+      if (!accuracy) return ''
+      if (accuracy >= 90) return 'score-high'
+      if (accuracy >= 80) return 'score-mid'
+      return 'score-low'
+    }
+
+    function getScoreDisplay(scoreObj) {
+      if (!scoreObj) return { accuracy: null, timeText: null }
+      return {
+        accuracy: scoreObj.accuracy.toFixed(1),
+        timeText: formatTimeShort(scoreObj.time_s),
+        accuracyClass: scoreColorClass(scoreObj.accuracy),
+      }
     }
 
     function getSortValue(entry, col) {
@@ -604,6 +681,13 @@
       if (col === 'tiers.opus')        return (entry.tiers && entry.tiers.opus) ? 1 : 0
       if (col === 'tiers.sonnet')      return (entry.tiers && entry.tiers.sonnet) ? 1 : 0
       if (col === 'tiers.haiku')       return (entry.tiers && entry.tiers.haiku) ? 1 : 0
+      if (col.startsWith('scores.')) {
+        const parts = col.split('.')
+        const bench = parts[1]
+        const key = parts[2]
+        const score = entry.scores[bench]
+        return score ? score[key] : null
+      }
       const score = entry.scores[col]
       return score ? score.accuracy : null
     }
@@ -627,7 +711,7 @@
       const thead = document.querySelector('#benchmark-table thead')
       thead.innerHTML = ''
 
-      // Row 1: group headers
+      // Row 1: category group headers
       const groupRow = document.createElement('tr')
       groupRow.className = 'group-row'
 
@@ -639,18 +723,61 @@
         groupRow.appendChild(th)
       }
 
+      const scoreCols = ALL_BENCHMARKS.length * 2
       addGroup('Model', 1, false)
-      addGroup('Spec', 3, true)
-      addGroup('Abilities', 2, true)
-      if (labelingMode) {
+      if (!labelingMode) {
+        addGroup('Spec', 3, true)
+        addGroup('Abilities', 2, true)
+        addGroup('Score', scoreCols, true)
+      } else {
         addGroup('Tiers (Labeling)', 3, true)
       }
-      Object.entries(CATEGORIES).forEach(([cat, benches]) => {
-        addGroup(cat, benches.length, true)
-      })
+
       thead.appendChild(groupRow)
 
-      // Row 2: leaf headers (sortable)
+      // Row 2: "Accuracy" sub-group + leaf row (sortable)
+      const subGroupRow = document.createElement('tr')
+      subGroupRow.className = 'leaf-row'
+      subGroupRow.style.borderBottom = 'none'
+      subGroupRow.style.background = '#fff'
+
+      const addSubGroup = (label, colspan) => {
+        const th = document.createElement('th')
+        th.textContent = label
+        th.colSpan = colspan
+        subGroupRow.appendChild(th)
+      }
+
+      // Non-score columns: span 1
+      const addNonScore = (label) => {
+        const th = document.createElement('th')
+        th.textContent = label
+        subGroupRow.appendChild(th)
+      }
+
+      if (labelingMode) {
+        // In edit mode: skip non-score columns
+        const th = document.createElement('th')
+        th.setAttribute('colspan', '3')
+        th.textContent = '—'
+        th.style.textAlign = 'center'
+        th.style.color = '#94a3b8'
+        subGroupRow.appendChild(th)
+      } else {
+        addNonScore('')
+        addNonScore('')
+        addNonScore('')
+        addNonScore('')
+        addNonScore('')
+        addNonScore('')
+        ALL_BENCHMARKS.forEach((bench) => {
+          const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
+          addSubGroup(firstInGroup ? bench : '', 2)
+        })
+      }
+      thead.appendChild(subGroupRow)
+
+      // Row 3: leaf headers (sortable)
       const leafRow = document.createElement('tr')
       leafRow.className = 'leaf-row'
 
@@ -675,7 +802,9 @@
         addLeaf('Haiku',  'tiers.haiku',       false)
       }
       ALL_BENCHMARKS.forEach((bench) => {
-        addLeaf(bench, bench, GROUP_START_BENCHMARKS.has(bench))
+        const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
+        addLeaf('Acc', 'scores.' + bench + '.accuracy', firstInGroup)
+        addLeaf('Time', 'scores.' + bench + '.time_s', false)
       })
       thead.appendChild(leafRow)
     }
@@ -766,13 +895,17 @@
       }
 
       ALL_BENCHMARKS.forEach(bench => {
-        const score = entry.scores[bench]
-        const formatted = formatScore(score)
+        const sd = getScoreDisplay(entry.scores[bench])
         const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
-        if (formatted) {
-          addTd(formatted, 'score', firstInGroup)
+        if (sd.accuracy !== null) {
+          addTd(`<span class="${sd.accuracyClass}">${sd.accuracy}%</span>`, 'score', firstInGroup)
         } else {
           addTd('—', 'missing', firstInGroup)
+        }
+        if (sd.timeText !== null) {
+          addTd(sd.timeText, 'num', false)
+        } else {
+          addTd('—', 'missing', false)
         }
       })
 
@@ -780,7 +913,10 @@
     }
 
     function renderTable(data) {
-      const filtered = showAll ? data : data.filter(e => !e.deprecated)
+      let filtered = showAll ? data : data.filter(e => !e.deprecated)
+      if (tierFilterIdx >= 0) {
+        filtered = filtered.filter(getTierFilterMatch)
+      }
       const sorted = sortData(filtered)
       updateSortIndicators()
       const tbody = document.querySelector('#benchmark-table tbody')
