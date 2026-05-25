@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from add_data import DataFile, parse_input
 
-TMPL_PATH = Path(__file__).parent.parent / 'app' / 'data' / 'device.js.template'
+TMPL_PATH = Path(__file__).parent.parent / 'app' / 'data' / 'device.json.template'
 
 SAMPLE_INPUT = """
 --- Detail ---
@@ -49,8 +49,7 @@ SAMPLE_ENTRY = {
 
 @pytest.fixture
 def make_data_file():
-    tmpl_raw = TMPL_PATH.read_text().removeprefix('window.BENCHMARK_DATA = ').rstrip().rstrip(';')
-    tmpl_data = json.loads(tmpl_raw)
+    tmpl_data = json.loads(TMPL_PATH.read_text())
 
     def _factory(entries=None) -> DataFile:
         df = DataFile.__new__(DataFile)
@@ -124,14 +123,14 @@ def test_append_adds_model(make_data_file):
     assert "MMLU" in df._data[0]["scores"]
 
 
-def test_append_valid_js_structure(tmp_path, make_data_file):
+def test_append_valid_json_structure(tmp_path, make_data_file):
     df = make_data_file()
-    df.path = tmp_path / "test.js"
+    df.path = tmp_path / "test.json"
     df.append(SAMPLE_ENTRY)
     df.save()
-    text = df.path.read_text()
-    assert text.startswith("window.BENCHMARK_DATA")
-    assert text.strip().endswith("]")
+    loaded = json.loads(df.path.read_text())
+    assert isinstance(loaded, list)
+    assert loaded[-1]["model"] == "TestModel"
 
 
 def test_append_two_models(make_data_file):
@@ -148,8 +147,8 @@ def test_append_two_models(make_data_file):
 
 def test_read_default_device_from_settings(tmp_path, monkeypatch):
     (tmp_path / "app").mkdir()
-    (tmp_path / "app" / "settings.js").write_text(
-        'window.SETTINGS = { defaultDevice: "mbp-m1max-64GB-32c" }'
+    (tmp_path / "app" / "settings.json").write_text(
+        '{"defaultDevice": "mbp-m1max-64GB-32c", "devices": {}}'
     )
     monkeypatch.chdir(tmp_path)
     assert DataFile.read_default_device() == "mbp-m1max-64GB-32c"
@@ -190,10 +189,7 @@ def test_load_preserves_deprecated_field(tmp_path, make_data_file):
     """Deprecated field survives a save+reload cycle."""
     entry = {**SAMPLE_ENTRY, "deprecated": True}
     df = make_data_file([entry])
-    df.path = tmp_path / "test.js"
+    df.path = tmp_path / "test.json"
     df.save()
-
-    # Re-read and check deprecated is preserved
-    raw = df.path.read_text().removeprefix('window.BENCHMARK_DATA = ').rstrip().rstrip(';')
-    loaded = json.loads(raw)
+    loaded = json.loads(df.path.read_text())
     assert loaded[-1].get("deprecated") is True

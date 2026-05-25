@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse benchmark runner output and append to the correct data JS file."""
+"""Parse benchmark runner output and append to the correct device JSON data file."""
 
 import sys
 import re
@@ -39,18 +39,18 @@ def parse_input(text: str) -> list[dict]:
 
 
 class DataFile:
-    """Manages reading, appending, and saving a device's benchmark JS data file."""
+    """Manages reading, appending, and saving a device's benchmark JSON data file."""
 
     APP_DIR       = Path('app')
-    SETTINGS_FILE = APP_DIR / 'settings.js'
+    SETTINGS_FILE = APP_DIR / 'settings.json'
     DATA_DIR      = APP_DIR / 'data'
-    TMPL_FILE     = DATA_DIR / 'device.js.template'
+    TMPL_FILE     = DATA_DIR / 'device.json.template'
 
     def __init__(self, device_key: str):
-        self.path = self.DATA_DIR / f'{device_key}.js'
+        self.path = self.DATA_DIR / f'{device_key}.json'
         src = self.path if self.path.exists() else self.TMPL_FILE
-        raw = src.read_text().removeprefix('window.BENCHMARK_DATA = ').rstrip().rstrip(';')
-        self._data: list[dict] = json.loads(raw)
+        with open(src) as f:
+            self._data: list[dict] = json.load(f)
 
     def model_exists(self, model_name: str) -> bool:
         return any(e['model'] == model_name for e in self._data)
@@ -60,14 +60,16 @@ class DataFile:
 
     def save(self) -> None:
         self.path.parent.mkdir(exist_ok=True)
-        self.path.write_text('window.BENCHMARK_DATA = ' + json.dumps(self._data, indent=2) + '\n')
+        with open(self.path, 'w') as f:
+            json.dump(self._data, f, indent=2)
+            f.write('\n')
 
     @staticmethod
     def read_default_device() -> str | None:
         if not DataFile.SETTINGS_FILE.exists():
             return None
-        m = re.search(r'defaultDevice:\s*"([^"]+)"', DataFile.SETTINGS_FILE.read_text())
-        return m.group(1) if m else None
+        with open(DataFile.SETTINGS_FILE) as f:
+            return json.load(f).get('defaultDevice')
 
 
 def prompt_spec() -> dict:
