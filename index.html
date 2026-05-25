@@ -102,7 +102,7 @@
     </table>
   </div>
 
-  <script src="settings.js"></script>
+  <script src="app/settings.js"></script>
   <script>
     // ── Config ──────────────────────────────────────────────────────────────
 
@@ -294,7 +294,7 @@
       buildHeaders()
       const script = document.createElement('script')
       script.id = 'data-script'
-      script.src = `data/${deviceKey}.js`
+      script.src = `app/data/${deviceKey}.js`
       script.onload = () => renderTable(window.BENCHMARK_DATA)
       script.onerror = () => console.error(`Failed to load data file: data/${deviceKey}.js`)
       document.head.appendChild(script)

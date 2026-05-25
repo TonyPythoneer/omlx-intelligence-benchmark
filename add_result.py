@@ -100,7 +100,7 @@ def prompt_spec() -> dict:
 
 
 def read_default_device() -> str | None:
-    settings = Path('settings.js')
+    settings = Path('app/settings.js')
     if not settings.exists():
         return None
     m = re.search(r'defaultDevice:\s*"([^"]+)"', settings.read_text())
@@ -144,7 +144,7 @@ def main():
     else:
         spec = prompt_spec()
 
-    data_path = Path('data') / f'{args.device}.js'
+    data_path = Path('app/data') / f'{args.device}.js'
     js_content = read_data_file(data_path)
 
     added = 0

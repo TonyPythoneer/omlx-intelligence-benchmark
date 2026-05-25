@@ -110,8 +110,8 @@ def test_parse_thinking_false():
 
 
 def test_read_default_device_from_settings(tmp_path, monkeypatch):
-    settings = tmp_path / 'settings.js'
-    settings.write_text('window.SETTINGS = { defaultDevice: "mbp-m1max-64GB-32c" }')
+    (tmp_path / 'app').mkdir()
+    (tmp_path / 'app' / 'settings.js').write_text('window.SETTINGS = { defaultDevice: "mbp-m1max-64GB-32c" }')
     monkeypatch.chdir(tmp_path)
     assert read_default_device() == 'mbp-m1max-64GB-32c'
 
