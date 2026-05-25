@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>oMLX Intelligence Benchmark</title>
-  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -543,7 +543,7 @@
         <button class="modal-close" onclick="closeModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">Copy this JavaScript code and paste it into your device's data file (e.g. <code>app/data/m1-max-64GB-32c.js</code>) to save your labeling changes permanently.</p>
+        <p class="modal-desc">Copy this JSON and paste it into your device data file (<code>app/data/{device}.json</code>).</p>
         <pre class="code-preview" id="modal-code-preview"></pre>
       </div>
       <div class="modal-footer">
@@ -556,8 +556,8 @@
   <!-- Toast Notification -->
   <div id="toast" class="toast">Copied updated data to clipboard!</div>
 
-  <script src="app/settings.js"></script>
   <script>
+    let currentData = null
     // ── Config ──────────────────────────────────────────────────────────────
 
     const CATEGORIES = {
@@ -589,7 +589,7 @@
         exportBtn.style.display = 'none'
       }
       buildHeaders()
-      renderTable(window.BENCHMARK_DATA)
+      renderTable(currentData)
     }
 
     // ── Tier filter ──────────────────────────────────────────────────────────
@@ -599,7 +599,7 @@
       const tf = document.getElementById('tier-filter')
       tf.addEventListener('change', () => {
         tierFilterIdx = tf.value === 'all' ? -1 : { opus: 0, sonnet: 1, haiku: 2 }[tf.value]
-        renderTable(window.BENCHMARK_DATA)
+        renderTable(currentData)
       })
     })
 
@@ -616,13 +616,13 @@
 
     function toggleShowAll() {
       showAll = document.getElementById('show-all-cb').checked
-      renderTable(window.BENCHMARK_DATA)
+      renderTable(currentData)
     }
 
     function openModal() {
-      if (!window.BENCHMARK_DATA) return
-      const data = showAll ? window.BENCHMARK_DATA : window.BENCHMARK_DATA.filter(e => !e.deprecated)
-      const formatted = "window.BENCHMARK_DATA = " + JSON.stringify(data, null, 2) + ";\n"
+      if (!currentData) return
+      const data = showAll ? currentData : currentData.filter(e => !e.deprecated)
+      const formatted = JSON.stringify(data, null, 2) + "\n"
       document.getElementById('modal-code-preview').textContent = formatted
       document.getElementById('export-modal').classList.add('show')
     }
@@ -941,31 +941,25 @@
         sortCol = col
         sortDir = 1
       }
-      if (window.BENCHMARK_DATA) renderTable(window.BENCHMARK_DATA)
+      if (currentData) renderTable(currentData)
     }
 
     // ── Device loading ───────────────────────────────────────────────────────
 
-    function loadDevice(deviceKey) {
-      const old = document.getElementById('data-script')
-      if (old) old.remove()
-      window.BENCHMARK_DATA = null
+    async function loadDevice(deviceKey) {
+      currentData = null
       buildHeaders()
-      const script = document.createElement('script')
-      script.id = 'data-script'
-      script.src = `app/data/${deviceKey}.js`
-      script.onload = () => renderTable(window.BENCHMARK_DATA)
-      script.onerror = () => console.error(`Failed to load data file: data/${deviceKey}.js`)
-      document.head.appendChild(script)
+      currentData = await fetch(`data/${deviceKey}.json`).then(r => r.json())
+      renderTable(currentData)
     }
 
-    function initDeviceDropdown() {
+    function initDeviceDropdown(settings) {
       const select = document.getElementById('device-select')
-      Object.entries(window.SETTINGS.devices).forEach(([key, info]) => {
+      Object.entries(settings.devices).forEach(([key, info]) => {
         const opt = document.createElement('option')
         opt.value = key
         opt.textContent = `${info.family} ${info.variant} · ${info.memory} · ${info.gpus}c`
-        if (key === window.SETTINGS.defaultDevice) opt.selected = true
+        if (key === settings.defaultDevice) opt.selected = true
         select.appendChild(opt)
       })
       select.addEventListener('change', e => loadDevice(e.target.value))
@@ -973,8 +967,12 @@
 
     // ── Boot ─────────────────────────────────────────────────────────────────
 
-    initDeviceDropdown()
-    loadDevice(window.SETTINGS.defaultDevice)
+    async function boot() {
+      const settings = await fetch('settings.json').then(r => r.json())
+      initDeviceDropdown(settings)
+      await loadDevice(settings.defaultDevice)
+    }
+    boot()
   </script>
 </body>
 </html>
