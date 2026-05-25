@@ -3,22 +3,17 @@
 
 import sys
 import re
+import json
 import argparse
 from pathlib import Path
 from datetime import date
-
-APP_DIR       = Path('app')
-SETTINGS_FILE = APP_DIR / 'settings.js'
-DATA_DIR      = APP_DIR / 'data'
-
 
 def parse_input(text: str) -> list[dict]:
     """Return list of {model, thinking, scores} parsed from --- Detail --- text."""
     results = []
     blocks = re.split(r'(?=^Model:)', text, flags=re.MULTILINE)
-    # Column layout: Benchmark  Accuracy%  Correct(skipped)  Total(=samples)  Time(s)  Think
     score_re = re.compile(
-        r'^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)',
+        r'^(?P<bench>\w+)\s+(?P<accuracy>[\d.]+)%\s+\d+\s+(?P<samples>\d+)\s+(?P<time_s>[\d.]+)\s+(?P<think>\w+)',
         re.MULTILINE,
     )
     for block in blocks:
@@ -29,11 +24,12 @@ def parse_input(text: str) -> list[dict]:
         scores = {}
         thinking = False
         for m in score_re.finditer(block):
-            bench    = m.group(1)
-            accuracy = float(m.group(2))
-            samples  = int(m.group(3))  # group(3) = Total column; Correct is skipped
-            time_s   = float(m.group(4))
-            think    = m.group(5).lower() == 'yes'
+            g        = m.groupdict()
+            bench    = g['bench']
+            accuracy = float(g['accuracy'])
+            samples  = int(g['samples'])
+            time_s   = float(g['time_s'])
+            think    = g['think'].lower() == 'yes'
             scores[bench] = {'accuracy': accuracy, 'samples': samples, 'time_s': time_s}
             if think:
                 thinking = True
@@ -45,43 +41,33 @@ def parse_input(text: str) -> list[dict]:
 class DataFile:
     """Manages reading, appending, and saving a device's benchmark JS data file."""
 
+    APP_DIR       = Path('app')
+    SETTINGS_FILE = APP_DIR / 'settings.js'
+    DATA_DIR      = APP_DIR / 'data'
+    TMPL_FILE     = DATA_DIR / 'device.js.template'
+
     def __init__(self, device_key: str):
-        self.path = DATA_DIR / f'{device_key}.js'
-        self.content = self.path.read_text() if self.path.exists() else 'window.BENCHMARK_DATA = []\n'
+        self.path = self.DATA_DIR / f'{device_key}.js'
+        src = self.path if self.path.exists() else self.TMPL_FILE
+        raw = src.read_text().removeprefix('window.BENCHMARK_DATA = ').rstrip().rstrip(';')
+        self._data: list[dict] = json.loads(raw)
 
     def model_exists(self, model_name: str) -> bool:
-        return f'model: "{model_name}"' in self.content
+        return any(e['model'] == model_name for e in self._data)
 
     def append(self, entry: dict) -> None:
-        scores_lines = [
-            f'      {bench}: {{ accuracy: {s["accuracy"]}, samples: {s["samples"]}, time_s: {s["time_s"]} }},'
-            for bench, s in entry['scores'].items()
-        ]
-        scores_block = '\n'.join(scores_lines)
-        new_obj = f"""  {{
-    model: "{entry['model']}",
-    date: "{entry['date']}",
-    spec: {{
-      parameters_b: {entry['spec']['parameters_b']},
-      quantization: "{entry['spec']['quantization']}",
-      size_gb: {entry['spec']['size_gb']:.2f},
-    }},
-    abilities: {{
-      thinking: {'true' if entry['abilities']['thinking'] else 'false'},
-      mtp: {'true' if entry['abilities']['mtp'] else 'false'},
-    }},
-    scores: {{
-{scores_block}
-    }}
-  }},"""
-        close_bracket = self.content.rfind(']')
-        trimmed = self.content[:close_bracket].rstrip()
-        separator = ',\n' if trimmed.endswith('}') else ''
-        self.content = trimmed + separator + '\n' + new_obj + '\n]\n'
+        self._data.append(entry)
 
     def save(self) -> None:
         self.path.parent.mkdir(exist_ok=True)
-        self.path.write_text(self.content)
+        self.path.write_text('window.BENCHMARK_DATA = ' + json.dumps(self._data, indent=2) + '\n')
+
+    @staticmethod
+    def read_default_device() -> str | None:
+        if not DataFile.SETTINGS_FILE.exists():
+            return None
+        m = re.search(r'defaultDevice:\s*"([^"]+)"', DataFile.SETTINGS_FILE.read_text())
+        return m.group(1) if m else None
 
 
 def prompt_spec() -> dict:
@@ -93,15 +79,8 @@ def prompt_spec() -> dict:
     return {'parameters_b': params_b, 'quantization': quant, 'size_gb': size_gb, 'mtp': mtp_raw == 'y'}
 
 
-def read_default_device() -> str | None:
-    if not SETTINGS_FILE.exists():
-        return None
-    m = re.search(r'defaultDevice:\s*"([^"]+)"', SETTINGS_FILE.read_text())
-    return m.group(1) if m else None
-
-
 def main():
-    default_device = read_default_device()
+    default_device = DataFile.read_default_device()
     parser = argparse.ArgumentParser(description='Append benchmark results to data JS file.')
     parser.add_argument('input', nargs='?', help='Path to benchmark output file (default: stdin)')
     parser.add_argument(
