@@ -39,6 +39,7 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 0.875rem;
+      table-layout: fixed;
     }
 
     th, td {
@@ -76,7 +77,7 @@
     tbody tr { border-bottom: 1px solid #f3f4f6; }
     tbody tr:hover { background: #f9fafb; }
 
-    td.model-name { font-weight: 500; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+    td.model-name { font-weight: 500; width: 320px; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
 
     td.num { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; }
     td.score { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; }
@@ -114,6 +115,9 @@
     // All benchmark keys in display order
     const ALL_BENCHMARKS = Object.values(CATEGORIES).flat()
 
+    // Precomputed set of benchmarks that start a category group
+    const GROUP_START_BENCHMARKS = new Set(Object.values(CATEGORIES).map(arr => arr[0]))
+
     // ── Sort state ───────────────────────────────────────────────────────────
 
     let sortCol = null
@@ -136,7 +140,7 @@
       if (col === 'spec.parameters_b') return entry.spec.parameters_b
       if (col === 'spec.quantization') return entry.spec.quantization
       if (col === 'spec.size_gb')      return entry.spec.size_gb
-      if (col === 'abilities.thinking')return entry.abilities.thinking ? 1 : 0
+      if (col === 'abilities.thinking') return entry.abilities.thinking ? 1 : 0
       if (col === 'abilities.mtp')     return entry.abilities.mtp     ? 1 : 0
       const score = entry.scores[col]
       return score ? score.accuracy : null
@@ -190,7 +194,6 @@
         th.textContent = label
         th.dataset.col = col
         if (isStart) th.classList.add('group-start')
-        if (sortCol === col) th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc')
         th.addEventListener('click', () => onSort(col))
         leafRow.appendChild(th)
       }
@@ -202,10 +205,20 @@
       addLeaf('Think',   'abilities.thinking', true)
       addLeaf('MTP',     'abilities.mtp',      false)
       ALL_BENCHMARKS.forEach((bench) => {
-        const firstInGroup = Object.values(CATEGORIES).some(arr => arr[0] === bench)
-        addLeaf(bench, bench, firstInGroup)
+        addLeaf(bench, bench, GROUP_START_BENCHMARKS.has(bench))
       })
       thead.appendChild(leafRow)
+    }
+
+    function updateSortIndicators() {
+      const leafRow = document.querySelector('#benchmark-table thead tr.leaf-row')
+      if (!leafRow) return
+      leafRow.querySelectorAll('th').forEach(th => {
+        th.classList.remove('sort-asc', 'sort-desc')
+        if (th.dataset.col === sortCol) {
+          th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc')
+        }
+      })
     }
 
     function buildRow(entry) {
@@ -219,7 +232,10 @@
         tr.appendChild(td)
       }
 
-      addTd(entry.model, 'model-name', false)
+      const modelTd = document.createElement('td')
+      modelTd.className = 'model-name'
+      modelTd.textContent = entry.model
+      tr.appendChild(modelTd)
       addTd(`${entry.spec.parameters_b}B`, 'num', true)
       addTd(entry.spec.quantization, '', false)
       addTd(`${entry.spec.size_gb.toFixed(2)} GB`, 'num', false)
@@ -238,7 +254,7 @@
       ALL_BENCHMARKS.forEach(bench => {
         const score = entry.scores[bench]
         const formatted = formatScore(score)
-        const firstInGroup = Object.values(CATEGORIES).some(arr => arr[0] === bench)
+        const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
         if (formatted) {
           addTd(formatted, 'score', firstInGroup)
         } else {
@@ -251,7 +267,7 @@
 
     function renderTable(data) {
       const sorted = sortData(data)
-      buildHeaders()
+      updateSortIndicators()
       const tbody = document.querySelector('#benchmark-table tbody')
       tbody.innerHTML = ''
       sorted.forEach(entry => tbody.appendChild(buildRow(entry)))
@@ -275,10 +291,12 @@
       const old = document.getElementById('data-script')
       if (old) old.remove()
       window.BENCHMARK_DATA = null
+      buildHeaders()
       const script = document.createElement('script')
       script.id = 'data-script'
       script.src = `data/${deviceKey}.js`
       script.onload = () => renderTable(window.BENCHMARK_DATA)
+      script.onerror = () => console.error(`Failed to load data file: data/${deviceKey}.js`)
       document.head.appendChild(script)
     }
 
