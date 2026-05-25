@@ -10,17 +10,17 @@ Open `index.html` directly in the browser — no server needed.
 
 ```bash
 # From a file
-python add_result.py /path/to/output.txt \
+python add_data.py /path/to/output.txt \
   --device mbp-m1max-64GB-32c \
   --params 35 --quant 4bit --size 19.50
 
 # From stdin
-cat output.txt | python add_result.py \
+cat output.txt | python add_data.py \
   --device mbp-m1max-64GB-32c \
   --params 35 --quant 4bit --size 19.50
 
 # With MTP flag
-python add_result.py output.txt \
+python add_data.py output.txt \
   --device mbp-m1max-64GB-32c \
   --params 35 --quant 4bit --size 19.50 --mtp
 ```

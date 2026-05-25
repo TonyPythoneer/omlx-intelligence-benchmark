@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from add_result import parse_input, model_exists, append_entry, read_default_device
+from add_data import parse_input, model_exists, append_entry, read_default_device
 
 SAMPLE_INPUT = """
 --- Detail ---

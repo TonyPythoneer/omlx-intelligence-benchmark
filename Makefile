@@ -5,4 +5,4 @@ setup:
 	.venv/bin/pip install pytest
 
 test:
-	.venv/bin/pytest tests/test_add_result.py -v
+	.venv/bin/pytest tests/ -v
