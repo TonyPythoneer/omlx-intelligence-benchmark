@@ -4,36 +4,140 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>oMLX Intelligence Benchmark</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      background: #fff;
-      color: #111;
-      padding: 32px 40px;
+      font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #f8fafc;
+      color: #0f172a;
+      padding: 40px 48px;
       line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
     }
 
     header {
       display: flex;
-      align-items: baseline;
+      align-items: center;
       justify-content: space-between;
-      margin-bottom: 32px;
+      margin-bottom: 36px;
     }
 
-    h1 { font-size: 2rem; font-weight: 800; letter-spacing: -0.02em; }
+    h1 {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
 
     #device-select {
+      font-family: inherit;
       font-size: 0.875rem;
-      padding: 6px 10px;
-      border: 1px solid #d1d5db;
-      border-radius: 6px;
+      font-weight: 500;
+      padding: 8px 16px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
       background: #fff;
+      color: #334155;
       cursor: pointer;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+      transition: all 0.2s ease;
+      outline: none;
     }
 
-    .table-wrapper { overflow-x: auto; }
+    #device-select:hover {
+      border-color: #cbd5e1;
+      color: #0f172a;
+    }
+
+    #device-select:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .btn {
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      outline: none;
+    }
+
+    .btn-secondary {
+      background: #fff;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-secondary:hover {
+      background: #f8fafc;
+      color: #0f172a;
+      border-color: #cbd5e1;
+    }
+
+    .btn-secondary.active {
+      background: #2563eb;
+      color: #fff;
+      border-color: #2563eb;
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+    }
+
+    .btn-primary {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+
+    .btn-primary:hover {
+      background: #059669;
+      box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
+    }
+
+    .table-wrapper {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      overflow-x: auto;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Custom Modern scrollbar styling */
+    .table-wrapper::-webkit-scrollbar {
+      height: 8px;
+    }
+    
+    .table-wrapper::-webkit-scrollbar-track {
+      background: #f8fafc;
+    }
+    
+    .table-wrapper::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    
+    .table-wrapper::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
 
     table {
       width: 100%;
@@ -43,57 +147,324 @@
     }
 
     th, td {
-      padding: 8px 14px;
+      padding: 12px 18px;
       text-align: left;
       white-space: nowrap;
+      vertical-align: middle;
     }
 
     thead tr.group-row th {
-      background: #f9fafb;
+      background: #f8fafc;
       font-size: 0.7rem;
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #6b7280;
-      border-bottom: 1px solid #e5e7eb;
+      letter-spacing: 0.08em;
+      color: #64748b;
+      border-bottom: 1px solid #e2e8f0;
+      padding-top: 10px;
+      padding-bottom: 10px;
     }
 
     thead tr.leaf-row th {
       font-size: 0.8rem;
-      font-weight: 500;
-      color: #374151;
-      border-bottom: 2px solid #e5e7eb;
+      font-weight: 600;
+      color: #475569;
+      border-bottom: 2px solid #e2e8f0;
+      background: #fff;
       cursor: pointer;
       user-select: none;
+      transition: background 0.15s ease;
     }
 
-    thead tr.leaf-row th:hover { background: #f3f4f6; }
+    thead tr.leaf-row th:hover {
+      background: #f1f5f9;
+      color: #0f172a;
+    }
 
     thead tr.leaf-row th.sort-asc::after  { content: ' ↑'; color: #2563eb; }
     thead tr.leaf-row th.sort-desc::after { content: ' ↓'; color: #2563eb; }
     thead tr.leaf-row th.sort-asc,
-    thead tr.leaf-row th.sort-desc { color: #2563eb; }
+    thead tr.leaf-row th.sort-desc { color: #2563eb; background: #eff6ff; }
 
-    tbody tr { border-bottom: 1px solid #f3f4f6; }
-    tbody tr:hover { background: #f9fafb; }
+    tbody tr {
+      border-bottom: 1px solid #f1f5f9;
+      transition: background-color 0.15s ease;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f8fafc; }
 
-    td.model-name { font-weight: 500; max-width: 320px; overflow: hidden; text-overflow: ellipsis; }
+    /* Deprecated rows: muted styling */
+    tr.deprecated-row td:first-child {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+    tr.deprecated-row td:not(:first-child) {
+      opacity: 0.5;
+    }
+    tr.deprecated-row {
+      background: #fafafa;
+    }
+    tr.deprecated-row:hover {
+      background: #f8fafc;
+    }
 
-    td.num { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; }
-    td.score { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; }
-    td.missing { color: #9ca3af; font-family: 'SF Mono', 'Fira Code', monospace; }
+    .deprecated-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #ef4444;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 3px;
+      padding: 1px 6px;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
 
-    .ability-yes { color: #16a34a; font-weight: 700; }
-    .ability-no  { color: #d1d5db; }
+    td.model-name {
+      font-weight: 600;
+      color: #0f172a;
+      max-width: 320px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    td.num {
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+      font-size: 0.8rem;
+      color: #334155;
+    }
+    
+    td.score {
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #0f172a;
+    }
+    
+    td.missing {
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+    }
+
+    .ability-yes {
+      color: #10b981;
+      font-weight: 700;
+      background: #ecfdf5;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+    
+    .ability-no {
+      color: #94a3b8;
+      background: #f1f5f9;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
 
     /* Group boundary: left border on first column of each group */
-    .group-start { border-left: 2px solid #e5e7eb; }
+    .group-start { border-left: 1px solid #e2e8f0; }
+
+    /* Interactive toggle switch inside table */
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: .2s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .2s;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+    }
+
+    input:checked + .slider {
+      background-color: #2563eb;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(16px);
+    }
+
+    td.cell-switch {
+      text-align: center;
+      padding: 4px 14px;
+    }
+    
+    /* Beautiful Toast Notification */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #0f172a;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      font-size: 0.875rem;
+      font-weight: 500;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 1000;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(15, 23, 42, 0.3);
+      backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 2000;
+    }
+
+    .modal-overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .modal-container {
+      background: #fff;
+      border-radius: 16px;
+      width: 90%;
+      max-width: 680px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      transform: translateY(30px);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      border: 1px solid #f1f5f9;
+    }
+
+    .modal-overlay.show .modal-container {
+      transform: translateY(0);
+    }
+
+    .modal-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #0f172a;
+      letter-spacing: -0.02em;
+    }
+
+    .modal-close {
+      background: transparent;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #94a3b8;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+
+    .modal-close:hover {
+      color: #0f172a;
+      background: #f1f5f9;
+    }
+
+    .modal-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-desc {
+      font-size: 0.875rem;
+      color: #475569;
+      margin-bottom: 16px;
+      line-height: 1.6;
+    }
+
+    .code-preview {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 18px;
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+      font-size: 0.75rem;
+      white-space: pre-wrap;
+      max-height: 320px;
+      overflow-y: auto;
+      color: #1e293b;
+    }
+
+    .modal-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #f1f5f9;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
   </style>
 </head>
 <body>
   <header>
     <h1>oMLX Intelligence Benchmark</h1>
-    <select id="device-select"></select>
+    <div class="header-controls">
+      <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">Label Tiers</button>
+      <button id="show-all-btn" class="btn btn-secondary" onclick="toggleShowAll()">Show All</button>
+      <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export JS</button>
+      <select id="device-select"></select>
+    </div>
   </header>
   <div class="table-wrapper">
     <table id="benchmark-table">
@@ -101,6 +472,27 @@
       <tbody></tbody>
     </table>
   </div>
+
+  <!-- Export Modal -->
+  <div id="export-modal" class="modal-overlay">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h3 class="modal-title">Export Labeled Benchmark Data</h3>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Copy this JavaScript code and paste it into your device's data file (e.g. <code>app/data/m1-max-64GB-32c.js</code>) to save your labeling changes permanently.</p>
+        <pre class="code-preview" id="modal-code-preview"></pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Close</button>
+        <button class="btn btn-primary" onclick="copyFromModal()">Copy to Clipboard</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">Copied updated data to clipboard!</div>
 
   <script src="app/settings.js"></script>
   <script>
@@ -117,6 +509,73 @@
 
     // Precomputed set of benchmarks that start a category group
     const GROUP_START_BENCHMARKS = new Set(Object.values(CATEGORIES).map(arr => arr[0]))
+
+    // ── Labeling state & logic ────────────────────────────────────────────────
+    let labelingMode = false
+
+    function toggleLabeling() {
+      labelingMode = !labelingMode
+      const btn = document.getElementById('toggle-labeling')
+      const exportBtn = document.getElementById('export-data')
+      if (labelingMode) {
+        btn.classList.add('active')
+        btn.textContent = 'Exit Labeling'
+        exportBtn.style.display = 'inline-flex'
+      } else {
+        btn.classList.remove('active')
+        btn.textContent = 'Label Tiers'
+        exportBtn.style.display = 'none'
+      }
+      buildHeaders()
+      renderTable(window.BENCHMARK_DATA)
+    }
+
+    // ── Deprecated filter ─────────────────────────────────────────────────────
+    let showAll = false
+
+    function toggleShowAll() {
+      showAll = !showAll
+      const btn = document.getElementById('show-all-btn')
+      if (showAll) {
+        btn.classList.add('active')
+        btn.textContent = 'Hide Deprecated'
+      } else {
+        btn.classList.remove('active')
+        btn.textContent = 'Show All'
+      }
+      renderTable(window.BENCHMARK_DATA)
+    }
+
+    function openModal() {
+      if (!window.BENCHMARK_DATA) return
+      const data = showAll ? window.BENCHMARK_DATA : window.BENCHMARK_DATA.filter(e => !e.deprecated)
+      const formatted = "window.BENCHMARK_DATA = " + JSON.stringify(data, null, 2) + ";\n"
+      document.getElementById('modal-code-preview').textContent = formatted
+      document.getElementById('export-modal').classList.add('show')
+    }
+
+    function closeModal() {
+      document.getElementById('export-modal').classList.remove('show')
+    }
+
+    function copyFromModal() {
+      const code = document.getElementById('modal-code-preview').textContent
+      navigator.clipboard.writeText(code).then(() => {
+        showToast("Copied updated JS to clipboard!")
+        closeModal()
+      }).catch(err => {
+        console.error("Failed to copy text: ", err)
+      })
+    }
+
+    function showToast(message) {
+      const toast = document.getElementById('toast')
+      toast.textContent = message
+      toast.classList.add('show')
+      setTimeout(() => {
+        toast.classList.remove('show')
+      }, 3000)
+    }
 
     // ── Sort state ───────────────────────────────────────────────────────────
 
@@ -142,6 +601,9 @@
       if (col === 'spec.size_gb')      return entry.spec.size_gb
       if (col === 'abilities.thinking') return entry.abilities.thinking ? 1 : 0
       if (col === 'abilities.mtp')     return entry.abilities.mtp     ? 1 : 0
+      if (col === 'tiers.opus')        return (entry.tiers && entry.tiers.opus) ? 1 : 0
+      if (col === 'tiers.sonnet')      return (entry.tiers && entry.tiers.sonnet) ? 1 : 0
+      if (col === 'tiers.haiku')       return (entry.tiers && entry.tiers.haiku) ? 1 : 0
       const score = entry.scores[col]
       return score ? score.accuracy : null
     }
@@ -180,6 +642,9 @@
       addGroup('Model', 1, false)
       addGroup('Spec', 3, true)
       addGroup('Abilities', 2, true)
+      if (labelingMode) {
+        addGroup('Tiers (Labeling)', 3, true)
+      }
       Object.entries(CATEGORIES).forEach(([cat, benches]) => {
         addGroup(cat, benches.length, true)
       })
@@ -204,6 +669,11 @@
       addLeaf('Size',    'spec.size_gb',      false)
       addLeaf('Think',   'abilities.thinking', true)
       addLeaf('MTP',     'abilities.mtp',      false)
+      if (labelingMode) {
+        addLeaf('Opus',   'tiers.opus',        true)
+        addLeaf('Sonnet', 'tiers.sonnet',      false)
+        addLeaf('Haiku',  'tiers.haiku',       false)
+      }
       ALL_BENCHMARKS.forEach((bench) => {
         addLeaf(bench, bench, GROUP_START_BENCHMARKS.has(bench))
       })
@@ -223,10 +693,17 @@
 
     function buildRow(entry) {
       const tr = document.createElement('tr')
+      if (entry.deprecated) {
+        tr.classList.add('deprecated-row')
+      }
 
       const addTd = (content, cls, isStart) => {
         const td = document.createElement('td')
-        td.innerHTML = content
+        if (content instanceof HTMLElement) {
+          td.appendChild(content)
+        } else {
+          td.innerHTML = content
+        }
         if (cls)     td.className = cls
         if (isStart) td.classList.add('group-start')
         tr.appendChild(td)
@@ -234,23 +711,60 @@
 
       const modelTd = document.createElement('td')
       modelTd.className = 'model-name'
-      modelTd.textContent = entry.model
+      const nameSpan = document.createTextNode(entry.model)
+      modelTd.appendChild(nameSpan)
+      if (entry.deprecated) {
+        const badge = document.createElement('span')
+        badge.className = 'deprecated-badge'
+        badge.textContent = 'DEPRECATED'
+        modelTd.appendChild(badge)
+      }
       tr.appendChild(modelTd)
       addTd(`${entry.spec.parameters_b}B`, 'num', true)
       addTd(entry.spec.quantization, '', false)
       addTd(`${entry.spec.size_gb.toFixed(2)} GB`, 'num', false)
       addTd(
         entry.abilities.thinking
-          ? '<span class="ability-yes">✓</span>'
-          : '<span class="ability-no">✗</span>',
+          ? '<span class="ability-yes">✓ Yes</span>'
+          : '<span class="ability-no">✗ No</span>',
         '', true
       )
       addTd(
         entry.abilities.mtp
-          ? '<span class="ability-yes">✓</span>'
-          : '<span class="ability-no">✗</span>',
+          ? '<span class="ability-yes">✓ Yes</span>'
+          : '<span class="ability-no">✗ No</span>',
         '', false
       )
+      
+      if (labelingMode) {
+        if (!entry.tiers) {
+          entry.tiers = { opus: false, sonnet: false, haiku: false }
+        }
+        
+        const createSwitch = (tierKey) => {
+          const label = document.createElement('label')
+          label.className = 'switch'
+          
+          const input = document.createElement('input')
+          input.type = 'checkbox'
+          input.checked = !!entry.tiers[tierKey]
+          input.addEventListener('change', (e) => {
+            entry.tiers[tierKey] = e.target.checked
+          })
+          
+          const slider = document.createElement('span')
+          slider.className = 'slider'
+          
+          label.appendChild(input)
+          label.appendChild(slider)
+          return label
+        }
+        
+        addTd(createSwitch('opus'), 'cell-switch', true)
+        addTd(createSwitch('sonnet'), 'cell-switch', false)
+        addTd(createSwitch('haiku'), 'cell-switch', false)
+      }
+
       ALL_BENCHMARKS.forEach(bench => {
         const score = entry.scores[bench]
         const formatted = formatScore(score)
@@ -266,7 +780,8 @@
     }
 
     function renderTable(data) {
-      const sorted = sortData(data)
+      const filtered = showAll ? data : data.filter(e => !e.deprecated)
+      const sorted = sortData(filtered)
       updateSortIndicators()
       const tbody = document.querySelector('#benchmark-table tbody')
       tbody.innerHTML = ''
@@ -305,7 +820,7 @@
       Object.entries(window.SETTINGS.devices).forEach(([key, info]) => {
         const opt = document.createElement('option')
         opt.value = key
-        opt.textContent = `${info.chip} · ${info.memory} · ${info.gpus}c`
+        opt.textContent = `${info.family} ${info.variant} · ${info.memory} · ${info.gpus}c`
         if (key === window.SETTINGS.defaultDevice) opt.selected = true
         select.appendChild(opt)
       })

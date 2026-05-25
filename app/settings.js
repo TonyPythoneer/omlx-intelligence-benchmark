@@ -1,10 +1,11 @@
 window.SETTINGS = {
-  defaultDevice: "mbp-m1max-64GB-32c",
+  defaultDevice: "m1-max-64GB-32c",
   devices: {
-    "mbp-m1max-64GB-32c": {
-      chip: "M1 Max",
+    "m1-max-64GB-32c": {
+      family: "M1",
+      variant: "Max",
       memory: "64GB",
       gpus: 32,
-    }
-  }
-}
+    },
+  },
+};
