@@ -949,7 +949,9 @@
     async function loadDevice(deviceKey) {
       currentData = null
       buildHeaders()
-      currentData = await fetch(`data/${deviceKey}.json`).then(r => r.json())
+      currentData = await fetch(`data/${deviceKey}.json`)
+        .then(r => r.json())
+        .catch(err => { console.error(`Failed to load device ${deviceKey}:`, err); return [] })
       renderTable(currentData)
     }
 
@@ -972,7 +974,7 @@
       initDeviceDropdown(settings)
       await loadDevice(settings.defaultDevice)
     }
-    boot()
+    boot().catch(err => console.error('Boot failed:', err))
   </script>
 </body>
 </html>
