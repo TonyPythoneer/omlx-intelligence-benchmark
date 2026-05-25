@@ -86,6 +86,25 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #475569;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+    }
+
+    .checkbox-label input[type="checkbox"] {
+      width: 15px;
+      height: 15px;
+      cursor: pointer;
+      accent-color: #2563eb;
+    }
+
     .score-high { color: #059669; font-weight: 600; }
     .score-mid  { color: #d97706; font-weight: 500; }
     .score-low  { color: #dc2626; font-weight: 500; }
@@ -492,14 +511,17 @@
   <header>
     <h1>oMLX Intelligence Benchmark</h1>
     <div class="header-controls">
-      <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">Label Tiers</button>
-      <select id="tier-filter" class="btn btn-secondary" style="display:none;" onclick="void(0)">
+      <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label Tiers</button>
+      <select id="tier-filter" class="btn btn-secondary" onclick="void(0)">
         <option value="all">All Tiers</option>
         <option value="opus">Opus</option>
         <option value="sonnet">Sonnet</option>
         <option value="haiku">Haiku</option>
       </select>
-      <button id="show-all-btn" class="btn btn-secondary" onclick="toggleShowAll()">Show All</button>
+      <label class="checkbox-label">
+        <input type="checkbox" id="show-all-cb" onchange="toggleShowAll()">
+        Show Deprecated
+      </label>
       <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export JS</button>
       <select id="device-select"></select>
     </div>
@@ -557,19 +579,14 @@
       labelingMode = !labelingMode
       const btn = document.getElementById('toggle-labeling')
       const exportBtn = document.getElementById('export-data')
-      const tierFilter = document.getElementById('tier-filter')
       if (labelingMode) {
         btn.classList.add('active')
         btn.textContent = '✏ Edit Tiers'
         exportBtn.style.display = 'inline-flex'
-        tierFilter.style.display = 'inline-flex'
       } else {
         btn.classList.remove('active')
-        btn.textContent = 'Label Tiers'
+        btn.textContent = '✏ Label Tiers'
         exportBtn.style.display = 'none'
-        tierFilter.style.display = 'none'
-        tierFilter.value = 'all'
-        tierFilterIdx = -1
       }
       buildHeaders()
       renderTable(window.BENCHMARK_DATA)
@@ -598,15 +615,7 @@
     let showAll = false
 
     function toggleShowAll() {
-      showAll = !showAll
-      const btn = document.getElementById('show-all-btn')
-      if (showAll) {
-        btn.classList.add('active')
-        btn.textContent = 'Hide Deprecated'
-      } else {
-        btn.classList.remove('active')
-        btn.textContent = 'Show All'
-      }
+      showAll = document.getElementById('show-all-cb').checked
       renderTable(window.BENCHMARK_DATA)
     }
 
@@ -756,7 +765,7 @@
       }
 
       if (labelingMode) {
-        // In edit mode: skip non-score columns
+        addNonScore('')
         const th = document.createElement('th')
         th.setAttribute('colspan', '3')
         th.textContent = '—'
@@ -779,7 +788,7 @@
 
       // Row 3: leaf headers (sortable)
       const leafRow = document.createElement('tr')
-      leafRow.className = 'leaf-row'
+      leafRow.className = 'leaf-row sortable-row'
 
       const addLeaf = (label, col, isStart) => {
         const th = document.createElement('th')
@@ -790,27 +799,28 @@
         leafRow.appendChild(th)
       }
 
-      addLeaf('Model',   'model',            false)
-      addLeaf('Params',  'spec.parameters_b', true)
-      addLeaf('Quant',   'spec.quantization', false)
-      addLeaf('Size',    'spec.size_gb',      false)
-      addLeaf('Think',   'abilities.thinking', true)
-      addLeaf('MTP',     'abilities.mtp',      false)
+      addLeaf('Model', 'model', false)
       if (labelingMode) {
-        addLeaf('Opus',   'tiers.opus',        true)
-        addLeaf('Sonnet', 'tiers.sonnet',      false)
-        addLeaf('Haiku',  'tiers.haiku',       false)
+        addLeaf('Opus',   'tiers.opus',   true)
+        addLeaf('Sonnet', 'tiers.sonnet', false)
+        addLeaf('Haiku',  'tiers.haiku',  false)
+      } else {
+        addLeaf('Params', 'spec.parameters_b',  true)
+        addLeaf('Quant',  'spec.quantization',  false)
+        addLeaf('Size',   'spec.size_gb',       false)
+        addLeaf('Think',  'abilities.thinking', true)
+        addLeaf('MTP',    'abilities.mtp',      false)
+        ALL_BENCHMARKS.forEach((bench) => {
+          const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
+          addLeaf('🎯', 'scores.' + bench + '.accuracy', firstInGroup)
+          addLeaf('⏲', 'scores.' + bench + '.time_s',   false)
+        })
       }
-      ALL_BENCHMARKS.forEach((bench) => {
-        const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
-        addLeaf('Acc', 'scores.' + bench + '.accuracy', firstInGroup)
-        addLeaf('Time', 'scores.' + bench + '.time_s', false)
-      })
       thead.appendChild(leafRow)
     }
 
     function updateSortIndicators() {
-      const leafRow = document.querySelector('#benchmark-table thead tr.leaf-row')
+      const leafRow = document.querySelector('#benchmark-table thead tr.sortable-row')
       if (!leafRow) return
       leafRow.querySelectorAll('th').forEach(th => {
         th.classList.remove('sort-asc', 'sort-desc')
@@ -849,65 +859,63 @@
         modelTd.appendChild(badge)
       }
       tr.appendChild(modelTd)
-      addTd(`${entry.spec.parameters_b}B`, 'num', true)
-      addTd(entry.spec.quantization, '', false)
-      addTd(`${entry.spec.size_gb.toFixed(2)} GB`, 'num', false)
-      addTd(
-        entry.abilities.thinking
-          ? '<span class="ability-yes">✓ Yes</span>'
-          : '<span class="ability-no">✗ No</span>',
-        '', true
-      )
-      addTd(
-        entry.abilities.mtp
-          ? '<span class="ability-yes">✓ Yes</span>'
-          : '<span class="ability-no">✗ No</span>',
-        '', false
-      )
-      
+
       if (labelingMode) {
         if (!entry.tiers) {
           entry.tiers = { opus: false, sonnet: false, haiku: false }
         }
-        
+
         const createSwitch = (tierKey) => {
           const label = document.createElement('label')
           label.className = 'switch'
-          
           const input = document.createElement('input')
           input.type = 'checkbox'
           input.checked = !!entry.tiers[tierKey]
           input.addEventListener('change', (e) => {
             entry.tiers[tierKey] = e.target.checked
           })
-          
           const slider = document.createElement('span')
           slider.className = 'slider'
-          
           label.appendChild(input)
           label.appendChild(slider)
           return label
         }
-        
-        addTd(createSwitch('opus'), 'cell-switch', true)
-        addTd(createSwitch('sonnet'), 'cell-switch', false)
-        addTd(createSwitch('haiku'), 'cell-switch', false)
-      }
 
-      ALL_BENCHMARKS.forEach(bench => {
-        const sd = getScoreDisplay(entry.scores[bench])
-        const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
-        if (sd.accuracy !== null) {
-          addTd(`<span class="${sd.accuracyClass}">${sd.accuracy}%</span>`, 'score', firstInGroup)
-        } else {
-          addTd('—', 'missing', firstInGroup)
-        }
-        if (sd.timeText !== null) {
-          addTd(sd.timeText, 'num', false)
-        } else {
-          addTd('—', 'missing', false)
-        }
-      })
+        addTd(createSwitch('opus'),   'cell-switch', true)
+        addTd(createSwitch('sonnet'), 'cell-switch', false)
+        addTd(createSwitch('haiku'),  'cell-switch', false)
+      } else {
+        addTd(`${entry.spec.parameters_b}B`, 'num', true)
+        addTd(entry.spec.quantization, '', false)
+        addTd(`${entry.spec.size_gb.toFixed(2)} GB`, 'num', false)
+        addTd(
+          entry.abilities.thinking
+            ? '<span class="ability-yes">✓ Yes</span>'
+            : '<span class="ability-no">✗ No</span>',
+          '', true
+        )
+        addTd(
+          entry.abilities.mtp
+            ? '<span class="ability-yes">✓ Yes</span>'
+            : '<span class="ability-no">✗ No</span>',
+          '', false
+        )
+
+        ALL_BENCHMARKS.forEach(bench => {
+          const sd = getScoreDisplay(entry.scores[bench])
+          const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
+          if (sd.accuracy !== null) {
+            addTd(`<span class="${sd.accuracyClass}">${sd.accuracy}%</span>`, 'score', firstInGroup)
+          } else {
+            addTd('—', 'missing', firstInGroup)
+          }
+          if (sd.timeText !== null) {
+            addTd(sd.timeText, 'num', false)
+          } else {
+            addTd('—', 'missing', false)
+          }
+        })
+      }
 
       return tr
     }
