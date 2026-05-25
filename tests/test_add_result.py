@@ -158,3 +158,42 @@ def test_read_default_device_from_settings(tmp_path, monkeypatch):
 def test_read_default_device_missing(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     assert DataFile.read_default_device() is None
+
+
+# ── deprecated field ─────────────────────────────────────────────────────────
+
+
+def test_append_no_deprecated_field(make_data_file):
+    """New entries appended via Python do not get a deprecated field."""
+    df = make_data_file()
+    df.append(SAMPLE_ENTRY)
+    assert "deprecated" not in df._data[-1]
+
+
+@pytest.mark.parametrize(
+    "entries,expected_kept",
+    [
+        ([SAMPLE_ENTRY], 1),
+        ([{**SAMPLE_ENTRY, "deprecated": True}], 0),
+        ([{**SAMPLE_ENTRY, "deprecated": False}], 1),
+    ],
+    ids=["no_deprecated", "deprecated_true", "deprecated_false"],
+)
+def test_filter_deprecated(make_data_file, entries, expected_kept):
+    """Verifies that entries with deprecated=True are correctly filtered."""
+    df = make_data_file(entries)
+    kept = [e for e in df._data if not e.get("deprecated")]
+    assert len(kept) == expected_kept
+
+
+def test_load_preserves_deprecated_field(tmp_path, make_data_file):
+    """Deprecated field survives a save+reload cycle."""
+    entry = {**SAMPLE_ENTRY, "deprecated": True}
+    df = make_data_file([entry])
+    df.path = tmp_path / "test.js"
+    df.save()
+
+    # Re-read and check deprecated is preserved
+    raw = df.path.read_text().removeprefix('window.BENCHMARK_DATA = ').rstrip().rstrip(';')
+    loaded = json.loads(raw)
+    assert loaded[-1].get("deprecated") is True
