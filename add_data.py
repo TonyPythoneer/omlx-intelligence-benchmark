@@ -7,11 +7,14 @@ import argparse
 from pathlib import Path
 from datetime import date
 
+APP_DIR      = Path('app')
+SETTINGS_FILE = APP_DIR / 'settings.js'
+DATA_DIR     = APP_DIR / 'data'
+
 
 def parse_input(text: str) -> list[dict]:
     """Return list of {model, thinking, scores} parsed from --- Detail --- text."""
     results = []
-    # Each model block starts with "Model:"
     blocks = re.split(r'(?=^Model:)', text, flags=re.MULTILINE)
     # Column layout: Benchmark  Accuracy%  Correct(skipped)  Total(=samples)  Time(s)  Think
     score_re = re.compile(
@@ -22,14 +25,13 @@ def parse_input(text: str) -> list[dict]:
         block = block.strip()
         if not block.startswith('Model:'):
             continue
-        first_line = block.splitlines()[0]
-        model_name = first_line.removeprefix('Model:').strip()
+        model_name = block.splitlines()[0].removeprefix('Model:').strip()
         scores = {}
         thinking = False
         for m in score_re.finditer(block):
             bench    = m.group(1)
             accuracy = float(m.group(2))
-            samples  = int(m.group(3))  # group(3) = Total column; Correct column is skipped
+            samples  = int(m.group(3))  # group(3) = Total column; Correct is skipped
             time_s   = float(m.group(4))
             think    = m.group(5).lower() == 'yes'
             scores[bench] = {'accuracy': accuracy, 'samples': samples, 'time_s': time_s}
@@ -40,27 +42,17 @@ def parse_input(text: str) -> list[dict]:
     return results
 
 
-def read_data_file(path: Path) -> str:
-    """Return the JS file content, or a blank array stub if file doesn't exist."""
-    if path.exists():
-        return path.read_text()
-    return 'window.BENCHMARK_DATA = []\n'
+def model_exists(content: str, model_name: str) -> bool:
+    return f'model: "{model_name}"' in content
 
 
-def model_exists(js_content: str, model_name: str) -> bool:
-    return f'model: "{model_name}"' in js_content
-
-
-def append_entry(js_content: str, entry: dict) -> str:
+def append_entry(content: str, entry: dict) -> str:
     """Insert a new JS object before the closing ] of window.BENCHMARK_DATA."""
-    scores_lines = []
-    for bench, s in entry['scores'].items():
-        scores_lines.append(
-            f'      {bench}: '
-            f'{{ accuracy: {s["accuracy"]}, samples: {s["samples"]}, time_s: {s["time_s"]} }},'
-        )
+    scores_lines = [
+        f'      {bench}: {{ accuracy: {s["accuracy"]}, samples: {s["samples"]}, time_s: {s["time_s"]} }},'
+        for bench, s in entry['scores'].items()
+    ]
     scores_block = '\n'.join(scores_lines)
-
     new_obj = f"""  {{
     model: "{entry['model']}",
     date: "{entry['date']}",
@@ -77,12 +69,28 @@ def append_entry(js_content: str, entry: dict) -> str:
 {scores_block}
     }}
   }},"""
+    close_bracket = content.rfind(']')
+    trimmed = content[:close_bracket].rstrip()
+    separator = ',\n' if trimmed.endswith('}') else ''
+    return trimmed + separator + '\n' + new_obj + '\n]\n'
 
-    # Insert before the closing ]
-    close_bracket = js_content.rfind(']')
-    existing_trimmed = js_content[:close_bracket].rstrip()
-    separator = ',\n' if existing_trimmed.endswith('}') else ''
-    return existing_trimmed + separator + '\n' + new_obj + '\n]\n'
+
+class DataFile:
+    """Manages reading, appending, and saving a device's benchmark JS data file."""
+
+    def __init__(self, device_key: str):
+        self.path = DATA_DIR / f'{device_key}.js'
+        self.content = self.path.read_text() if self.path.exists() else 'window.BENCHMARK_DATA = []\n'
+
+    def model_exists(self, model_name: str) -> bool:
+        return model_exists(self.content, model_name)
+
+    def append(self, entry: dict) -> None:
+        self.content = append_entry(self.content, entry)
+
+    def save(self) -> None:
+        self.path.parent.mkdir(exist_ok=True)
+        self.path.write_text(self.content)
 
 
 def prompt_spec() -> dict:
@@ -91,19 +99,13 @@ def prompt_spec() -> dict:
     quant    = input('  quantization (e.g. 4bit): ').strip()
     size_gb  = round(float(input('  size_gb (e.g. 19.50): ').strip()), 2)
     mtp_raw  = input('  mtp? (y/N): ').strip().lower()
-    return {
-        'parameters_b': params_b,
-        'quantization': quant,
-        'size_gb': size_gb,
-        'mtp': mtp_raw == 'y',
-    }
+    return {'parameters_b': params_b, 'quantization': quant, 'size_gb': size_gb, 'mtp': mtp_raw == 'y'}
 
 
 def read_default_device() -> str | None:
-    settings = Path('app/settings.js')
-    if not settings.exists():
+    if not SETTINGS_FILE.exists():
         return None
-    m = re.search(r'defaultDevice:\s*"([^"]+)"', settings.read_text())
+    m = re.search(r'defaultDevice:\s*"([^"]+)"', SETTINGS_FILE.read_text())
     return m.group(1) if m else None
 
 
@@ -117,63 +119,44 @@ def main():
         required=default_device is None,
         help=f'Device key (default: {default_device or "required"})',
     )
-    parser.add_argument('--params',  type=int,   help='parameters_b')
-    parser.add_argument('--quant',               help='quantization string, e.g. 4bit')
-    parser.add_argument('--size',    type=float, help='size_gb')
-    parser.add_argument('--mtp',     action='store_true', default=False)
+    parser.add_argument('--params', type=int,   help='parameters_b')
+    parser.add_argument('--quant',              help='quantization string, e.g. 4bit')
+    parser.add_argument('--size',   type=float, help='size_gb')
+    parser.add_argument('--mtp',    action='store_true', default=False)
     args = parser.parse_args()
 
-    if args.input:
-        text = Path(args.input).read_text()
-    else:
-        text = sys.stdin.read()
-
+    text = Path(args.input).read_text() if args.input else sys.stdin.read()
     parsed = parse_input(text)
     if not parsed:
         print('No model data found in input.', file=sys.stderr)
         sys.exit(1)
 
-    # Resolve spec — CLI flags take priority, otherwise prompt
     if args.params is not None and args.quant and args.size is not None:
-        spec = {
-            'parameters_b': args.params,
-            'quantization': args.quant,
-            'size_gb': round(args.size, 2),
-            'mtp': args.mtp,
-        }
+        spec = {'parameters_b': args.params, 'quantization': args.quant,
+                'size_gb': round(args.size, 2), 'mtp': args.mtp}
     else:
         spec = prompt_spec()
 
-    data_path = Path('app/data') / f'{args.device}.js'
-    js_content = read_data_file(data_path)
-
+    data = DataFile(args.device)
     added = 0
     for item in parsed:
-        if model_exists(js_content, item['model']):
+        if data.model_exists(item['model']):
             print(f'SKIP (already exists): {item["model"]}')
             continue
-        entry = {
-            'model': item['model'],
-            'date': str(date.today()),
-            'spec': {
-                'parameters_b': spec['parameters_b'],
-                'quantization': spec['quantization'],
-                'size_gb': spec['size_gb'],
-            },
-            'abilities': {
-                'thinking': item['thinking'],
-                'mtp': spec['mtp'],
-            },
-            'scores': item['scores'],
-        }
-        js_content = append_entry(js_content, entry)
+        data.append({
+            'model':     item['model'],
+            'date':      str(date.today()),
+            'spec':      {'parameters_b': spec['parameters_b'], 'quantization': spec['quantization'],
+                          'size_gb': spec['size_gb']},
+            'abilities': {'thinking': item['thinking'], 'mtp': spec['mtp']},
+            'scores':    item['scores'],
+        })
         print(f'Added: {item["model"]}')
         added += 1
 
     if added:
-        data_path.parent.mkdir(exist_ok=True)
-        data_path.write_text(js_content)
-        print(f'Wrote {data_path}')
+        data.save()
+        print(f'Wrote {data.path}')
 
 
 if __name__ == '__main__':
