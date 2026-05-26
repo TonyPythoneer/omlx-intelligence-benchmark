@@ -996,14 +996,16 @@
       const size_gb  = Math.round(parseFloat(document.getElementById('import-size').value) * 100) / 100
       const mtp      = document.getElementById('import-mtp').checked
 
-      const byModel = new Map(currentData.map(e => [e.model, e]))
+      // Build next state on a copy; mutate currentData only after save succeeds.
+      const nextData = currentData.map(e => ({ ...e }))
+      const byModel = new Map(nextData.map((e, i) => [e.model, i]))
 
       for (const d of importDetected) {
         if (d.status === 'overwrite') {
-          const existing = byModel.get(d.model)
-          existing.scores = d.scores
+          const idx = byModel.get(d.model)
+          nextData[idx] = { ...nextData[idx], scores: d.scores }
         } else {
-          currentData.push({
+          nextData.push({
             model: d.model,
             date: today,
             spec: { parameters_b: params_b, quantization: quant, size_gb },
@@ -1017,7 +1019,8 @@
 
       const device = document.getElementById('device-select').value
       try {
-        await saveDataFile(`${device}.json`, currentData)
+        await saveDataFile(`${device}.json`, nextData)
+        currentData = nextData
         showToast('Saved successfully!')
         closeImportModal()
         renderTable(currentData)
@@ -1552,6 +1555,7 @@
     }
 
     function renderTable(data) {
+      if (!data) return
       let filtered = showAll ? data : data.filter(e => !e.deprecated)
       if (tierFilterIdx >= 0) {
         filtered = filtered.filter(getTierFilterMatch)
