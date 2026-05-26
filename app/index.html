@@ -778,14 +778,25 @@
   <div id="settings-modal" class="modal-overlay">
     <div class="modal-container" style="max-width: 540px;">
       <div class="modal-header">
-        <h3 class="modal-title">Settings</h3>
+        <h3 class="modal-title">Params Slider Breakpoints</h3>
         <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-desc">Parameters slider breakpoints (strictly increasing):</p>
+        <p class="modal-desc">
+          These numbers control the tick positions of the <strong>Params</strong> range filter in the top bar.
+          The slider can only stop at each breakpoint (plus an implicit <code>Inf</code> position past the last one).
+        </p>
+        <p class="modal-desc" style="margin-top: 4px;">
+          Example: with <code>0, 12, 24, 60</code> you can filter to ranges like <code>12B–24B</code>, <code>24B–60B</code>, or <code>60B–Inf</code>.
+          Values must be strictly increasing.
+        </p>
+        <p class="modal-desc" style="margin-top: 12px; font-weight: 600; color: #334155;">Breakpoints (in billions):</p>
         <div id="settings-breakpoints" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"></div>
         <button class="btn btn-secondary" style="margin-top: 12px;" onclick="addBreakpoint()">+ Add</button>
         <div id="settings-error" style="margin-top: 12px; color: #dc2626; font-size: 0.8rem;"></div>
+        <p class="modal-desc" style="margin-top: 16px; font-size: 0.75rem; color: #94a3b8;">
+          Saving writes the new list back to <code>app/settings.json</code>; the page reloads automatically.
+        </p>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
@@ -1271,45 +1282,45 @@
 
       thead.appendChild(groupRow)
 
-      // Row 2: "Accuracy" sub-group + leaf row (sortable)
+      // Row 2: benchmark sub-group labels (one cell per leaf column except Score where each benchmark spans 2)
       const subGroupRow = document.createElement('tr')
-      subGroupRow.className = 'group-row'
+      subGroupRow.className = 'group-row subgroup-row'
 
-      const addSubGroup = (label, colspan, isStart) => {
+      // colspan=1 cell with optional left-border (group-start) for alignment with row 1 and row 3
+      const addSub = (label, colspan, isStart) => {
         const th = document.createElement('th')
         th.textContent = label
-        th.colSpan = colspan
+        if (colspan && colspan !== 1) th.colSpan = colspan
         if (isStart) th.classList.add('group-start')
         subGroupRow.appendChild(th)
       }
 
-      // Non-score columns: span 1
-      const addNonScore = (label) => {
-        const th = document.createElement('th')
-        th.textContent = label
-        subGroupRow.appendChild(th)
-      }
-
       if (labelingMode) {
-        // Model gets one empty sub-cell; Spec(3) + Abilities(2) + Deprecated(1) = 6 empty
-        addNonScore('')
-        for (let i = 0; i < 6; i++) addNonScore('')
-        const th = document.createElement('th')
-        th.setAttribute('colspan', '3')
-        th.textContent = '—'
-        th.style.textAlign = 'center'
-        th.style.color = '#94a3b8'
-        subGroupRow.appendChild(th)
+        // 10 columns: Model | Spec(3) | Abilities(2) | Deprecated(1) | Tiers(3)
+        addSub('', 1, false)        // Model
+        addSub('', 1, true)         // Params  (Spec starts)
+        addSub('', 1, false)        // Quant
+        addSub('', 1, false)        // Size
+        addSub('', 1, true)         // Think   (Abilities starts)
+        addSub('', 1, false)        // MTP
+        addSub('', 1, true)         // Deprecated
+        const tiersTh = document.createElement('th')
+        tiersTh.colSpan = 3
+        tiersTh.textContent = '—'
+        tiersTh.style.textAlign = 'center'
+        tiersTh.style.color = '#94a3b8'
+        tiersTh.classList.add('group-start')
+        subGroupRow.appendChild(tiersTh)
       } else {
-        addNonScore('')
-        addNonScore('')
-        addNonScore('')
-        addNonScore('')
-        addNonScore('')
-        addNonScore('')
+        addSub('', 1, false)        // Model
+        addSub('', 1, true)         // Params  (Spec starts)
+        addSub('', 1, false)        // Quant
+        addSub('', 1, false)        // Size
+        addSub('', 1, true)         // Think   (Abilities starts)
+        addSub('', 1, false)        // MTP
+        // Every visible benchmark gets its own labelled sub-group cell with a left border.
         getVisibleBenchmarks().forEach((bench) => {
-          const firstInGroup = getGroupStartBenchmarks().has(bench)
-          addSubGroup(firstInGroup ? bench : '', 2, firstInGroup)
+          addSub(bench, 2, true)
         })
       }
       thead.appendChild(subGroupRow)
@@ -1352,9 +1363,9 @@
         addLeaf('Size',   'spec.size_gb',       false)
         addLeaf('Think',  'abilities.thinking', true)
         addLeaf('MTP',    'abilities.mtp',      false)
+        // Every benchmark starts a new visual group (Acc gets the left border)
         getVisibleBenchmarks().forEach((bench) => {
-          const firstInGroup = getGroupStartBenchmarks().has(bench)
-          addLeaf('🎯', 'scores.' + bench + '.accuracy', firstInGroup)
+          addLeaf('🎯', 'scores.' + bench + '.accuracy', true)
           addLeaf('⏲', 'scores.' + bench + '.time_s',   false)
         })
       }
@@ -1418,6 +1429,7 @@
       actions.appendChild(hfBtn)
       modelTd.appendChild(actions)
       modelTd.appendChild(document.createTextNode(entry.model))
+      modelTd.title = entry.model   // hover tooltip for truncated names
       if (entry.deprecated) {
         const badge = document.createElement('span')
         badge.className = 'deprecated-badge'
@@ -1520,13 +1532,13 @@
           'ability-cell', false
         )
 
+        // Every benchmark's Acc cell gets the left border (matching the header rows).
         getVisibleBenchmarks().forEach(bench => {
           const sd = getScoreDisplay(entry.scores[bench])
-          const firstInGroup = getGroupStartBenchmarks().has(bench)
           if (sd.accuracy !== null) {
-            addTd(`<span class="${sd.accuracyClass}">${sd.accuracy}%</span>`, 'score', firstInGroup)
+            addTd(`<span class="${sd.accuracyClass}">${sd.accuracy}%</span>`, 'score', true)
           } else {
-            addTd('—', 'missing', firstInGroup)
+            addTd('—', 'missing', true)
           }
           if (sd.timeText !== null) {
             addTd(sd.timeText, 'num', false)
