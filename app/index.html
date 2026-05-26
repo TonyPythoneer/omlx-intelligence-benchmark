@@ -67,24 +67,6 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
-    #tier-filter {
-      font-family: inherit;
-      font-size: 0.8rem;
-      font-weight: 500;
-      padding: 6px 12px;
-      border: 1px solid #e2e8f0;
-      border-radius: 6px;
-      background: #fff;
-      color: #334155;
-      cursor: pointer;
-      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-      outline: none;
-    }
-
-    #tier-filter:focus {
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
-    }
 
     #model-search {
       font-family: inherit;
@@ -599,12 +581,6 @@
       <button id="import-data" class="btn btn-secondary" onclick="openImportModal()">+ Import</button>
       <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export Data</button>
       <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label</button>
-      <select id="tier-filter" class="btn btn-secondary" onclick="void(0)">
-        <option value="all">All Tiers</option>
-        <option value="opus">Opus</option>
-        <option value="sonnet">Sonnet</option>
-        <option value="haiku">Haiku</option>
-      </select>
       <label class="checkbox-label">
         <input type="checkbox" id="show-all-cb" onchange="toggleShowAll()">
         Show Deprecated
@@ -612,6 +588,15 @@
       <select id="device-select"></select>
     </div>
     <div class="filter-row">
+      <div>
+        <span class="segmented-label">Tier</span>
+        <div class="segmented" id="tier-filter">
+          <button data-val="all" class="active">All</button>
+          <button data-val="opus">Opus</button>
+          <button data-val="sonnet">Sonnet</button>
+          <button data-val="haiku">Haiku</button>
+        </div>
+      </div>
       <div>
         <span class="segmented-label">Metrics</span>
         <div class="segmented" id="metrics-filter">
@@ -761,10 +746,13 @@
     let tierFilterIdx = -1   // -1 = all, 0 = opus, 1 = sonnet, 2 = haiku
 
     document.addEventListener('DOMContentLoaded', () => {
-      const tf = document.getElementById('tier-filter')
-      tf.addEventListener('change', () => {
-        tierFilterIdx = tf.value === 'all' ? -1 : { opus: 0, sonnet: 1, haiku: 2 }[tf.value]
-        renderTable(currentData)
+      document.querySelectorAll('#tier-filter button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.dataset.val
+          tierFilterIdx = val === 'all' ? -1 : { opus: 0, sonnet: 1, haiku: 2 }[val]
+          document.querySelectorAll('#tier-filter button').forEach(b => b.classList.toggle('active', b === btn))
+          renderTable(currentData)
+        })
       })
       document.querySelectorAll('#metrics-filter button').forEach(btn => {
         btn.addEventListener('click', () => {
