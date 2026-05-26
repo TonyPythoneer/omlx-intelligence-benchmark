@@ -752,7 +752,7 @@
       <div class="modal-footer">
         <span id="import-target" style="font-size: 0.75rem; color: #64748b; align-self: center; margin-right: auto;"></span>
         <button class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
-        <button id="import-save-btn" class="btn btn-primary" onclick="saveImport()" disabled>Save</button>
+        <button id="import-save-btn" class="btn btn-primary" onclick="saveImport()" disabled>Apply</button>
       </div>
     </div>
   </div>
@@ -878,7 +878,24 @@
 
     // ── Labeling (edit) state & logic ─────────────────────────────────────────
     let labelingMode = false
+    let dataDirty = false   // true after import-apply or labeling edits, until exported
     const labelingErrorsByModel = new Map()   // model -> Set<fieldKey>
+
+    function updateExportBtnVisibility() {
+      const btn = document.getElementById('export-data')
+      if (!btn) return
+      btn.style.display = (dataDirty || labelingMode) ? 'inline-flex' : 'none'
+    }
+
+    function markDataDirty() {
+      dataDirty = true
+      updateExportBtnVisibility()
+    }
+
+    function clearDataDirty() {
+      dataDirty = false
+      updateExportBtnVisibility()
+    }
 
     function updateLabelingExportState() {
       const hasErr = [...labelingErrorsByModel.values()].some(s => s.size > 0)
@@ -893,16 +910,14 @@
       labelingMode = !labelingMode
       labelingErrorsByModel.clear()
       updateLabelingExportState()
+      updateExportBtnVisibility()
       const btn = document.getElementById('toggle-labeling')
-      const exportBtn = document.getElementById('export-data')
       if (labelingMode) {
         btn.classList.add('active')
         btn.textContent = '✏ Editing'
-        exportBtn.style.display = 'inline-flex'
       } else {
         btn.classList.remove('active')
         btn.textContent = '✏ Label'
-        exportBtn.style.display = 'none'
       }
       buildHeaders()
       renderTable(currentData)
@@ -970,8 +985,7 @@
 
     // ── Import modal ─────────────────────────────────────────────────────────
     function openImportModal() {
-      const device = document.getElementById('device-select').value
-      document.getElementById('import-target').textContent = `Target: app/data/${device}.json`
+      document.getElementById('import-target').textContent = 'Apply merges into current view; use Export Data to write to disk.'
       document.getElementById('import-input').value = ''
       document.getElementById('import-detected').innerHTML = ''
       document.getElementById('import-save-btn').disabled = true
@@ -995,19 +1009,19 @@
       document.getElementById('import-modal').classList.remove('show')
     }
 
-    async function saveImport() {
+    function saveImport() {
       if (importDetected.length === 0) return
 
       const today = new Date().toISOString().slice(0, 10)
-
-      // Build next state on a copy; mutate currentData only after save succeeds.
       const nextData = currentData.map(e => ({ ...e }))
       const byModel = new Map(nextData.map((e, i) => [e.model, i]))
 
+      let newCount = 0, ovrCount = 0
       for (const d of importDetected) {
         if (d.status === 'overwrite') {
           const idx = byModel.get(d.model)
           nextData[idx] = { ...nextData[idx], scores: d.scores }
+          ovrCount++
         } else {
           nextData.push({
             model: d.model,
@@ -1017,21 +1031,15 @@
             deprecated: false,
             scores: d.scores,
           })
+          newCount++
         }
       }
 
-      const device = document.getElementById('device-select').value
-      try {
-        await saveDataFile(`${device}.json`, nextData)
-        currentData = nextData
-        showToast('Saved successfully!')
-        closeImportModal()
-        renderTable(currentData)
-      } catch (err) {
-        if (err.name === 'AbortError') return   // user cancelled save dialog
-        console.error(err)
-        showToast('Save failed: ' + err.message)
-      }
+      currentData = nextData
+      closeImportModal()
+      markDataDirty()
+      renderTable(currentData)
+      showToast(`Applied: ${newCount} new, ${ovrCount} overwrite. Click Export Data to save.`)
     }
 
     async function saveDataFile(suggestedName, data) {
@@ -1060,6 +1068,7 @@
       const code = document.getElementById('modal-code-preview').textContent
       navigator.clipboard.writeText(code).then(() => {
         showToast("Copied updated data to clipboard!")
+        clearDataDirty()
         closeModal()
       }).catch(err => {
         console.error("Failed to copy text: ", err)
@@ -1071,6 +1080,7 @@
       try {
         await saveDataFile(`${device}.json`, currentData)
         showToast('Saved successfully!')
+        clearDataDirty()
         closeModal()
         renderTable(currentData)
       } catch (err) {
@@ -1425,6 +1435,7 @@
             }
             labelingErrorsByModel.set(entry.model, labelingErrors)
             updateLabelingExportState()
+            markDataDirty()
           }
           return input
         }
@@ -1447,6 +1458,7 @@
             }
             labelingErrorsByModel.set(entry.model, labelingErrors)
             updateLabelingExportState()
+            markDataDirty()
           }
           return input
         }
@@ -1457,7 +1469,7 @@
           const input = document.createElement('input')
           input.type = 'checkbox'
           input.checked = !!parent[key]
-          input.addEventListener('change', e => { parent[key] = e.target.checked })
+          input.addEventListener('change', e => { parent[key] = e.target.checked; markDataDirty() })
           const slider = document.createElement('span')
           slider.className = 'slider'
           label.appendChild(input)
