@@ -1,5 +1,6 @@
 {
   "defaultDevice": "m1-max-64GB-32c",
+  "parametersBreakpoints": [0, 12, 24, 60],
   "devices": {
     "m1-max-64GB-32c": {
       "family": "M1",
