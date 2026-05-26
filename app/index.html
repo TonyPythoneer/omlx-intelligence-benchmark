@@ -1304,13 +1304,9 @@
         addSub('', 1, true)         // Think   (Abilities starts)
         addSub('', 1, false)        // MTP
         addSub('', 1, true)         // Deprecated
-        const tiersTh = document.createElement('th')
-        tiersTh.colSpan = 3
-        tiersTh.textContent = '—'
-        tiersTh.style.textAlign = 'center'
-        tiersTh.style.color = '#94a3b8'
-        tiersTh.classList.add('group-start')
-        subGroupRow.appendChild(tiersTh)
+        addSub('', 1, true)         // Opus    (Tiers starts; every tier its own column)
+        addSub('', 1, true)         // Sonnet
+        addSub('', 1, true)         // Haiku
       } else {
         addSub('', 1, false)        // Model
         addSub('', 1, true)         // Params  (Spec starts)
@@ -1354,9 +1350,10 @@
         addLeaf('Think',  'abilities.thinking', true)
         addLeaf('MTP',    'abilities.mtp',      false)
         addLeaf('Deprecated', 'deprecated',     true)
-        addLeaf('Opus',       'tiers.opus',     false)
-        addLeaf('Sonnet',     'tiers.sonnet',   false)
-        addLeaf('Haiku',      'tiers.haiku',    false)
+        // Each tier column gets its own left border (same treatment as score columns).
+        addLeaf('Opus',       'tiers.opus',     true)
+        addLeaf('Sonnet',     'tiers.sonnet',   true)
+        addLeaf('Haiku',      'tiers.haiku',    true)
       } else {
         addLeaf('Params', 'spec.parameters_b',  true)
         addLeaf('Quant',  'spec.quantization',  false)
@@ -1512,9 +1509,9 @@
         addTd(createBoolSwitch('thinking', entry.abilities), 'cell-switch', true)
         addTd(createBoolSwitch('mtp',      entry.abilities), 'cell-switch', false)
         addTd(createBoolSwitch('deprecated', entry),         'cell-switch', true)
-        addTd(createBoolSwitch('opus',   entry.tiers),       'cell-switch', false)
-        addTd(createBoolSwitch('sonnet', entry.tiers),       'cell-switch', false)
-        addTd(createBoolSwitch('haiku',  entry.tiers),       'cell-switch', false)
+        addTd(createBoolSwitch('opus',   entry.tiers),       'cell-switch', true)
+        addTd(createBoolSwitch('sonnet', entry.tiers),       'cell-switch', true)
+        addTd(createBoolSwitch('haiku',  entry.tiers),       'cell-switch', true)
       } else {
         addTd(entry.spec.parameters_b != null ? `${entry.spec.parameters_b}B` : '—', entry.spec.parameters_b != null ? 'num' : 'missing', true)
         addTd(entry.spec.quantization || '—', entry.spec.quantization ? '' : 'missing', false)
