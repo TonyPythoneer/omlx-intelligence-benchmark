@@ -1544,7 +1544,7 @@
     async function loadDevice(deviceKey) {
       currentData = null
       buildHeaders()
-      currentData = await fetch(`data/${deviceKey}.json`)
+      currentData = await fetch(`data/${deviceKey}.json`, { cache: 'no-store' })
         .then(r => r.json())
         .catch(err => { console.error(`Failed to load device ${deviceKey}:`, err); return [] })
       renderTable(currentData)
@@ -1635,7 +1635,7 @@
     }
 
     async function saveSettings() {
-      const settings = await fetch('settings.json').then(r => r.json())
+      const settings = await fetch('settings.json', { cache: 'no-store' }).then(r => r.json())
       settings.parametersBreakpoints = settingsDraftBreakpoints
       try {
         await saveDataFile('settings.json', settings)
@@ -1654,7 +1654,7 @@
         document.getElementById('import-data').style.display = 'none'
         document.getElementById('open-settings').style.display = 'none'
       }
-      const settings = await fetch('settings.json').then(r => r.json())
+      const settings = await fetch('settings.json', { cache: 'no-store' }).then(r => r.json())
       const breakpoints = settings.parametersBreakpoints || [0, 12, 24, 60]
       initParamsSlider(breakpoints)
       initDeviceDropdown(settings)
