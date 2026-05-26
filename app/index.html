@@ -382,15 +382,18 @@
     #benchmark-table thead tr.leaf-row th:nth-child(6),
     #benchmark-table tbody td:nth-child(6) { width: 80px;  min-width: 80px;  max-width: 80px;  }
 
-    /* Labeling-mode inline editors stay inside the locked column widths. */
+    /* Labeling-mode inline editors stay inside the locked column widths AND match the
+       intrinsic row height in view mode (so toggling Labeling does not shift row heights). */
     .label-input {
       box-sizing: border-box;
       width: 100%;
-      padding: 4px 8px;
+      height: 22px;
+      padding: 0 8px;
       border: 1px solid #e2e8f0;
       border-radius: 4px;
       font-family: inherit;
-      font-size: 0.85rem;
+      font-size: 0.8rem;
+      line-height: 1;
     }
     .label-input:focus { outline: none; border-color: #2563eb; }
     .label-input.import-error { border-color: #dc2626; }
