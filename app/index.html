@@ -847,8 +847,67 @@
       document.getElementById('import-modal').classList.remove('show')
     }
 
-    function saveImport() {
-      // Implemented in Task 9
+    async function saveImport() {
+      if (importDetected.length === 0) return
+
+      const today = new Date().toISOString().slice(0, 10)
+      const params_b = parseInt(document.getElementById('import-params').value, 10)
+      const quant    = document.getElementById('import-quant').value.trim()
+      const size_gb  = Math.round(parseFloat(document.getElementById('import-size').value) * 100) / 100
+      const mtp      = document.getElementById('import-mtp').checked
+
+      const byModel = new Map(currentData.map(e => [e.model, e]))
+
+      for (const d of importDetected) {
+        if (d.status === 'overwrite') {
+          const existing = byModel.get(d.model)
+          existing.scores = d.scores
+        } else {
+          currentData.push({
+            model: d.model,
+            date: today,
+            spec: { parameters_b: params_b, quantization: quant, size_gb },
+            abilities: { thinking: d.thinking, mtp },
+            deprecated: false,
+            tiers: { opus: false, sonnet: false, haiku: false },
+            scores: d.scores,
+          })
+        }
+      }
+
+      const device = document.getElementById('device-select').value
+      try {
+        await saveDataFile(`${device}.json`, currentData)
+        showToast('Saved successfully!')
+        closeImportModal()
+        renderTable(currentData)
+      } catch (err) {
+        if (err.name === 'AbortError') return   // user cancelled save dialog
+        console.error(err)
+        showToast('Save failed: ' + err.message)
+      }
+    }
+
+    async function saveDataFile(suggestedName, data) {
+      const text = JSON.stringify(data, null, 2) + '\n'
+      if ('showSaveFilePicker' in window) {
+        const handle = await window.showSaveFilePicker({
+          suggestedName,
+          types: [{ description: 'JSON', accept: { 'application/json': ['.json'] } }],
+        })
+        const writable = await handle.createWritable()
+        await writable.write(text)
+        await writable.close()
+      } else {
+        const blob = new Blob([text], { type: 'application/json' })
+        const a = document.createElement('a')
+        a.href = URL.createObjectURL(blob)
+        a.download = suggestedName
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        URL.revokeObjectURL(a.href)
+      }
     }
 
     function copyFromModal() {
