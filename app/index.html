@@ -225,6 +225,13 @@
       color: #0f172a;
     }
 
+    thead tr.leaf-row th.no-sort,
+    thead tr.leaf-row th.no-sort:hover {
+      cursor: default;
+      background: #fff;
+      color: #475569;
+    }
+
     thead tr.leaf-row th.sort-asc::after  { content: ' ↑'; color: #2563eb; }
     thead tr.leaf-row th.sort-desc::after { content: ' ↓'; color: #2563eb; }
     thead tr.leaf-row th.sort-asc,
@@ -658,8 +665,8 @@
 
     // ── Sort state ───────────────────────────────────────────────────────────
 
-    let sortCol = null
-    let sortDir = 1   // 1 = ascending, -1 = descending
+    let sortCol = 'date'
+    let sortDir = -1   // 1 = ascending, -1 = descending
 
     // ── Helpers ──────────────────────────────────────────────────────────────
 
@@ -687,6 +694,7 @@
     }
 
     function getSortValue(entry, col) {
+      if (col === 'date') return new Date(entry.date).getTime()
       if (col === 'model')              return entry.model
       if (col === 'spec.parameters_b') return entry.spec.parameters_b
       if (col === 'spec.quantization') return entry.spec.quantization
@@ -806,7 +814,15 @@
         leafRow.appendChild(th)
       }
 
-      addLeaf('Model', 'model', false)
+      const addLeafNoSort = (label, isStart) => {
+        const th = document.createElement('th')
+        th.textContent = label
+        if (isStart) th.classList.add('group-start')
+        th.classList.add('no-sort')
+        leafRow.appendChild(th)
+      }
+
+      addLeafNoSort('Model', false)
       if (labelingMode) {
         addLeaf('Deprecated', 'deprecated',  true)
         addLeaf('Opus',       'tiers.opus',   false)
