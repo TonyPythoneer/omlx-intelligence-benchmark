@@ -68,7 +68,22 @@
     }
 
 
-    #model-search {
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px 22px;
+      align-items: center;
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+    }
+    .filter-search-input {
+      flex: 1 1 200px;
+      min-width: 180px;
+      max-width: 320px;
       font-family: inherit;
       font-size: 0.875rem;
       padding: 8px 14px;
@@ -76,13 +91,45 @@
       border-radius: 8px;
       background: #fff;
       color: #334155;
-      width: 240px;
       outline: none;
       transition: all 0.2s ease;
     }
-    #model-search:focus {
+    .filter-search-input:focus {
       border-color: #2563eb;
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .filter-label {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .filter-params {
+      flex: 1 1 280px;
+      min-width: 240px;
+    }
+    .filter-params #params-slider-wrap {
+      position: relative;
+      flex: 1;
+      height: 20px;
+      min-width: 120px;
+    }
+    .params-bound {
+      font-size: 0.75rem;
+      color: #475569;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', 'SF Mono', monospace;
+      min-width: 36px;
+      text-align: center;
+    }
+    .filter-deprecated {
+      margin-left: auto;
     }
 
     .checkbox-label {
@@ -190,13 +237,6 @@
       letter-spacing: 0.06em;
       margin-right: 8px;
       align-self: center;
-    }
-    .filter-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-top: 12px;
-      flex-wrap: wrap;
     }
     header {
       flex-wrap: wrap;
@@ -623,48 +663,51 @@
   <header>
     <h1>oMLX Intelligence Benchmark</h1>
     <div class="header-controls">
-      <input id="model-search" type="search" placeholder="🔍 Search model..." />
       <button id="import-data" class="btn btn-secondary" onclick="openImportModal()">+ Import</button>
       <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export Data</button>
       <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label</button>
-      <label class="checkbox-label">
-        <input type="checkbox" id="show-all-cb" onchange="toggleShowAll()">
-        Show Deprecated
-      </label>
       <button id="open-settings" class="btn btn-secondary" onclick="openSettingsModal()" title="Settings">⚙</button>
       <select id="device-select"></select>
     </div>
-    <div class="filter-row">
-      <div>
-        <span class="segmented-label">Tier</span>
-        <div class="segmented" id="tier-filter">
-          <button data-val="all" class="active">All</button>
-          <button data-val="opus">Opus</button>
-          <button data-val="sonnet">Sonnet</button>
-          <button data-val="haiku">Haiku</button>
-        </div>
-      </div>
-      <div>
-        <span class="segmented-label">Metrics</span>
-        <div class="segmented" id="metrics-filter">
-          <button data-val="all" class="active">All</button>
-          <button data-val="basic">Basic</button>
-          <button data-val="advanced">Advanced</button>
-        </div>
-      </div>
-      <div>
-        <span class="segmented-label">Params</span>
-        <div id="params-slider-wrap" style="display:inline-flex; flex-direction:column; gap:4px; min-width: 240px;">
-          <div style="display:flex; justify-content:space-between; font-size: 0.7rem; color:#94a3b8;" id="params-ticks"></div>
-          <div style="position: relative; height: 28px;">
-            <input id="params-min" type="range" />
-            <input id="params-max" type="range" />
-          </div>
-          <div id="params-range-label" style="font-size: 0.75rem; color:#475569; font-weight: 500;"></div>
-        </div>
+  </header>
+
+  <div class="filter-bar">
+    <input id="model-search" type="search" class="filter-search-input" placeholder="🔍 Search models..." />
+
+    <div class="filter-group">
+      <span class="filter-label">Tier</span>
+      <div class="segmented" id="tier-filter">
+        <button data-val="all" class="active">All</button>
+        <button data-val="opus">Opus</button>
+        <button data-val="sonnet">Sonnet</button>
+        <button data-val="haiku">Haiku</button>
       </div>
     </div>
-  </header>
+
+    <div class="filter-group">
+      <span class="filter-label">Metrics</span>
+      <div class="segmented" id="metrics-filter">
+        <button data-val="all" class="active">All</button>
+        <button data-val="basic">Basic</button>
+        <button data-val="advanced">Advanced</button>
+      </div>
+    </div>
+
+    <div class="filter-group filter-params">
+      <span class="filter-label">Params</span>
+      <span class="params-bound" id="params-lower">0B</span>
+      <div id="params-slider-wrap">
+        <input id="params-min" type="range" />
+        <input id="params-max" type="range" />
+      </div>
+      <span class="params-bound" id="params-upper">Inf</span>
+    </div>
+
+    <label class="checkbox-label filter-deprecated">
+      <input type="checkbox" id="show-all-cb" onchange="toggleShowAll()">
+      Show Deprecated
+    </label>
+  </div>
   <div class="table-wrapper">
     <table id="benchmark-table">
       <thead></thead>
@@ -705,32 +748,6 @@
         <textarea id="import-input" placeholder="Model: ExampleModel-name&#10;MMLU 83.3% 30 30 835.1 yes&#10;..." style="width:100%; height:160px; font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; padding: 12px; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; resize: vertical;"></textarea>
 
         <div id="import-detected" style="margin-top: 16px;"></div>
-
-        <div id="import-spec-section" style="margin-top: 16px;">
-          <div class="segmented-label" style="margin-bottom: 8px;">Spec for new entries</div>
-          <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end;">
-            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem; color: #64748b;">
-              Params (B)
-              <input id="import-params" type="number" min="1" step="1" placeholder="35" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; width: 100px;">
-            </label>
-            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem; color: #64748b;">
-              Quant
-              <input id="import-quant" type="text" placeholder="4bit" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; width: 100px;">
-            </label>
-            <label style="display: flex; flex-direction: column; gap: 4px; font-size: 0.75rem; color: #64748b;">
-              Size (GB)
-              <input id="import-size" type="number" min="0.01" step="0.01" placeholder="19.50" style="padding: 6px 10px; border: 1px solid #e2e8f0; border-radius: 6px; width: 100px;">
-            </label>
-            <label style="display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: #475569;">
-              <span>MTP</span>
-              <label class="switch">
-                <input id="import-mtp" type="checkbox">
-                <span class="slider"></span>
-              </label>
-            </label>
-          </div>
-          <div id="import-spec-error" style="margin-top: 8px; color: #dc2626; font-size: 0.8rem;"></div>
-        </div>
       </div>
       <div class="modal-footer">
         <span id="import-target" style="font-size: 0.75rem; color: #64748b; align-self: center; margin-right: auto;"></span>
@@ -788,31 +805,35 @@
     let metricsFilter = 'all'   // 'all' | 'basic' | 'advanced'
 
     // ── Params filter ────────────────────────────────────────────────────────
+    // Slider has breakpoints.length + 1 positions; the last position represents +Infinity.
     let paramsBreakpoints = [0, 12, 24, 60]
     let paramsMinIdx = 0
-    let paramsMaxIdx = 3   // last index
+    let paramsMaxIdx = 4   // = breakpoints.length (Inf position)
+
+    function paramsValueAt(idx) {
+      return idx >= paramsBreakpoints.length ? Infinity : paramsBreakpoints[idx]
+    }
+
+    function paramsLabelAt(idx) {
+      return idx >= paramsBreakpoints.length ? 'Inf' : `${paramsBreakpoints[idx]}B`
+    }
 
     function initParamsSlider(breakpoints) {
       paramsBreakpoints = breakpoints
       paramsMinIdx = 0
-      paramsMaxIdx = breakpoints.length - 1
+      paramsMaxIdx = breakpoints.length   // Inf position
 
+      const lastIdx = breakpoints.length
       const minSlider = document.getElementById('params-min')
       const maxSlider = document.getElementById('params-max')
       minSlider.min = 0
       maxSlider.min = 0
-      minSlider.max = paramsMaxIdx
-      maxSlider.max = paramsMaxIdx
+      minSlider.max = lastIdx
+      maxSlider.max = lastIdx
       minSlider.step = 1
       maxSlider.step = 1
       minSlider.value = paramsMinIdx
       maxSlider.value = paramsMaxIdx
-
-      const ticks = document.getElementById('params-ticks')
-      ticks.innerHTML = breakpoints.map((b, i) => {
-        const isLast = i === breakpoints.length - 1
-        return `<span>${b}B${isLast ? '+' : ''}</span>`
-      }).join('')
 
       const onChange = () => {
         let lo = parseInt(minSlider.value, 10)
@@ -820,32 +841,25 @@
         if (lo > hi) [lo, hi] = [hi, lo]
         paramsMinIdx = lo
         paramsMaxIdx = hi
-        updateParamsLabel()
+        updateParamsBounds()
         renderTable(currentData)
       }
       minSlider.oninput = onChange
       maxSlider.oninput = onChange
-      updateParamsLabel()
+      updateParamsBounds()
     }
 
-    function updateParamsLabel() {
-      const lo = paramsBreakpoints[paramsMinIdx]
-      const hiIdx = paramsMaxIdx
-      const hi = paramsBreakpoints[hiIdx]
-      const isLast = hiIdx === paramsBreakpoints.length - 1
-      document.getElementById('params-range-label').textContent =
-        `${lo}B – ${isLast ? 'Inf' : hi + 'B'}`
+    function updateParamsBounds() {
+      document.getElementById('params-lower').textContent = paramsLabelAt(paramsMinIdx)
+      document.getElementById('params-upper').textContent = paramsLabelAt(paramsMaxIdx)
     }
 
     function paramsMatch(entry) {
       const p = entry.spec.parameters_b
-      const lo = paramsBreakpoints[paramsMinIdx]
-      const hiIdx = paramsMaxIdx
-      const hi = paramsBreakpoints[hiIdx]
-      const isLast = hiIdx === paramsBreakpoints.length - 1
-      if (p < lo) return false
-      if (!isLast && p > hi) return false
-      return true
+      if (p == null) return true
+      const lo = paramsValueAt(paramsMinIdx)
+      const hi = paramsValueAt(paramsMaxIdx)
+      return p >= lo && p <= hi
     }
 
     function getVisibleCategories() {
@@ -960,7 +974,6 @@
       document.getElementById('import-target').textContent = `Target: app/data/${device}.json`
       document.getElementById('import-input').value = ''
       document.getElementById('import-detected').innerHTML = ''
-      document.getElementById('import-spec-error').textContent = ''
       document.getElementById('import-save-btn').disabled = true
       importDetected = []
       document.getElementById('import-modal').classList.add('show')
@@ -974,13 +987,8 @@
           status: existingNames.has(p.model) ? 'overwrite' : 'new',
         }))
         renderImportDetected()
-        validateImportSpec()
+        document.getElementById('import-save-btn').disabled = importDetected.length === 0
       }
-
-      ;['import-params', 'import-quant', 'import-size', 'import-mtp'].forEach(id => {
-        document.getElementById(id).oninput = validateImportSpec
-        document.getElementById(id).onchange = validateImportSpec
-      })
     }
 
     function closeImportModal() {
@@ -991,10 +999,6 @@
       if (importDetected.length === 0) return
 
       const today = new Date().toISOString().slice(0, 10)
-      const params_b = parseInt(document.getElementById('import-params').value, 10)
-      const quant    = document.getElementById('import-quant').value.trim()
-      const size_gb  = Math.round(parseFloat(document.getElementById('import-size').value) * 100) / 100
-      const mtp      = document.getElementById('import-mtp').checked
 
       // Build next state on a copy; mutate currentData only after save succeeds.
       const nextData = currentData.map(e => ({ ...e }))
@@ -1008,8 +1012,8 @@
           nextData.push({
             model: d.model,
             date: today,
-            spec: { parameters_b: params_b, quantization: quant, size_gb },
-            abilities: { thinking: d.thinking, mtp },
+            spec: { parameters_b: null, quantization: '', size_gb: null },
+            abilities: { thinking: d.thinking, mtp: false },
             deprecated: false,
             scores: d.scores,
           })
@@ -1150,57 +1154,10 @@
     </div>`
       }).join('')
       container.innerHTML = header + rows
-
-      // Show/hide spec section: only relevant when there is at least one NEW entry
-      document.getElementById('import-spec-section').style.display = newCount > 0 ? 'block' : 'none'
     }
 
     function escapeHtml(s) {
       return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])
-    }
-
-    function validateImportSpec() {
-      const newCount = importDetected.filter(d => d.status === 'new').length
-      const errBox = document.getElementById('import-spec-error')
-      const saveBtn = document.getElementById('import-save-btn')
-
-      if (importDetected.length === 0) {
-        errBox.textContent = ''
-        saveBtn.disabled = true
-        return
-      }
-
-      // No new entries — spec irrelevant
-      if (newCount === 0) {
-        errBox.textContent = ''
-        saveBtn.disabled = false
-        return
-      }
-
-      const params  = document.getElementById('import-params')
-      const quant   = document.getElementById('import-quant')
-      const size    = document.getElementById('import-size')
-      const errors = []
-
-      ;[params, quant, size].forEach(el => el.classList.remove('import-error'))
-
-      const pVal = parseFloat(params.value)
-      if (!params.value || !Number.isInteger(pVal) || pVal <= 0) {
-        errors.push('Params: positive integer required')
-        params.classList.add('import-error')
-      }
-      if (!quant.value.trim()) {
-        errors.push('Quant: required')
-        quant.classList.add('import-error')
-      }
-      const sVal = parseFloat(size.value)
-      if (!size.value || isNaN(sVal) || sVal <= 0) {
-        errors.push('Size: positive number required')
-        size.classList.add('import-error')
-      }
-
-      errBox.textContent = errors.join(' · ')
-      saveBtn.disabled = errors.length > 0
     }
 
     function scoreColorClass(accuracy) {
@@ -1518,9 +1475,9 @@
         addTd(createBoolSwitch('sonnet', entry.tiers),       'cell-switch', false)
         addTd(createBoolSwitch('haiku',  entry.tiers),       'cell-switch', false)
       } else {
-        addTd(`${entry.spec.parameters_b}B`, 'num', true)
-        addTd(entry.spec.quantization, '', false)
-        addTd(`${entry.spec.size_gb.toFixed(2)} GB`, 'num', false)
+        addTd(entry.spec.parameters_b != null ? `${entry.spec.parameters_b}B` : '—', entry.spec.parameters_b != null ? 'num' : 'missing', true)
+        addTd(entry.spec.quantization || '—', entry.spec.quantization ? '' : 'missing', false)
+        addTd(entry.spec.size_gb != null ? `${entry.spec.size_gb.toFixed(2)} GB` : '—', entry.spec.size_gb != null ? 'num' : 'missing', false)
         addTd(
           entry.abilities.thinking
             ? '<span class="ability-yes">✓ Yes</span>'
