@@ -599,6 +599,24 @@
       margin-top: -6px;
     }
     #params-slider-wrap input[type=range]:focus { outline: none; }
+
+    .model-actions {
+      display: inline-flex;
+      gap: 6px;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    .model-action-btn {
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 0.95rem;
+      color: #cbd5e1;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.15s ease;
+    }
+    .model-action-btn:hover { color: #475569; }
   </style>
 </head>
 <body>
@@ -1332,8 +1350,32 @@
 
       const modelTd = document.createElement('td')
       modelTd.className = 'model-name'
-      const nameSpan = document.createTextNode(entry.model)
-      modelTd.appendChild(nameSpan)
+
+      const actions = document.createElement('span')
+      actions.className = 'model-actions'
+
+      const copyBtn = document.createElement('button')
+      copyBtn.className = 'model-action-btn'
+      copyBtn.title = 'Copy model name'
+      copyBtn.textContent = '📋'
+      copyBtn.onclick = (e) => {
+        e.stopPropagation()
+        navigator.clipboard.writeText(entry.model).then(() => showToast('Copied!'))
+      }
+
+      const hfBtn = document.createElement('button')
+      hfBtn.className = 'model-action-btn'
+      hfBtn.title = 'Search on HuggingFace'
+      hfBtn.textContent = '🤗'
+      hfBtn.onclick = (e) => {
+        e.stopPropagation()
+        window.open(`https://huggingface.co/models?search=${encodeURIComponent(entry.model)}`, '_blank', 'noopener')
+      }
+
+      actions.appendChild(copyBtn)
+      actions.appendChild(hfBtn)
+      modelTd.appendChild(actions)
+      modelTd.appendChild(document.createTextNode(entry.model))
       if (entry.deprecated) {
         const badge = document.createElement('span')
         badge.className = 'deprecated-badge'
