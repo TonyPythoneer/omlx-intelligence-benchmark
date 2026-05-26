@@ -631,6 +631,7 @@
         <input type="checkbox" id="show-all-cb" onchange="toggleShowAll()">
         Show Deprecated
       </label>
+      <button id="open-settings" class="btn btn-secondary" onclick="openSettingsModal()" title="Settings">⚙</button>
       <select id="device-select"></select>
     </div>
     <div class="filter-row">
@@ -735,6 +736,26 @@
         <span id="import-target" style="font-size: 0.75rem; color: #64748b; align-self: center; margin-right: auto;"></span>
         <button class="btn btn-secondary" onclick="closeImportModal()">Cancel</button>
         <button id="import-save-btn" class="btn btn-primary" onclick="saveImport()" disabled>Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal-overlay">
+    <div class="modal-container" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Settings</h3>
+        <button class="modal-close" onclick="closeSettingsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">Parameters slider breakpoints (strictly increasing):</p>
+        <div id="settings-breakpoints" style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;"></div>
+        <button class="btn btn-secondary" style="margin-top: 12px;" onclick="addBreakpoint()">+ Add</button>
+        <div id="settings-error" style="margin-top: 12px; color: #dc2626; font-size: 0.8rem;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeSettingsModal()">Cancel</button>
+        <button id="settings-save-btn" class="btn btn-primary" onclick="saveSettings()">Save</button>
       </div>
     </div>
   </div>
@@ -1581,11 +1602,97 @@
       select.addEventListener('change', e => loadDevice(e.target.value))
     }
 
+    // ── Settings modal ───────────────────────────────────────────────────────
+    let settingsDraftBreakpoints = []
+
+    function openSettingsModal() {
+      settingsDraftBreakpoints = [...paramsBreakpoints]
+      renderSettingsBreakpoints()
+      document.getElementById('settings-modal').classList.add('show')
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settings-modal').classList.remove('show')
+    }
+
+    function renderSettingsBreakpoints() {
+      const container = document.getElementById('settings-breakpoints')
+      container.innerHTML = ''
+      settingsDraftBreakpoints.forEach((val, i) => {
+        const wrap = document.createElement('div')
+        wrap.style.cssText = 'display:inline-flex; align-items:center; gap:4px;'
+        const input = document.createElement('input')
+        input.type = 'number'
+        input.min = '0'
+        input.step = '1'
+        input.value = val
+        input.style.cssText = 'width: 70px; padding: 6px 8px; border: 1px solid #e2e8f0; border-radius: 6px;'
+        input.oninput = () => {
+          const n = parseInt(input.value, 10)
+          settingsDraftBreakpoints[i] = isNaN(n) ? 0 : n
+          validateSettings()
+        }
+        const remove = document.createElement('button')
+        remove.className = 'btn btn-secondary'
+        remove.style.cssText = 'padding: 4px 8px; font-size: 0.75rem;'
+        remove.textContent = '✕'
+        remove.onclick = () => {
+          if (settingsDraftBreakpoints.length <= 2) return
+          settingsDraftBreakpoints.splice(i, 1)
+          renderSettingsBreakpoints()
+          validateSettings()
+        }
+        wrap.appendChild(input)
+        wrap.appendChild(remove)
+        container.appendChild(wrap)
+      })
+      validateSettings()
+    }
+
+    function addBreakpoint() {
+      const last = settingsDraftBreakpoints[settingsDraftBreakpoints.length - 1] ?? 0
+      settingsDraftBreakpoints.push(last + 10)
+      renderSettingsBreakpoints()
+    }
+
+    function validateSettings() {
+      const errBox = document.getElementById('settings-error')
+      const btn = document.getElementById('settings-save-btn')
+      for (let i = 1; i < settingsDraftBreakpoints.length; i++) {
+        if (settingsDraftBreakpoints[i] <= settingsDraftBreakpoints[i - 1]) {
+          errBox.textContent = 'Values must be strictly increasing.'
+          btn.disabled = true
+          return
+        }
+      }
+      if (settingsDraftBreakpoints.length < 2) {
+        errBox.textContent = 'At least 2 breakpoints required.'
+        btn.disabled = true
+        return
+      }
+      errBox.textContent = ''
+      btn.disabled = false
+    }
+
+    async function saveSettings() {
+      const settings = await fetch('settings.json').then(r => r.json())
+      settings.parametersBreakpoints = settingsDraftBreakpoints
+      try {
+        await saveDataFile('settings.json', settings)
+        showToast('Settings saved! Reloading...')
+        setTimeout(() => location.reload(), 800)
+      } catch (err) {
+        if (err.name === 'AbortError') return
+        showToast('Save failed: ' + err.message)
+      }
+    }
+
     // ── Boot ─────────────────────────────────────────────────────────────────
 
     async function boot() {
       if (!isLocalEnv()) {
         document.getElementById('import-data').style.display = 'none'
+        document.getElementById('open-settings').style.display = 'none'
       }
       const settings = await fetch('settings.json').then(r => r.json())
       const breakpoints = settings.parametersBreakpoints || [0, 12, 24, 60]
