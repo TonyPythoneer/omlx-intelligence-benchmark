@@ -822,7 +822,25 @@
       document.getElementById('import-detected').innerHTML = ''
       document.getElementById('import-spec-error').textContent = ''
       document.getElementById('import-save-btn').disabled = true
+      importDetected = []
       document.getElementById('import-modal').classList.add('show')
+
+      const input = document.getElementById('import-input')
+      input.oninput = () => {
+        const parsed = parseImportInput(input.value)
+        const existingNames = new Set(currentData.map(e => e.model))
+        importDetected = parsed.map(p => ({
+          ...p,
+          status: existingNames.has(p.model) ? 'overwrite' : 'new',
+        }))
+        renderImportDetected()
+        validateImportSpec()
+      }
+
+      ;['import-params', 'import-quant', 'import-size', 'import-mtp'].forEach(id => {
+        document.getElementById(id).oninput = validateImportSpec
+        document.getElementById(id).onchange = validateImportSpec
+      })
     }
 
     function closeImportModal() {
@@ -893,6 +911,81 @@
         }
       }
       return results
+    }
+
+    let importDetected = []   // [{model, thinking, scores, status: 'new' | 'overwrite'}]
+
+    function renderImportDetected() {
+      const container = document.getElementById('import-detected')
+      if (importDetected.length === 0) {
+        container.innerHTML = ''
+        return
+      }
+      const newCount = importDetected.filter(d => d.status === 'new').length
+      const ovrCount = importDetected.filter(d => d.status === 'overwrite').length
+      const header = `<div class="segmented-label">Detected (${importDetected.length}) — ${newCount} new, ${ovrCount} overwrite</div>`
+      const rows = importDetected.map(d => {
+        const badge = d.status === 'new'
+          ? '<span class="import-badge-new">NEW</span>'
+          : '<span class="import-badge-overwrite">OVERWRITE</span>'
+        return `<div class="import-detected-row">
+      ${badge}
+      <span class="import-detected-name">${escapeHtml(d.model)}</span>
+      <span class="import-detected-meta">thinking: ${d.thinking ? 'yes' : 'no'} · ${Object.keys(d.scores).length} scores</span>
+    </div>`
+      }).join('')
+      container.innerHTML = header + rows
+
+      // Show/hide spec section: only relevant when there is at least one NEW entry
+      document.getElementById('import-spec-section').style.display = newCount > 0 ? 'block' : 'none'
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])
+    }
+
+    function validateImportSpec() {
+      const newCount = importDetected.filter(d => d.status === 'new').length
+      const errBox = document.getElementById('import-spec-error')
+      const saveBtn = document.getElementById('import-save-btn')
+
+      if (importDetected.length === 0) {
+        errBox.textContent = ''
+        saveBtn.disabled = true
+        return
+      }
+
+      // No new entries — spec irrelevant
+      if (newCount === 0) {
+        errBox.textContent = ''
+        saveBtn.disabled = false
+        return
+      }
+
+      const params  = document.getElementById('import-params')
+      const quant   = document.getElementById('import-quant')
+      const size    = document.getElementById('import-size')
+      const errors = []
+
+      ;[params, quant, size].forEach(el => el.classList.remove('import-error'))
+
+      const pVal = parseFloat(params.value)
+      if (!params.value || !Number.isInteger(pVal) || pVal <= 0) {
+        errors.push('Params: positive integer required')
+        params.classList.add('import-error')
+      }
+      if (!quant.value.trim()) {
+        errors.push('Quant: required')
+        quant.classList.add('import-error')
+      }
+      const sVal = parseFloat(size.value)
+      if (!size.value || isNaN(sVal) || sVal <= 0) {
+        errors.push('Size: positive number required')
+        size.classList.add('import-error')
+      }
+
+      errBox.textContent = errors.join(' · ')
+      saveBtn.disabled = errors.length > 0
     }
 
     function scoreColorClass(accuracy) {
