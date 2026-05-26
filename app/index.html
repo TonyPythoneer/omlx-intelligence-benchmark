@@ -173,6 +173,53 @@
       box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);
     }
 
+    .segmented {
+      display: inline-flex;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    }
+    .segmented button {
+      font-family: inherit;
+      font-size: 0.8rem;
+      font-weight: 500;
+      padding: 7px 14px;
+      border: none;
+      background: transparent;
+      color: #475569;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      outline: none;
+      border-right: 1px solid #e2e8f0;
+    }
+    .segmented button:last-child { border-right: none; }
+    .segmented button:hover { background: #f8fafc; color: #0f172a; }
+    .segmented button.active {
+      background: #2563eb;
+      color: #fff;
+    }
+    .segmented-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-right: 8px;
+      align-self: center;
+    }
+    .filter-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-top: 12px;
+      flex-wrap: wrap;
+    }
+    header {
+      flex-wrap: wrap;
+    }
+
     .table-wrapper {
       background: #fff;
       border: 1px solid #e2e8f0;
@@ -551,6 +598,16 @@
       </label>
       <select id="device-select"></select>
     </div>
+    <div class="filter-row">
+      <div>
+        <span class="segmented-label">Metrics</span>
+        <div class="segmented" id="metrics-filter">
+          <button data-val="all" class="active">All</button>
+          <button data-val="basic">Basic</button>
+          <button data-val="advanced">Advanced</button>
+        </div>
+      </div>
+    </div>
   </header>
   <div class="table-wrapper">
     <table id="benchmark-table">
@@ -601,8 +658,24 @@
     // All benchmark keys in display order
     const ALL_BENCHMARKS = Object.values(CATEGORIES).flat()
 
-    // Precomputed set of benchmarks that start a category group
-    const GROUP_START_BENCHMARKS = new Set(Object.values(CATEGORIES).map(arr => arr[0]))
+    const BASIC_CATEGORIES    = ["Knowledge", "Commonsense & Reasoning"]
+    const ADVANCED_CATEGORIES = ["Coding"]
+
+    let metricsFilter = 'all'   // 'all' | 'basic' | 'advanced'
+
+    function getVisibleCategories() {
+      if (metricsFilter === 'basic')    return BASIC_CATEGORIES
+      if (metricsFilter === 'advanced') return ADVANCED_CATEGORIES
+      return Object.keys(CATEGORIES)
+    }
+
+    function getVisibleBenchmarks() {
+      return getVisibleCategories().flatMap(c => CATEGORIES[c])
+    }
+
+    function getGroupStartBenchmarks() {
+      return new Set(getVisibleCategories().map(c => CATEGORIES[c][0]))
+    }
 
     // ── Labeling (edit) state & logic ─────────────────────────────────────────
     let labelingMode = false
@@ -632,6 +705,14 @@
       tf.addEventListener('change', () => {
         tierFilterIdx = tf.value === 'all' ? -1 : { opus: 0, sonnet: 1, haiku: 2 }[tf.value]
         renderTable(currentData)
+      })
+      document.querySelectorAll('#metrics-filter button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          metricsFilter = btn.dataset.val
+          document.querySelectorAll('#metrics-filter button').forEach(b => b.classList.toggle('active', b === btn))
+          buildHeaders()
+          renderTable(currentData)
+        })
       })
     })
 
@@ -775,7 +856,7 @@
         groupRow.appendChild(th)
       }
 
-      const scoreCols = ALL_BENCHMARKS.length * 2
+      const scoreCols = getVisibleBenchmarks().length * 2
       addGroup('Model', 1, false)
       if (!labelingMode) {
         addGroup('Spec', 3, true)
@@ -823,8 +904,8 @@
         addNonScore('')
         addNonScore('')
         addNonScore('')
-        ALL_BENCHMARKS.forEach((bench) => {
-          const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
+        getVisibleBenchmarks().forEach((bench) => {
+          const firstInGroup = getGroupStartBenchmarks().has(bench)
           addSubGroup(firstInGroup ? bench : '', 2, firstInGroup)
         })
       }
@@ -863,8 +944,8 @@
         addLeaf('Size',   'spec.size_gb',       false)
         addLeaf('Think',  'abilities.thinking', true)
         addLeaf('MTP',    'abilities.mtp',      false)
-        ALL_BENCHMARKS.forEach((bench) => {
-          const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
+        getVisibleBenchmarks().forEach((bench) => {
+          const firstInGroup = getGroupStartBenchmarks().has(bench)
           addLeaf('🎯', 'scores.' + bench + '.accuracy', firstInGroup)
           addLeaf('⏲', 'scores.' + bench + '.time_s',   false)
         })
@@ -971,9 +1052,9 @@
           '', false
         )
 
-        ALL_BENCHMARKS.forEach(bench => {
+        getVisibleBenchmarks().forEach(bench => {
           const sd = getScoreDisplay(entry.scores[bench])
-          const firstInGroup = GROUP_START_BENCHMARKS.has(bench)
+          const firstInGroup = getGroupStartBenchmarks().has(bench)
           if (sd.accuracy !== null) {
             addTd(`<span class="${sd.accuracyClass}">${sd.accuracy}%</span>`, 'score', firstInGroup)
           } else {
