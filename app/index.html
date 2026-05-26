@@ -86,6 +86,23 @@
       box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
     }
 
+    #model-search {
+      font-family: inherit;
+      font-size: 0.875rem;
+      padding: 8px 14px;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      background: #fff;
+      color: #334155;
+      width: 240px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    #model-search:focus {
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
     .checkbox-label {
       display: inline-flex;
       align-items: center;
@@ -519,8 +536,9 @@
   <header>
     <h1>oMLX Intelligence Benchmark</h1>
     <div class="header-controls">
+      <input id="model-search" type="search" placeholder="🔍 Search model..." />
       <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export Data</button>
-      <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label Tiers</button>
+      <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label</button>
       <select id="tier-filter" class="btn btn-secondary" onclick="void(0)">
         <option value="all">All Tiers</option>
         <option value="opus">Opus</option>
@@ -632,6 +650,17 @@
       showAll = document.getElementById('show-all-cb').checked
       renderTable(currentData)
     }
+
+    // ── Search filter ────────────────────────────────────────────────────────
+    let searchQuery = ''
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('model-search')
+      input.addEventListener('input', () => {
+        searchQuery = input.value.trim().toLowerCase()
+        renderTable(currentData)
+      })
+    })
 
     function openModal() {
       if (!currentData) return
@@ -965,6 +994,9 @@
       let filtered = showAll ? data : data.filter(e => !e.deprecated)
       if (tierFilterIdx >= 0) {
         filtered = filtered.filter(getTierFilterMatch)
+      }
+      if (searchQuery) {
+        filtered = filtered.filter(e => e.model.toLowerCase().includes(searchQuery))
       }
       const sorted = sortData(filtered)
       updateSortIndicators()
