@@ -571,6 +571,34 @@
     .import-detected-row:last-child { border-bottom: none; }
     .import-detected-name { font-family: 'JetBrains Mono', monospace; color: #0f172a; flex: 1; }
     .import-detected-meta { color: #64748b; font-size: 0.75rem; }
+
+    #params-slider-wrap input[type=range] {
+      position: absolute;
+      left: 0; right: 0; top: 50%; transform: translateY(-50%);
+      width: 100%;
+      pointer-events: none;
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      height: 20px;
+    }
+    #params-slider-wrap input[type=range]::-webkit-slider-runnable-track {
+      height: 4px;
+      background: #e2e8f0;
+      border-radius: 9999px;
+    }
+    #params-slider-wrap input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      pointer-events: auto;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #2563eb;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      margin-top: -6px;
+    }
+    #params-slider-wrap input[type=range]:focus { outline: none; }
   </style>
 </head>
 <body>
@@ -603,6 +631,17 @@
           <button data-val="all" class="active">All</button>
           <button data-val="basic">Basic</button>
           <button data-val="advanced">Advanced</button>
+        </div>
+      </div>
+      <div>
+        <span class="segmented-label">Params</span>
+        <div id="params-slider-wrap" style="display:inline-flex; flex-direction:column; gap:4px; min-width: 240px;">
+          <div style="display:flex; justify-content:space-between; font-size: 0.7rem; color:#94a3b8;" id="params-ticks"></div>
+          <div style="position: relative; height: 28px;">
+            <input id="params-min" type="range" />
+            <input id="params-max" type="range" />
+          </div>
+          <div id="params-range-label" style="font-size: 0.75rem; color:#475569; font-weight: 500;"></div>
         </div>
       </div>
     </div>
@@ -707,6 +746,67 @@
     const ADVANCED_CATEGORIES = ["Coding"]
 
     let metricsFilter = 'all'   // 'all' | 'basic' | 'advanced'
+
+    // ── Params filter ────────────────────────────────────────────────────────
+    let paramsBreakpoints = [0, 12, 24, 60]
+    let paramsMinIdx = 0
+    let paramsMaxIdx = 3   // last index
+
+    function initParamsSlider(breakpoints) {
+      paramsBreakpoints = breakpoints
+      paramsMinIdx = 0
+      paramsMaxIdx = breakpoints.length - 1
+
+      const minSlider = document.getElementById('params-min')
+      const maxSlider = document.getElementById('params-max')
+      minSlider.min = 0
+      maxSlider.min = 0
+      minSlider.max = paramsMaxIdx
+      maxSlider.max = paramsMaxIdx
+      minSlider.step = 1
+      maxSlider.step = 1
+      minSlider.value = paramsMinIdx
+      maxSlider.value = paramsMaxIdx
+
+      const ticks = document.getElementById('params-ticks')
+      ticks.innerHTML = breakpoints.map((b, i) => {
+        const isLast = i === breakpoints.length - 1
+        return `<span>${b}B${isLast ? '+' : ''}</span>`
+      }).join('')
+
+      const onChange = () => {
+        let lo = parseInt(minSlider.value, 10)
+        let hi = parseInt(maxSlider.value, 10)
+        if (lo > hi) [lo, hi] = [hi, lo]
+        paramsMinIdx = lo
+        paramsMaxIdx = hi
+        updateParamsLabel()
+        renderTable(currentData)
+      }
+      minSlider.oninput = onChange
+      maxSlider.oninput = onChange
+      updateParamsLabel()
+    }
+
+    function updateParamsLabel() {
+      const lo = paramsBreakpoints[paramsMinIdx]
+      const hiIdx = paramsMaxIdx
+      const hi = paramsBreakpoints[hiIdx]
+      const isLast = hiIdx === paramsBreakpoints.length - 1
+      document.getElementById('params-range-label').textContent =
+        `${lo}B – ${hi}B${isLast ? '+' : ''}`
+    }
+
+    function paramsMatch(entry) {
+      const p = entry.spec.parameters_b
+      const lo = paramsBreakpoints[paramsMinIdx]
+      const hiIdx = paramsMaxIdx
+      const hi = paramsBreakpoints[hiIdx]
+      const isLast = hiIdx === paramsBreakpoints.length - 1
+      if (p < lo) return false
+      if (!isLast && p > hi) return false
+      return true
+    }
 
     function getVisibleCategories() {
       if (metricsFilter === 'basic')    return BASIC_CATEGORIES
@@ -1327,6 +1427,7 @@
       if (searchQuery) {
         filtered = filtered.filter(e => e.model.toLowerCase().includes(searchQuery))
       }
+      filtered = filtered.filter(paramsMatch)
       const sorted = sortData(filtered)
       updateSortIndicators()
       const tbody = document.querySelector('#benchmark-table tbody')
@@ -1376,6 +1477,8 @@
         document.getElementById('import-data').style.display = 'none'
       }
       const settings = await fetch('settings.json').then(r => r.json())
+      const breakpoints = settings.parametersBreakpoints || [0, 12, 24, 60]
+      initParamsSlider(breakpoints)
       initDeviceDropdown(settings)
       await loadDevice(settings.defaultDevice)
     }
