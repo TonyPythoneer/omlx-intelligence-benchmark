@@ -834,7 +834,7 @@
       const hi = paramsBreakpoints[hiIdx]
       const isLast = hiIdx === paramsBreakpoints.length - 1
       document.getElementById('params-range-label').textContent =
-        `${lo}B – ${hi}B${isLast ? '+' : ''}`
+        `${lo}B – ${isLast ? 'Inf' : hi + 'B'}`
     }
 
     function paramsMatch(entry) {
