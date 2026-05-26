@@ -367,21 +367,33 @@
       text-overflow: ellipsis;
     }
 
-    /* Fixed widths for non-score columns; prevents layout shifts when metrics/filters change.
-       Apply to leaf headers + tbody cells (both have full column structure; group/sub-group
-       rows inherit width via their colspan'd leaves). */
+    /* Fixed widths for non-score columns; prevents layout shifts when metrics/filters change
+       or when toggling Labeling mode. min == max locks the column regardless of content. */
     #benchmark-table thead tr.leaf-row th:nth-child(1),
-    #benchmark-table tbody td:nth-child(1) { width: 300px; max-width: 300px; }
+    #benchmark-table tbody td:nth-child(1) { width: 300px; min-width: 300px; max-width: 300px; }
     #benchmark-table thead tr.leaf-row th:nth-child(2),
-    #benchmark-table tbody td:nth-child(2) { width: 110px; max-width: 110px; }
+    #benchmark-table tbody td:nth-child(2) { width: 110px; min-width: 110px; max-width: 110px; }
     #benchmark-table thead tr.leaf-row th:nth-child(3),
-    #benchmark-table tbody td:nth-child(3) { width: 110px; max-width: 110px; }
+    #benchmark-table tbody td:nth-child(3) { width: 110px; min-width: 110px; max-width: 110px; }
     #benchmark-table thead tr.leaf-row th:nth-child(4),
-    #benchmark-table tbody td:nth-child(4) { width: 120px; max-width: 120px; }
+    #benchmark-table tbody td:nth-child(4) { width: 120px; min-width: 120px; max-width: 120px; }
     #benchmark-table thead tr.leaf-row th:nth-child(5),
-    #benchmark-table tbody td:nth-child(5) { width: 80px;  max-width: 80px;  }
+    #benchmark-table tbody td:nth-child(5) { width: 80px;  min-width: 80px;  max-width: 80px;  }
     #benchmark-table thead tr.leaf-row th:nth-child(6),
-    #benchmark-table tbody td:nth-child(6) { width: 80px;  max-width: 80px;  }
+    #benchmark-table tbody td:nth-child(6) { width: 80px;  min-width: 80px;  max-width: 80px;  }
+
+    /* Labeling-mode inline editors stay inside the locked column widths. */
+    .label-input {
+      box-sizing: border-box;
+      width: 100%;
+      padding: 4px 8px;
+      border: 1px solid #e2e8f0;
+      border-radius: 4px;
+      font-family: inherit;
+      font-size: 0.85rem;
+    }
+    .label-input:focus { outline: none; border-color: #2563eb; }
+    .label-input.import-error { border-color: #dc2626; }
 
     td.ability-cell { text-align: center; }
 
@@ -1413,9 +1425,9 @@
         const createNumInput = (key, parent, placeholder, validate) => {
           const input = document.createElement('input')
           input.type = 'number'
-          input.value = parent[key]
+          input.value = parent[key] ?? ''
           input.placeholder = placeholder
-          input.style.cssText = 'width: 70px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 4px; font-family: inherit;'
+          input.className = 'label-input'
           if (labelingErrors.has(key)) input.classList.add('import-error')
           input.oninput = () => {
             const v = parseFloat(input.value)
@@ -1437,9 +1449,9 @@
         const createTextInput = (key, parent, placeholder) => {
           const input = document.createElement('input')
           input.type = 'text'
-          input.value = parent[key]
+          input.value = parent[key] ?? ''
           input.placeholder = placeholder
-          input.style.cssText = 'width: 70px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 4px; font-family: inherit;'
+          input.className = 'label-input'
           if (labelingErrors.has(key)) input.classList.add('import-error')
           input.oninput = () => {
             if (input.value.trim()) {
