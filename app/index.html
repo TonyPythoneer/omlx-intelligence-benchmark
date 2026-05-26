@@ -294,6 +294,10 @@
       padding-bottom: 10px;
     }
 
+    /* Sub-group row is empty in Labeling mode and labelled in View mode.
+       Lock its height so toggling Labeling doesn't shrink this row. */
+    thead tr.subgroup-row th { height: 32px; }
+
     thead tr.leaf-row th {
       font-size: 0.8rem;
       font-weight: 600;
