@@ -686,7 +686,8 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal()">Close</button>
-        <button class="btn btn-primary" onclick="copyFromModal()">Copy to Clipboard</button>
+        <button class="btn btn-secondary" onclick="copyFromModal()">Copy to Clipboard</button>
+        <button id="export-save-btn" class="btn btn-primary" onclick="saveExportToFile()">Save to File</button>
       </div>
     </div>
   </div>
@@ -842,18 +843,30 @@
 
     // ── Labeling (edit) state & logic ─────────────────────────────────────────
     let labelingMode = false
+    const labelingErrorsByModel = new Map()   // model -> Set<fieldKey>
+
+    function updateLabelingExportState() {
+      const hasErr = [...labelingErrorsByModel.values()].some(s => s.size > 0)
+      const exportBtn = document.getElementById('export-data')
+      if (!exportBtn) return
+      exportBtn.disabled = hasErr
+      exportBtn.style.opacity = hasErr ? '0.5' : '1'
+      exportBtn.style.cursor = hasErr ? 'not-allowed' : 'pointer'
+    }
 
     function toggleLabeling() {
       labelingMode = !labelingMode
+      labelingErrorsByModel.clear()
+      updateLabelingExportState()
       const btn = document.getElementById('toggle-labeling')
       const exportBtn = document.getElementById('export-data')
       if (labelingMode) {
         btn.classList.add('active')
-        btn.textContent = '✏ Edit Tiers'
+        btn.textContent = '✏ Editing'
         exportBtn.style.display = 'inline-flex'
       } else {
         btn.classList.remove('active')
-        btn.textContent = '✏ Label Tiers'
+        btn.textContent = '✏ Label'
         exportBtn.style.display = 'none'
       }
       buildHeaders()
@@ -1024,6 +1037,20 @@
       }).catch(err => {
         console.error("Failed to copy text: ", err)
       })
+    }
+
+    async function saveExportToFile() {
+      const device = document.getElementById('device-select').value
+      try {
+        await saveDataFile(`${device}.json`, currentData)
+        showToast('Saved successfully!')
+        closeModal()
+        renderTable(currentData)
+      } catch (err) {
+        if (err.name === 'AbortError') return
+        console.error(err)
+        showToast('Save failed: ' + err.message)
+      }
     }
 
     function showToast(message) {
@@ -1229,6 +1256,8 @@
         addGroup('Abilities', 2, true)
         addGroup('Score', scoreCols, true)
       } else {
+        addGroup('Spec', 3, true)
+        addGroup('Abilities', 2, true)
         addGroup('Deprecated', 1, true)
         addGroup('Tiers (Labeling)', 3, true)
       }
@@ -1255,8 +1284,9 @@
       }
 
       if (labelingMode) {
+        // Model gets one empty sub-cell; Spec(3) + Abilities(2) + Deprecated(1) = 6 empty
         addNonScore('')
-        addNonScore('')
+        for (let i = 0; i < 6; i++) addNonScore('')
         const th = document.createElement('th')
         th.setAttribute('colspan', '3')
         th.textContent = '—'
@@ -1300,10 +1330,15 @@
 
       addLeafNoSort('Model', false)
       if (labelingMode) {
-        addLeaf('Deprecated', 'deprecated',  true)
-        addLeaf('Opus',       'tiers.opus',   false)
-        addLeaf('Sonnet',     'tiers.sonnet', false)
-        addLeaf('Haiku',      'tiers.haiku',  false)
+        addLeaf('Params', 'spec.parameters_b',  true)
+        addLeaf('Quant',  'spec.quantization',  false)
+        addLeaf('Size',   'spec.size_gb',       false)
+        addLeaf('Think',  'abilities.thinking', true)
+        addLeaf('MTP',    'abilities.mtp',      false)
+        addLeaf('Deprecated', 'deprecated',     true)
+        addLeaf('Opus',       'tiers.opus',     false)
+        addLeaf('Sonnet',     'tiers.sonnet',   false)
+        addLeaf('Haiku',      'tiers.haiku',    false)
       } else {
         addLeaf('Params', 'spec.parameters_b',  true)
         addLeaf('Quant',  'spec.quantization',  false)
@@ -1389,15 +1424,60 @@
           entry.tiers = { opus: false, sonnet: false, haiku: false }
         }
 
-        const createSwitch = (tierKey) => {
+        const labelingErrors = labelingErrorsByModel.get(entry.model) || new Set()
+
+        const createNumInput = (key, parent, placeholder, validate) => {
+          const input = document.createElement('input')
+          input.type = 'number'
+          input.value = parent[key]
+          input.placeholder = placeholder
+          input.style.cssText = 'width: 70px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 4px; font-family: inherit;'
+          if (labelingErrors.has(key)) input.classList.add('import-error')
+          input.oninput = () => {
+            const v = parseFloat(input.value)
+            if (validate(v)) {
+              parent[key] = key === 'parameters_b' ? parseInt(input.value, 10) : Math.round(v * 100) / 100
+              input.classList.remove('import-error')
+              labelingErrors.delete(key)
+            } else {
+              input.classList.add('import-error')
+              labelingErrors.add(key)
+            }
+            labelingErrorsByModel.set(entry.model, labelingErrors)
+            updateLabelingExportState()
+          }
+          return input
+        }
+
+        const createTextInput = (key, parent, placeholder) => {
+          const input = document.createElement('input')
+          input.type = 'text'
+          input.value = parent[key]
+          input.placeholder = placeholder
+          input.style.cssText = 'width: 70px; padding: 4px 6px; border: 1px solid #e2e8f0; border-radius: 4px; font-family: inherit;'
+          if (labelingErrors.has(key)) input.classList.add('import-error')
+          input.oninput = () => {
+            if (input.value.trim()) {
+              parent[key] = input.value.trim()
+              input.classList.remove('import-error')
+              labelingErrors.delete(key)
+            } else {
+              input.classList.add('import-error')
+              labelingErrors.add(key)
+            }
+            labelingErrorsByModel.set(entry.model, labelingErrors)
+            updateLabelingExportState()
+          }
+          return input
+        }
+
+        const createBoolSwitch = (key, parent) => {
           const label = document.createElement('label')
           label.className = 'switch'
           const input = document.createElement('input')
           input.type = 'checkbox'
-          input.checked = !!entry.tiers[tierKey]
-          input.addEventListener('change', (e) => {
-            entry.tiers[tierKey] = e.target.checked
-          })
+          input.checked = !!parent[key]
+          input.addEventListener('change', e => { parent[key] = e.target.checked })
           const slider = document.createElement('span')
           slider.className = 'slider'
           label.appendChild(input)
@@ -1405,26 +1485,15 @@
           return label
         }
 
-        const createDeprecatedSwitch = () => {
-          const label = document.createElement('label')
-          label.className = 'switch'
-          const input = document.createElement('input')
-          input.type = 'checkbox'
-          input.checked = !!entry.deprecated
-          input.addEventListener('change', (e) => {
-            entry.deprecated = e.target.checked
-          })
-          const slider = document.createElement('span')
-          slider.className = 'slider'
-          label.appendChild(input)
-          label.appendChild(slider)
-          return label
-        }
-
-        addTd(createDeprecatedSwitch(), 'cell-switch', true)
-        addTd(createSwitch('opus'),     'cell-switch', false)
-        addTd(createSwitch('sonnet'),   'cell-switch', false)
-        addTd(createSwitch('haiku'),    'cell-switch', false)
+        addTd(createNumInput('parameters_b', entry.spec, '35',     v => Number.isInteger(v) && v > 0), '', true)
+        addTd(createTextInput('quantization', entry.spec, '4bit'),                                       '', false)
+        addTd(createNumInput('size_gb',      entry.spec, '19.50',  v => !isNaN(v) && v > 0),            '', false)
+        addTd(createBoolSwitch('thinking', entry.abilities), 'cell-switch', true)
+        addTd(createBoolSwitch('mtp',      entry.abilities), 'cell-switch', false)
+        addTd(createBoolSwitch('deprecated', entry),         'cell-switch', true)
+        addTd(createBoolSwitch('opus',   entry.tiers),       'cell-switch', false)
+        addTd(createBoolSwitch('sonnet', entry.tiers),       'cell-switch', false)
+        addTd(createBoolSwitch('haiku',  entry.tiers),       'cell-switch', false)
       } else {
         addTd(`${entry.spec.parameters_b}B`, 'num', true)
         addTd(entry.spec.quantization, '', false)
