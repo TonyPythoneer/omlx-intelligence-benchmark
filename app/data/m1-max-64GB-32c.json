@@ -166,12 +166,12 @@
       "MMLU": {
         "accuracy": 83.3,
         "samples": 30,
-        "time_s": 2398.2
+        "time_s": 2371.8
       },
       "TRUTHFULQA": {
         "accuracy": 93.3,
         "samples": 30,
-        "time_s": 1613
+        "time_s": 1627.2
       }
     }
   },
@@ -214,6 +214,145 @@
         "samples": 30,
         "time_s": 166.6
       }
+    }
+  },
+  {
+    "model": "Qwen3.6-35B-A3B-MTP-Holo3-Qwopus-qx86-hi-mlx",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 35,
+      "quantization": "qx86",
+      "size_gb": 39.5
+    },
+    "abilities": {
+      "thinking": true,
+      "mtp": false
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 77.7
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3-Coder-30B-A3B-Instruct-MLX-8bit",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 30,
+      "quantization": "8bit",
+      "size_gb": 32.4
+    },
+    "abilities": {
+      "thinking": true,
+      "mtp": false
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 66.7,
+        "samples": 30,
+        "time_s": 49.8
+      },
+      "TRUTHFULQA": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 19.8
+      },
+      "HUMANEVAL": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 96
+      },
+      "MBPP": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 64.5
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 33.3,
+        "samples": 30,
+        "time_s": 2059
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-27B-MTP-4bit-MLX",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 27,
+      "quantization": "4bit",
+      "size_gb": 15.4
+    },
+    "abilities": {
+      "thinking": true,
+      "mtp": false
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 2489.4
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-27B-MTPLX-Optimized-Speed",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 27,
+      "quantization": "",
+      "size_gb": 16.4
+    },
+    "abilities": {
+      "thinking": true,
+      "mtp": false
+    },
+    "deprecated": false,
+    "scores": {
+      "TRUTHFULQA": {
+        "accuracy": 100,
+        "samples": 30,
+        "time_s": 1321
+      },
+      "HUMANEVAL": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 3796.5
+      },
+      "MBPP": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 4472.1
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 63.3,
+        "samples": 30,
+        "time_s": 20578.2
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
     }
   }
 ]

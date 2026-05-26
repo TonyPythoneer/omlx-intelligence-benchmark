@@ -363,10 +363,27 @@
     td.model-name {
       font-weight: 600;
       color: #0f172a;
-      max-width: 320px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
+    /* Fixed widths for non-score columns; prevents layout shifts when metrics/filters change.
+       Apply to leaf headers + tbody cells (both have full column structure; group/sub-group
+       rows inherit width via their colspan'd leaves). */
+    #benchmark-table thead tr.leaf-row th:nth-child(1),
+    #benchmark-table tbody td:nth-child(1) { width: 300px; max-width: 300px; }
+    #benchmark-table thead tr.leaf-row th:nth-child(2),
+    #benchmark-table tbody td:nth-child(2) { width: 110px; max-width: 110px; }
+    #benchmark-table thead tr.leaf-row th:nth-child(3),
+    #benchmark-table tbody td:nth-child(3) { width: 110px; max-width: 110px; }
+    #benchmark-table thead tr.leaf-row th:nth-child(4),
+    #benchmark-table tbody td:nth-child(4) { width: 120px; max-width: 120px; }
+    #benchmark-table thead tr.leaf-row th:nth-child(5),
+    #benchmark-table tbody td:nth-child(5) { width: 80px;  max-width: 80px;  }
+    #benchmark-table thead tr.leaf-row th:nth-child(6),
+    #benchmark-table tbody td:nth-child(6) { width: 80px;  max-width: 80px;  }
+
+    td.ability-cell { text-align: center; }
 
     td.num {
       font-family: 'JetBrains Mono', 'SF Mono', monospace;
@@ -1492,15 +1509,15 @@
         addTd(entry.spec.size_gb != null ? `${entry.spec.size_gb.toFixed(2)} GB` : '—', entry.spec.size_gb != null ? 'num' : 'missing', false)
         addTd(
           entry.abilities.thinking
-            ? '<span class="ability-yes">✓ Yes</span>'
-            : '<span class="ability-no">✗ No</span>',
-          '', true
+            ? '<span class="ability-yes">✓</span>'
+            : '<span class="ability-no">✗</span>',
+          'ability-cell', true
         )
         addTd(
           entry.abilities.mtp
-            ? '<span class="ability-yes">✓ Yes</span>'
-            : '<span class="ability-no">✗ No</span>',
-          '', false
+            ? '<span class="ability-yes">✓</span>'
+            : '<span class="ability-no">✗</span>',
+          'ability-cell', false
         )
 
         getVisibleBenchmarks().forEach(bench => {
