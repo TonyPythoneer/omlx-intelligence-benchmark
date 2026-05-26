@@ -35,10 +35,11 @@ app/data/device.json.template  — empty template for new devices
   - Filters: model substring search, Tier (All/Opus/Sonnet/Haiku) and Metrics (All/Basic/Advanced) segmented buttons, Params dual-handle range slider, Show Deprecated checkbox.
   - Default sort by `date DESC`; Model column non-sortable; other columns clickable.
   - Per-row 📋 (copy model name) and 🤗 (open `huggingface.co/models?search=<model>`).
-  - **Import Modal** (`+ Import`): paste benchmark stdout → JS parser → list of NEW/OVERWRITE entries → spec inputs (params/quant/size/mtp) with inline validation → save via `showSaveFilePicker()` (Safari falls back to download).
-  - **Labeling Mode** (`✏ Label`): inline editors for spec (params/quant/size), abilities (thinking/mtp), deprecated, and tiers (opus/sonnet/haiku). Validation errors disable the Save/Export buttons.
-  - **Settings Modal** (`⚙`): edit `parametersBreakpoints`, writes back to `app/settings.json`.
-  - **Hostname guard:** Import / Settings / Save buttons are hidden when not on `localhost` / `127.0.0.1`.
+  - **Import Modal** (`+ Import`): paste benchmark stdout → JS parser → list of NEW/OVERWRITE entries → `Apply` merges into in-memory state (does not write to disk).
+  - **Labeling Mode** (`✏ Label`): inline editors for spec (params/quant/size), abilities (thinking/mtp), deprecated, and tiers (opus/sonnet/haiku). Validation errors disable Export Data.
+  - **Export Data**: appears whenever data is dirty (after Apply or labeling edits) or labeling mode is on. Opens a modal with the full JSON; user copies to clipboard or saves to file via `showSaveFilePicker()` (Safari falls back to download).
+  - **Params slider breakpoints:** edit `parametersBreakpoints` in `app/settings.json` directly; no UI for this (rarely changes).
+  - **Hostname guard:** `+ Import` button is hidden when not on `localhost` / `127.0.0.1`.
 
 - **`app/settings.json`** — `defaultDevice`, `parametersBreakpoints` (Params slider tick array), and `devices` (key → family/variant/memory/gpus metadata).
 
