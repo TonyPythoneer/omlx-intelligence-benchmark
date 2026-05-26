@@ -2,15 +2,15 @@
 
 ## Project overview
 
-Static benchmark comparison page for oMLX/MLX model results. Single HTML file, no server needed.
+Static benchmark comparison page for oMLX/MLX model results. Single HTML file, no server needed. All data management (import, edit, export) happens in-browser; no Python or CLI tooling.
 
 ## Architecture
 
 ```
-app/index.html      — single-page benchmark viewer (HTML + CSS + vanilla JS)
-app/settings.js     — device config (defaultDevice, device metadata)
-app/data/*.json     — device-specific benchmark data
-app/data/device.js.template  — empty template for new devices
+app/index.html              — single-page benchmark viewer + data editor (HTML + CSS + vanilla JS)
+app/settings.json           — defaultDevice, parametersBreakpoints, device metadata
+app/data/*.json             — device-specific benchmark data (pure JSON arrays)
+app/data/device.json.template  — empty template for new devices
 ```
 
 **Data format** — each file is a pure JSON array of entry objects:
@@ -30,8 +30,17 @@ app/data/device.js.template  — empty template for new devices
 
 ## Key code
 
-- **`index.html`** — vanilla JS, no dependencies. Rendering: three-tier header (category group → benchmark sub-group → leaf Acc/Time), sortable columns, score color-coding (≥90% green, ≥80% amber, <80% red), tier filter dropdown (All/Opus/Sonnet/Haiku), labeling mode with ✏ edit icon and Opus/Sonnet/Haiku toggle switches, deprecated filtering, modal export (copies labeled JS back to clipboard), favicon, footer.
-- **`app/settings.js`** — device key → metadata (family, variant, memory, gpus).
+- **`app/index.html`** — vanilla JS, no dependencies, no build step. Components:
+  - Three-tier header (category group → benchmark sub-group → leaf Acc/Time), score color-coding (≥90% green, ≥80% amber, <80% red).
+  - Filters: model substring search, Tier (All/Opus/Sonnet/Haiku) and Metrics (All/Basic/Advanced) segmented buttons, Params dual-handle range slider, Show Deprecated checkbox.
+  - Default sort by `date DESC`; Model column non-sortable; other columns clickable.
+  - Per-row 📋 (copy model name) and 🤗 (open `huggingface.co/models?search=<model>`).
+  - **Import Modal** (`+ Import`): paste benchmark stdout → JS parser → list of NEW/OVERWRITE entries → spec inputs (params/quant/size/mtp) with inline validation → save via `showSaveFilePicker()` (Safari falls back to download).
+  - **Labeling Mode** (`✏ Label`): inline editors for spec (params/quant/size), abilities (thinking/mtp), deprecated, and tiers (opus/sonnet/haiku). Validation errors disable the Save/Export buttons.
+  - **Settings Modal** (`⚙`): edit `parametersBreakpoints`, writes back to `app/settings.json`.
+  - **Hostname guard:** Import / Settings / Save buttons are hidden when not on `localhost` / `127.0.0.1`.
+
+- **`app/settings.json`** — `defaultDevice`, `parametersBreakpoints` (Params slider tick array), and `devices` (key → family/variant/memory/gpus metadata).
 
 ## Usage
 
@@ -39,10 +48,19 @@ app/data/device.js.template  — empty template for new devices
 make serve   # http://localhost:8080
 ```
 
+**Importing benchmark results** (local only):
+1. Open the page in Chrome/Edge at `http://localhost:8080/app/`.
+2. Click `+ Import`, paste benchmark runner stdout, fill spec fields for NEW entries.
+3. Click Save → native Save As dialog → navigate to `app/data/`, overwrite the device file.
+
+Safari users can use Import but Save will trigger a download instead of overwriting.
+
 ## Rules
 
 - Data files are pure JSON arrays.
-- New devices: copy `app/data/device.js.template`, rename with device key, add entry to `app/settings.js`.
-- `deprecated: true` entries are filtered by default in the viewer but preserved on export.
-- Labeling mode (via "Label Tiers" button) creates `entry.tiers` on the fly.
-- Keep `index.html` serverless: no external JS, no build step.
+- New devices: copy `app/data/device.json.template`, rename to `<device-key>.json`, add entry to `app/settings.json`.
+- `deprecated: true` entries are filtered by default in the viewer but preserved on save.
+- Import on a duplicate model **only overwrites `scores`**; spec / abilities / tiers / deprecated are preserved.
+- Labeling Mode is the only place to edit spec / abilities / tiers / deprecated post-import.
+- File writes require the File System Access API; only the user's Save As confirmation actually writes to disk.
+- Keep `app/index.html` serverless: no external JS, no build step, no bundler.
