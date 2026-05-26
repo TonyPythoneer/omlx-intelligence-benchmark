@@ -1418,7 +1418,7 @@
       copyBtn.textContent = '📋'
       copyBtn.onclick = (e) => {
         e.stopPropagation()
-        navigator.clipboard.writeText(entry.model).then(() => showToast('Copied!'))
+        navigator.clipboard.writeText(entry.model).then(() => showToast(`Copied: ${entry.model}`))
       }
 
       const hfBtn = document.createElement('button')
