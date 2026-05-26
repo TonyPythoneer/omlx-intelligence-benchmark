@@ -19,28 +19,4 @@ Live URL: `https://TonyPythoneer.github.io/omlx-intelligence-benchmark/`
 
 ## Add benchmark results
 
-```bash
-# From a file
-python add_data.py /path/to/output.txt \
-  --device m1-max-64GB-32c \
-  --params 35 --quant 4bit --size 19.50
-
-# From stdin
-cat output.txt | python add_data.py \
-  --device m1-max-64GB-32c \
-  --params 35 --quant 4bit --size 19.50
-
-# With MTP flag
-python add_data.py output.txt \
-  --device m1-max-64GB-32c \
-  --params 35 --quant 4bit --size 19.50 --mtp
-```
-
-Output is written to `app/data/{device}.json`.
-
-## Run tests
-
-```bash
-make setup   # first time only
-make test
-```
+Use the "Import Data" feature in the app to add benchmark results. Paste benchmark output, configure device and parameters, then export the labeled data back to your device file.
