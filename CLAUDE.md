@@ -2,59 +2,66 @@
 
 ## Project overview
 
-Static benchmark comparison page for oMLX/MLX model results. Single HTML file, no server needed.
+Static benchmark comparison page for oMLX/MLX model results. Single HTML file, no server needed. All data management (import, edit, export) happens in-browser; no Python or CLI tooling.
 
 ## Architecture
 
 ```
-index.html          — single-page benchmark viewer (HTML + CSS + vanilla JS)
-add_data.py         — CLI: parse benchmark output → append to device JS data file
-app/settings.js     — device config (defaultDevice, device metadata)
-app/data/*.js       — device-specific benchmark data (window.BENCHMARK_DATA = [...])
-app/data/device.js.template  — empty template for new devices
-tests/test_add_result.py  — pytest suite
-.github/workflows/ci.yml  — pytest on push/PR
+app/index.html              — single-page benchmark viewer + data editor (HTML + CSS + vanilla JS)
+app/settings.json           — defaultDevice, parametersBreakpoints, device metadata
+app/data/*.json             — device-specific benchmark data (pure JSON arrays)
+app/data/device.json.template  — empty template for new devices
 ```
 
-**Data format** — each file exports `window.BENCHMARK_DATA`, an array of entry objects:
-```js
-window.BENCHMARK_DATA = [
+**Data format** — each file is a pure JSON array of entry objects:
+```json
+[
   {
-    model: "...",
-    date: "2026-05-25",
-    spec: { parameters_b: 35, quantization: "4bit", size_gb: 19.5 },
-    abilities: { thinking: true, mtp: false },
-    deprecated: false,           // optional, filters out from default view
-    tiers: { opus: true, sonnet: false, haiku: false },  // optional, labeling mode
-    scores: { MMLU: {...}, TRUTHFULQA: {...}, ... }
+    "model": "...",
+    "date": "2026-05-25",
+    "spec": { "parameters_b": 35, "quantization": "4bit", "size_gb": 19.5 },
+    "abilities": { "thinking": true, "mtp": false },
+    "deprecated": false,
+    "tiers": { "opus": true, "sonnet": false, "haiku": false },
+    "scores": { "MMLU": {}, "TRUTHFULQA": {}, "...": {} }
   }
-];
+]
 ```
 
 ## Key code
 
-- **`add_data.py`** — `parse_input()` parses benchmark runner stdout via regex; `DataFile` class reads/creates/loads device files, handles JSON serialisation, dedup check (`model_exists`), and save as valid JS.
-- **`index.html`** — vanilla JS, no dependencies. Rendering: three-tier header (category group → benchmark sub-group → leaf Acc/Time), sortable columns, score color-coding (≥90% green, ≥80% amber, <80% red), tier filter dropdown (All/Opus/Sonnet/Haiku), labeling mode with ✏ edit icon and Opus/Sonnet/Haiku toggle switches, deprecated filtering, modal export (copies labeled JS back to clipboard), favicon, footer.
-- **`app/settings.js`** — device key → metadata (family, variant, memory, gpus). `DataFile.read_default_device()` regex-parses it.
+- **`app/index.html`** — vanilla JS, no dependencies, no build step. Components:
+  - Three-tier header (category group → benchmark sub-group → leaf Acc/Time), score color-coding (≥90% green, ≥80% amber, <80% red).
+  - Filters: model substring search, Tier (All/Opus/Sonnet/Haiku) and Metrics (All/Basic/Advanced) segmented buttons, Params dual-handle range slider, Show Deprecated checkbox.
+  - Default sort by `date DESC`; Model column non-sortable; other columns clickable.
+  - Per-row 📋 (copy model name) and 🤗 (open `huggingface.co/models?search=<model>`).
+  - **Import Modal** (`+ Import`): paste benchmark stdout → JS parser → list of NEW/OVERWRITE entries → `Apply` merges into in-memory state (does not write to disk).
+  - **Labeling Mode** (`✏ Label`): inline editors for spec (params/quant/size), abilities (thinking/mtp), deprecated, and tiers (opus/sonnet/haiku). Validation errors disable Export Data.
+  - **Export Data**: appears whenever data is dirty (after Apply or labeling edits) or labeling mode is on. Opens a modal with the full JSON; user copies to clipboard or saves to file via `showSaveFilePicker()` (Safari falls back to download).
+  - **Params slider breakpoints:** edit `parametersBreakpoints` in `app/settings.json` directly; no UI for this (rarely changes).
+  - **Hostname guard:** `+ Import` button is hidden when not on `localhost` / `127.0.0.1`.
+
+- **`app/settings.json`** — `defaultDevice`, `parametersBreakpoints` (Params slider tick array), and `devices` (key → family/variant/memory/gpus metadata).
 
 ## Usage
 
 ```bash
-# Add benchmark results (from file or stdin)
-python add_data.py output.txt --device m1-max-64GB-32c --params 35 --quant 4bit --size 19.5
-
-# With MTP flag
-python add_data.py output.txt --device m1-max-64GB-32c --params 35 --quant 4bit --size 19.5 --mtp
-
-# Tests (first time)
-make setup && make test
+make serve   # http://localhost:8080
 ```
+
+**Importing benchmark results** (local only):
+1. Open the page in Chrome/Edge at `http://localhost:8080/app/`.
+2. Click `+ Import`, paste benchmark runner stdout, fill spec fields for NEW entries.
+3. Click Save → native Save As dialog → navigate to `app/data/`, overwrite the device file.
+
+Safari users can use Import but Save will trigger a download instead of overwriting.
 
 ## Rules
 
-- Data files use `window.BENCHMARK_DATA = [...]` prefix with valid JSON inside.
-- New devices: copy `app/data/device.js.template`, rename with device key, add entry to `app/settings.js`.
-- `add_data.py` skips duplicate models silently (dedup guard).
-- `deprecated: true` entries are filtered by default in the viewer but preserved on export.
-- Labeling mode (via "Label Tiers" button) creates `entry.tiers` on the fly — never write `deprecated` field via Python.
-- Keep `index.html` serverless: no external JS, no build step.
+- Data files are pure JSON arrays.
+- New devices: copy `app/data/device.json.template`, rename to `<device-key>.json`, add entry to `app/settings.json`.
+- `deprecated: true` entries are filtered by default in the viewer but preserved on save.
+- Import on a duplicate model **only overwrites `scores`**; spec / abilities / tiers / deprecated are preserved.
+- Labeling Mode is the only place to edit spec / abilities / tiers / deprecated post-import.
+- File writes require the File System Access API; only the user's Save As confirmation actually writes to disk.
+- Keep `app/index.html` serverless: no external JS, no build step, no bundler.

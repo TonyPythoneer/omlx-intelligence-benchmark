@@ -1,8 +1,6 @@
-.PHONY: test setup
+PORT ?= 8080
 
-setup:
-	python3 -m venv .venv
-	.venv/bin/pip install pytest
+.PHONY: serve
 
-test:
-	.venv/bin/pytest tests/ -v
+serve:
+	python3 -m http.server $(PORT) --directory app

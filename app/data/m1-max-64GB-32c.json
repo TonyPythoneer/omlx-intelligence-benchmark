@@ -1,0 +1,522 @@
+[
+  {
+    "model": "Qwen3.6-35B-A3B-TurboQuant-MLX-4bit",
+    "date": "2026-05-25",
+    "spec": {
+      "parameters_b": 35,
+      "quantization": "4bit",
+      "size_gb": 18.19
+    },
+    "deprecated": false,
+    "labelling": {
+      "tiers": {
+        "opus": false,
+        "sonnet": false,
+        "haiku": false
+      }
+    },
+    "scores": {
+      "MMLU": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 849.6
+      },
+      "TRUTHFULQA": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 408.2
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 1094.9
+      },
+      "MBPP": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 1239
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 5583.1
+      }
+    },
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-35B-A3B-Claude-4.7-Opus-Reasoning-Distilled-MLX-oQ4-MTP",
+    "date": "2026-05-25",
+    "spec": {
+      "parameters_b": 35,
+      "quantization": "Q4",
+      "size_gb": 19.5
+    },
+    "deprecated": true,
+    "tiers": {
+      "opus": false,
+      "sonnet": true,
+      "haiku": false
+    },
+    "scores": {
+      "MMLU": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 399.2
+      },
+      "TRUTHFULQA": {
+        "accuracy": 96.7,
+        "samples": 30,
+        "time_s": 89.7
+      },
+      "HUMANEVAL": {
+        "accuracy": 86.7,
+        "samples": 30,
+        "time_s": 657.4
+      },
+      "MBPP": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 617.3
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 26.7,
+        "samples": 30,
+        "time_s": 4325.2
+      }
+    }
+  },
+  {
+    "model": "Qwen3.6-40B-Claude-4.6-Opus-Deckard-Heretic-Uncensored-Thinking-8bit",
+    "date": "2026-05-25",
+    "spec": {
+      "parameters_b": 40,
+      "quantization": "8bit",
+      "size_gb": 43
+    },
+    "deprecated": true,
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    },
+    "scores": {
+      "MMLU": {
+        "accuracy": 86.7,
+        "samples": 30,
+        "time_s": 2792.8
+      },
+      "TRUTHFULQA": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 2646.3
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 2718
+      },
+      "MBPP": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 4975.5
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 40,
+        "samples": 30,
+        "time_s": 31038.6
+      }
+    }
+  },
+  {
+    "model": "Qwopus3.6-27B-v2-MLX-4bit",
+    "date": "2026-05-25",
+    "spec": {
+      "parameters_b": 27,
+      "quantization": "4bit",
+      "size_gb": 14
+    },
+    "deprecated": true,
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
+    },
+    "scores": {
+      "MMLU": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 2371.8
+      },
+      "TRUTHFULQA": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 1627.2
+      }
+    }
+  },
+  {
+    "model": "supergemma4-26b-abliterated-multimodal-mlx-4bit",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 26,
+      "quantization": "4bit",
+      "size_gb": 15.6
+    },
+    "deprecated": true,
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    },
+    "scores": {
+      "MMLU": {
+        "accuracy": 40,
+        "samples": 30,
+        "time_s": 64.6
+      },
+      "TRUTHFULQA": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 35.2
+      },
+      "HUMANEVAL": {
+        "accuracy": 66.7,
+        "samples": 30,
+        "time_s": 132.9
+      },
+      "MBPP": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 166.6
+      }
+    }
+  },
+  {
+    "model": "Qwen3.6-35B-A3B-MTP-Holo3-Qwopus-qx86-hi-mlx",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 35,
+      "quantization": "qx86",
+      "size_gb": 36.8
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 71
+      },
+      "TRUTHFULQA": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 20.5
+      },
+      "HUMANEVAL": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 102.4
+      },
+      "MBPP": {
+        "accuracy": 86.7,
+        "samples": 30,
+        "time_s": 64.6
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 43.3,
+        "samples": 30,
+        "time_s": 516.1
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3-Coder-30B-A3B-Instruct-MLX-8bit",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 30,
+      "quantization": "8bit",
+      "size_gb": 32.4
+    },
+    "deprecated": true,
+    "scores": {
+      "MMLU": {
+        "accuracy": 66.7,
+        "samples": 30,
+        "time_s": 49.8
+      },
+      "TRUTHFULQA": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 19.8
+      },
+      "HUMANEVAL": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 96
+      },
+      "MBPP": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 64.5
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 33.3,
+        "samples": 30,
+        "time_s": 2059
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-27B-MTP-4bit-MLX",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 27,
+      "quantization": "4bit",
+      "size_gb": 15.4
+    },
+    "deprecated": true,
+    "scores": {
+      "MMLU": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 2489.4
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-27B-MTPLX-Optimized-Speed",
+    "date": "2026-05-26",
+    "spec": {
+      "parameters_b": 27,
+      "quantization": "",
+      "size_gb": 16.4
+    },
+    "deprecated": true,
+    "scores": {
+      "TRUTHFULQA": {
+        "accuracy": 100,
+        "samples": 30,
+        "time_s": 1321
+      },
+      "HUMANEVAL": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 3796.5
+      },
+      "MBPP": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 4472.1
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 63.3,
+        "samples": 30,
+        "time_s": 20578.2
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-27B-MLX-4bit-MTP",
+    "date": "2026-05-27",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": null
+    },
+    "deprecated": true,
+    "scores": {
+      "MMLU": {
+        "accuracy": 86.7,
+        "samples": 30,
+        "time_s": 2310.1
+      },
+      "TRUTHFULQA": {
+        "accuracy": 100,
+        "samples": 30,
+        "time_s": 1260.5
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 3996.8
+      },
+      "MBPP": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 4296.6
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-35B-A3B-TurboQuant-MLX-8bit",
+    "date": "2026-05-27",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": null
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 1217.6
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Qwen3.6-35B-A3B-RotorQuant-MLX-4bit",
+    "date": "2026-05-27",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": null
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 877.9
+      },
+      "TRUTHFULQA": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 428.7
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 1109.2
+      },
+      "MBPP": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 1254.2
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 5673
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "gpt-oss-20b-TurboQuant-MLX-8bit",
+    "date": "2026-05-27",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": null
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 429.5
+      },
+      "TRUTHFULQA": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 124.3
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 208.6
+      },
+      "MBPP": {
+        "accuracy": 86.7,
+        "samples": 30,
+        "time_s": 683.5
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 56.7,
+        "samples": 30,
+        "time_s": 3297.8
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  },
+  {
+    "model": "Nemotron-3-Nano-4B-TurboQuant-MLX-8bit",
+    "date": "2026-05-27",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": null
+    },
+    "deprecated": true,
+    "scores": {
+      "MMLU": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 231.9
+      },
+      "TRUTHFULQA": {
+        "accuracy": 63.3,
+        "samples": 30,
+        "time_s": 114.6
+      },
+      "HUMANEVAL": {
+        "accuracy": 30,
+        "samples": 30,
+        "time_s": 265.4
+      },
+      "MBPP": {
+        "accuracy": 13.3,
+        "samples": 30,
+        "time_s": 1054.4
+      }
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    }
+  }
+]
