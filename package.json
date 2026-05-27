@@ -9,6 +9,9 @@
     "build": "echo 'Do not run vp build — site is serverless'"
   },
   "devDependencies": {
+    "vite": "^8.0.0",
+    "vitest": "^1.6.0",
     "vite-plus": "^0.1.22"
-  }
+  },
+  "packageManager": "pnpm@11.4.0"
 }
