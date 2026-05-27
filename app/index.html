@@ -460,23 +460,13 @@
 
     td.ability-cell { text-align: center; }
 
-    td.num {
+    td.num, td.score, td.missing {
       font-family: 'JetBrains Mono', 'SF Mono', monospace;
       font-size: 0.8rem;
-      color: #334155;
     }
-    
-    td.score {
-      font-family: 'JetBrains Mono', 'SF Mono', monospace;
-      font-size: 0.8rem;
-      font-weight: 500;
-      color: #0f172a;
-    }
-    
-    td.missing {
-      color: #94a3b8;
-      font-family: 'JetBrains Mono', 'SF Mono', monospace;
-    }
+    td.num     { color: #334155; }
+    td.score   { color: #0f172a; font-weight: 500; }
+    td.missing { color: #94a3b8; }
 
 
     /* Group boundary: left border on first column of each group */
@@ -980,13 +970,12 @@
     }
 
     // ── Tier filter ──────────────────────────────────────────────────────────
-    let tierFilterIdx = -1   // -1 = all, 0 = opus, 1 = sonnet, 2 = haiku
+    let tierFilter = 'all'   // 'all' | 'opus' | 'sonnet' | 'haiku'
 
     document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('#tier-filter button').forEach(btn => {
         btn.addEventListener('click', () => {
-          const val = btn.dataset.val
-          tierFilterIdx = val === 'all' ? -1 : { opus: 0, sonnet: 1, haiku: 2 }[val]
+          tierFilter = btn.dataset.val
           document.querySelectorAll('#tier-filter button').forEach(b => b.classList.toggle('active', b === btn))
           renderTable(currentData)
         })
@@ -999,14 +988,16 @@
           renderTable(currentData)
         })
       })
+      const search = document.getElementById('model-search')
+      search.addEventListener('input', () => {
+        searchQuery = search.value.trim().toLowerCase()
+        renderTable(currentData)
+      })
     })
 
     function getTierFilterMatch(entry) {
-      if (tierFilterIdx < 0) return true
-      const tiers = entry.tiers
-      if (!tiers) return false
-      const tierKeys = ['opus', 'sonnet', 'haiku']
-      return tiers[tierKeys[tierFilterIdx]]
+      if (tierFilter === 'all') return true
+      return !!(entry.tiers && entry.tiers[tierFilter])
     }
 
     // ── Deprecated filter ─────────────────────────────────────────────────────
@@ -1020,18 +1011,13 @@
     // ── Search filter ────────────────────────────────────────────────────────
     let searchQuery = ''
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const input = document.getElementById('model-search')
-      input.addEventListener('input', () => {
-        searchQuery = input.value.trim().toLowerCase()
-        renderTable(currentData)
-      })
-    })
+    function getExportData() {
+      return currentData.map(({ abilities, ...rest }) => rest)
+    }
 
     function openModal() {
       if (!currentData) return
-      const exportData = currentData.map(({ abilities, ...rest }) => rest)
-      const formatted = JSON.stringify(exportData, null, 2) + "\n"
+      const formatted = JSON.stringify(getExportData(), null, 2) + "\n"
       document.getElementById('modal-code-preview').textContent = formatted
       document.getElementById('export-modal').classList.add('show')
     }
@@ -1135,8 +1121,7 @@
     async function saveExportToFile() {
       const device = document.getElementById('device-select').value
       try {
-        const exportData = currentData.map(({ abilities, ...rest }) => rest)
-        await saveDataFile(`${device}.json`, exportData)
+        await saveDataFile(`${device}.json`, getExportData())
         showToast('Saved successfully!')
         clearDataDirty()
         closeModal()
@@ -1258,8 +1243,7 @@
         const score = entry.scores[bench]
         return score ? score[key] : null
       }
-      const score = entry.scores[col]
-      return score ? score.accuracy : null
+      return null
     }
 
     function sortData(data) {
@@ -1293,15 +1277,14 @@
         groupRow.appendChild(th)
       }
 
-      const scoreCols = getVisibleBenchmarks().length * 2
       addGroup('Model', 1, false)
-      if (!labelingMode) {
-        addGroup('Spec', 3, true)
-        addGroup('Score', scoreCols, true)
-      } else {
-        addGroup('Spec', 3, true)
+      addGroup('Spec', 3, true)
+      if (labelingMode) {
         addGroup('Deprecated', 1, true)
         addGroup('Tiers (Labeling)', 3, true)
+      } else {
+        const scoreCols = getVisibleBenchmarks().length * 2
+        addGroup('Score', scoreCols, true)
       }
 
       thead.appendChild(groupRow)
@@ -1319,22 +1302,19 @@
         subGroupRow.appendChild(th)
       }
 
+      // Shared head: Model + Spec(Params/Quant/Size)
+      addSub('', 1, false)        // Model
+      addSub('', 1, true)         // Params  (Spec starts)
+      addSub('', 1, false)        // Quant
+      addSub('', 1, false)        // Size
       if (labelingMode) {
-        // 8 columns: Model | Spec(3) | Deprecated(1) | Tiers(3)
-        addSub('', 1, false)        // Model
-        addSub('', 1, true)         // Params  (Spec starts)
-        addSub('', 1, false)        // Quant
-        addSub('', 1, false)        // Size
+        // Tail: Deprecated(1) + Tiers(3, each its own column)
         addSub('', 1, true)         // Deprecated
-        addSub('', 1, true)         // Opus    (Tiers starts; every tier its own column)
+        addSub('', 1, true)         // Opus
         addSub('', 1, true)         // Sonnet
         addSub('', 1, true)         // Haiku
       } else {
-        addSub('', 1, false)        // Model
-        addSub('', 1, true)         // Params  (Spec starts)
-        addSub('', 1, false)        // Quant
-        addSub('', 1, false)        // Size
-        // Every visible benchmark gets its own labelled sub-group cell with a left border.
+        // Tail: one labelled sub-group per visible benchmark (colspan 2 for Acc + Time)
         getVisibleBenchmarks().forEach((bench) => {
           addSub(bench, 2, true)
         })
@@ -1363,19 +1343,16 @@
       }
 
       addLeafNoSort('Model', false)
+      addLeaf('Params', 'spec.parameters_b',  true)
+      addLeaf('Quant',  'spec.quantization',  false)
+      addLeaf('Size',   'spec.size_gb',       false)
       if (labelingMode) {
-        addLeaf('Params', 'spec.parameters_b',  true)
-        addLeaf('Quant',  'spec.quantization',  false)
-        addLeaf('Size',   'spec.size_gb',       false)
         addLeaf('Deprecated', 'deprecated',     true)
         // Each tier column gets its own left border (same treatment as score columns).
         addLeaf('Opus',       'tiers.opus',     true)
         addLeaf('Sonnet',     'tiers.sonnet',   true)
         addLeaf('Haiku',      'tiers.haiku',    true)
       } else {
-        addLeaf('Params', 'spec.parameters_b',  true)
-        addLeaf('Quant',  'spec.quantization',  false)
-        addLeaf('Size',   'spec.size_gb',       false)
         // Every benchmark starts a new visual group (Acc gets the left border)
         getVisibleBenchmarks().forEach((bench) => {
           addLeaf('🎯', 'scores.' + bench + '.accuracy', true)
@@ -1394,6 +1371,11 @@
           th.classList.add(sortDir === 1 ? 'sort-asc' : 'sort-desc')
         }
       })
+    }
+
+    function setStarBtnIcon(btn, starred) {
+      btn.textContent = starred ? '♥' : '♡'
+      btn.classList.toggle('starred', starred)
     }
 
     function buildRow(entry) {
@@ -1447,14 +1429,13 @@
       actions.appendChild(hfBtn)
       if (labelingMode) {
         const starBtn = document.createElement('button')
-        starBtn.className = 'model-action-btn star-btn' + (entry.starred ? ' starred' : '')
+        starBtn.className = 'model-action-btn star-btn'
         starBtn.title = 'Toggle starred'
-        starBtn.textContent = entry.starred ? '♥' : '♡'
+        setStarBtnIcon(starBtn, entry.starred)
         starBtn.onclick = (e) => {
           e.stopPropagation()
           entry.starred = !entry.starred
-          starBtn.textContent = entry.starred ? '♥' : '♡'
-          starBtn.classList.toggle('starred', entry.starred)
+          setStarBtnIcon(starBtn, entry.starred)
           markDataDirty()
         }
         actions.appendChild(starBtn)
@@ -1571,7 +1552,7 @@
     function renderTable(data) {
       if (!data) return
       let filtered = showAll ? data : data.filter(e => !e.deprecated)
-      if (tierFilterIdx >= 0) {
+      if (tierFilter !== 'all') {
         filtered = filtered.filter(getTierFilterMatch)
       }
       if (searchQuery) {
