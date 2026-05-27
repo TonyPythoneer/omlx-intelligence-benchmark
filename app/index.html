@@ -703,6 +703,7 @@
       transition: color 0.15s ease;
     }
     .model-action-btn:hover { color: #475569; }
+    .model-action-btn.star-btn.starred { color: #f43f5e; }
   </style>
 </head>
 <body>
@@ -1054,6 +1055,7 @@
             date: today,
             spec: { parameters_b: null, quantization: '', size_gb: null },
             deprecated: false,
+            starred: false,
             scores: d.scores,
           })
           newCount++
@@ -1419,6 +1421,20 @@
 
       actions.appendChild(copyBtn)
       actions.appendChild(hfBtn)
+      if (labelingMode) {
+        const starBtn = document.createElement('button')
+        starBtn.className = 'model-action-btn star-btn' + (entry.starred ? ' starred' : '')
+        starBtn.title = 'Toggle starred'
+        starBtn.textContent = entry.starred ? '♥' : '♡'
+        starBtn.onclick = (e) => {
+          e.stopPropagation()
+          entry.starred = !entry.starred
+          starBtn.textContent = entry.starred ? '♥' : '♡'
+          starBtn.classList.toggle('starred', entry.starred)
+          markDataDirty()
+        }
+        actions.appendChild(starBtn)
+      }
       modelTd.appendChild(actions)
       modelTd.appendChild(nameSpan)
       if (entry.deprecated) {
