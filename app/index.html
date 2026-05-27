@@ -380,8 +380,21 @@
     td.model-name {
       font-weight: 600;
       color: #0f172a;
+      display: flex;
+      align-items: center;
+    }
+    .model-name-text {
+      flex: 1 1 auto;
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
+      border-bottom: 1px dashed transparent;
+      transition: border-color 0.15s ease;
+      cursor: default;
+    }
+    .model-name-text:hover {
+      border-bottom-color: #94a3b8;
     }
 
     /* Fixed widths for non-score columns; prevents layout shifts when metrics/filters change
@@ -389,11 +402,11 @@
     #benchmark-table thead tr.leaf-row th:nth-child(1),
     #benchmark-table tbody td:nth-child(1) { width: 300px; min-width: 300px; max-width: 300px; }
     #benchmark-table thead tr.leaf-row th:nth-child(2),
-    #benchmark-table tbody td:nth-child(2) { width: 110px; min-width: 110px; max-width: 110px; }
+    #benchmark-table tbody td:nth-child(2) { width: 72px;  min-width: 72px;  max-width: 72px;  }
     #benchmark-table thead tr.leaf-row th:nth-child(3),
-    #benchmark-table tbody td:nth-child(3) { width: 110px; min-width: 110px; max-width: 110px; }
+    #benchmark-table tbody td:nth-child(3) { width: 72px;  min-width: 72px;  max-width: 72px;  }
     #benchmark-table thead tr.leaf-row th:nth-child(4),
-    #benchmark-table tbody td:nth-child(4) { width: 120px; min-width: 120px; max-width: 120px; }
+    #benchmark-table tbody td:nth-child(4) { width: 88px;  min-width: 88px;  max-width: 88px;  }
     #benchmark-table thead tr.leaf-row th:nth-child(5),
     #benchmark-table tbody td:nth-child(5) { width: 80px;  min-width: 80px;  max-width: 80px;  }
     #benchmark-table thead tr.leaf-row th:nth-child(6),
@@ -435,22 +448,6 @@
       font-family: 'JetBrains Mono', 'SF Mono', monospace;
     }
 
-    .ability-yes {
-      color: #10b981;
-      font-weight: 700;
-      background: #ecfdf5;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-    }
-    
-    .ability-no {
-      color: #94a3b8;
-      background: #f1f5f9;
-      padding: 2px 8px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-    }
 
     /* Group boundary: left border on first column of each group */
     .group-start { border-left: 1px solid #e2e8f0; }
@@ -714,7 +711,7 @@
     <div class="header-controls">
       <button id="import-data" class="btn btn-secondary" onclick="openImportModal()">+ Import</button>
       <button id="export-data" class="btn btn-primary" style="display: none;" onclick="openModal()">Export Data</button>
-      <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Label</button>
+      <button id="toggle-labeling" class="btn btn-secondary" onclick="toggleLabeling()">✏ Edit</button>
       <select id="device-select"></select>
     </div>
   </header>
@@ -942,10 +939,10 @@
       const btn = document.getElementById('toggle-labeling')
       if (labelingMode) {
         btn.classList.add('active')
-        btn.textContent = '✏ Editing'
+        btn.textContent = 'Display'
       } else {
         btn.classList.remove('active')
-        btn.textContent = '✏ Label'
+        btn.textContent = '✏ Edit'
       }
       buildHeaders()
       renderTable(currentData)
@@ -1002,7 +999,8 @@
 
     function openModal() {
       if (!currentData) return
-      const formatted = JSON.stringify(currentData, null, 2) + "\n"
+      const exportData = currentData.map(({ abilities, ...rest }) => rest)
+      const formatted = JSON.stringify(exportData, null, 2) + "\n"
       document.getElementById('modal-code-preview').textContent = formatted
       document.getElementById('export-modal').classList.add('show')
     }
@@ -1055,7 +1053,6 @@
             model: d.model,
             date: today,
             spec: { parameters_b: null, quantization: '', size_gb: null },
-            abilities: { thinking: d.thinking, mtp: false },
             deprecated: false,
             scores: d.scores,
           })
@@ -1106,7 +1103,8 @@
     async function saveExportToFile() {
       const device = document.getElementById('device-select').value
       try {
-        await saveDataFile(`${device}.json`, currentData)
+        const exportData = currentData.map(({ abilities, ...rest }) => rest)
+        await saveDataFile(`${device}.json`, exportData)
         showToast('Saved successfully!')
         clearDataDirty()
         closeModal()
@@ -1151,26 +1149,24 @@
         if (!trimmed.startsWith('Model:')) continue
         const modelName = trimmed.split('\n')[0].replace(/^Model:/, '').trim()
         const scores = {}
-        let thinking = false
         scoreRe.lastIndex = 0
         let m
         while ((m = scoreRe.exec(block)) !== null) {
-          const [, bench, accuracy, samples, time_s, think] = m
+          const [, bench, accuracy, samples, time_s] = m
           scores[bench] = {
             accuracy: parseFloat(accuracy),
             samples: parseInt(samples, 10),
             time_s: parseFloat(time_s),
           }
-          if (think.toLowerCase() === 'yes') thinking = true
         }
         if (Object.keys(scores).length > 0) {
-          results.push({ model: modelName, thinking, scores })
+          results.push({ model: modelName, scores })
         }
       }
       return results
     }
 
-    let importDetected = []   // [{model, thinking, scores, status: 'new' | 'overwrite'}]
+    let importDetected = []   // [{model, scores, status: 'new' | 'overwrite'}]
 
     function renderImportDetected() {
       const container = document.getElementById('import-detected')
@@ -1188,7 +1184,7 @@
         return `<div class="import-detected-row">
       ${badge}
       <span class="import-detected-name">${escapeHtml(d.model)}</span>
-      <span class="import-detected-meta">thinking: ${d.thinking ? 'yes' : 'no'} · ${Object.keys(d.scores).length} scores</span>
+      <span class="import-detected-meta">${Object.keys(d.scores).length} scores</span>
     </div>`
       }).join('')
       container.innerHTML = header + rows
@@ -1220,8 +1216,6 @@
       if (col === 'spec.parameters_b') return entry.spec.parameters_b
       if (col === 'spec.quantization') return entry.spec.quantization
       if (col === 'spec.size_gb')      return entry.spec.size_gb
-      if (col === 'abilities.thinking') return entry.abilities.thinking ? 1 : 0
-      if (col === 'abilities.mtp')     return entry.abilities.mtp     ? 1 : 0
       if (col === 'tiers.opus')        return (entry.tiers && entry.tiers.opus) ? 1 : 0
       if (col === 'tiers.sonnet')      return (entry.tiers && entry.tiers.sonnet) ? 1 : 0
       if (col === 'tiers.haiku')       return (entry.tiers && entry.tiers.haiku) ? 1 : 0
@@ -1271,11 +1265,9 @@
       addGroup('Model', 1, false)
       if (!labelingMode) {
         addGroup('Spec', 3, true)
-        addGroup('Abilities', 2, true)
         addGroup('Score', scoreCols, true)
       } else {
         addGroup('Spec', 3, true)
-        addGroup('Abilities', 2, true)
         addGroup('Deprecated', 1, true)
         addGroup('Tiers (Labeling)', 3, true)
       }
@@ -1296,13 +1288,11 @@
       }
 
       if (labelingMode) {
-        // 10 columns: Model | Spec(3) | Abilities(2) | Deprecated(1) | Tiers(3)
+        // 8 columns: Model | Spec(3) | Deprecated(1) | Tiers(3)
         addSub('', 1, false)        // Model
         addSub('', 1, true)         // Params  (Spec starts)
         addSub('', 1, false)        // Quant
         addSub('', 1, false)        // Size
-        addSub('', 1, true)         // Think   (Abilities starts)
-        addSub('', 1, false)        // MTP
         addSub('', 1, true)         // Deprecated
         addSub('', 1, true)         // Opus    (Tiers starts; every tier its own column)
         addSub('', 1, true)         // Sonnet
@@ -1312,8 +1302,6 @@
         addSub('', 1, true)         // Params  (Spec starts)
         addSub('', 1, false)        // Quant
         addSub('', 1, false)        // Size
-        addSub('', 1, true)         // Think   (Abilities starts)
-        addSub('', 1, false)        // MTP
         // Every visible benchmark gets its own labelled sub-group cell with a left border.
         getVisibleBenchmarks().forEach((bench) => {
           addSub(bench, 2, true)
@@ -1347,8 +1335,6 @@
         addLeaf('Params', 'spec.parameters_b',  true)
         addLeaf('Quant',  'spec.quantization',  false)
         addLeaf('Size',   'spec.size_gb',       false)
-        addLeaf('Think',  'abilities.thinking', true)
-        addLeaf('MTP',    'abilities.mtp',      false)
         addLeaf('Deprecated', 'deprecated',     true)
         // Each tier column gets its own left border (same treatment as score columns).
         addLeaf('Opus',       'tiers.opus',     true)
@@ -1358,8 +1344,6 @@
         addLeaf('Params', 'spec.parameters_b',  true)
         addLeaf('Quant',  'spec.quantization',  false)
         addLeaf('Size',   'spec.size_gb',       false)
-        addLeaf('Think',  'abilities.thinking', true)
-        addLeaf('MTP',    'abilities.mtp',      false)
         // Every benchmark starts a new visual group (Acc gets the left border)
         getVisibleBenchmarks().forEach((bench) => {
           addLeaf('🎯', 'scores.' + bench + '.accuracy', true)
@@ -1422,11 +1406,21 @@
         window.open(`https://huggingface.co/models?search=${encodeURIComponent(entry.model)}`, '_blank', 'noopener')
       }
 
+      const nameSpan = document.createElement('span')
+      nameSpan.className = 'model-name-text'
+      nameSpan.textContent = entry.model
+      nameSpan.addEventListener('mouseenter', () => {
+        if (nameSpan.scrollWidth > nameSpan.clientWidth) {
+          nameSpan.title = entry.model
+        } else {
+          nameSpan.removeAttribute('title')
+        }
+      })
+
       actions.appendChild(copyBtn)
       actions.appendChild(hfBtn)
       modelTd.appendChild(actions)
-      modelTd.appendChild(document.createTextNode(entry.model))
-      modelTd.title = entry.model   // hover tooltip for truncated names
+      modelTd.appendChild(nameSpan)
       if (entry.deprecated) {
         const badge = document.createElement('span')
         badge.className = 'deprecated-badge'
@@ -1506,8 +1500,6 @@
         addTd(createNumInput('parameters_b', entry.spec, '35',     v => Number.isInteger(v) && v > 0), '', true)
         addTd(createTextInput('quantization', entry.spec, '4bit'),                                       '', false)
         addTd(createNumInput('size_gb',      entry.spec, '19.50',  v => !isNaN(v) && v > 0),            '', false)
-        addTd(createBoolSwitch('thinking', entry.abilities), 'cell-switch', true)
-        addTd(createBoolSwitch('mtp',      entry.abilities), 'cell-switch', false)
         addTd(createBoolSwitch('deprecated', entry),         'cell-switch', true)
         addTd(createBoolSwitch('opus',   entry.tiers),       'cell-switch', true)
         addTd(createBoolSwitch('sonnet', entry.tiers),       'cell-switch', true)
@@ -1516,18 +1508,6 @@
         addTd(entry.spec.parameters_b != null ? `${entry.spec.parameters_b}B` : '—', entry.spec.parameters_b != null ? 'num' : 'missing', true)
         addTd(entry.spec.quantization || '—', entry.spec.quantization ? '' : 'missing', false)
         addTd(entry.spec.size_gb != null ? `${entry.spec.size_gb.toFixed(2)} GB` : '—', entry.spec.size_gb != null ? 'num' : 'missing', false)
-        addTd(
-          entry.abilities.thinking
-            ? '<span class="ability-yes">✓</span>'
-            : '<span class="ability-no">✗</span>',
-          'ability-cell', true
-        )
-        addTd(
-          entry.abilities.mtp
-            ? '<span class="ability-yes">✓</span>'
-            : '<span class="ability-no">✗</span>',
-          'ability-cell', false
-        )
 
         // Every benchmark's Acc cell gets the left border (matching the header rows).
         getVisibleBenchmarks().forEach(bench => {
