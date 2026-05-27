@@ -30,7 +30,7 @@ scripts/
 └── apply-import.mjs                  [CREATE] CI entry point (Node.js)
 
 app/
-├── index.html                        [MODIFY] Load import.mjs module
+├── index.html                        [MODIFY] Load import.mjs module + update saveImport
 ├── lib/
 │   ├── import.mjs                    [CREATE] Parser + merger (extracted from index.html)
 │   └── import.test.mjs               [CREATE] Vitest unit tests
@@ -42,6 +42,7 @@ project root/
 ├── .gitignore                        [MODIFY] Add node_modules/
 ├── Makefile                          [MODIFY] serve target
 ├── CLAUDE.md                         [MODIFY] Update serverless note
+├── README.md                         [MODIFY] Add Contributing section
 └── docs/readme/pages/development.md  [MODIFY] Update dev commands
 ```
 
@@ -91,6 +92,8 @@ export default defineConfig({
 });
 ```
 
+**Note:** `test.include: ['lib/**/*.test.mjs']` is relative to `root: 'app'`, so this matches `app/lib/**/*.test.mjs`.
+
 - [ ] **Step 3: Update `.gitignore`**
 
 Add `node_modules/` to existing .gitignore file. If .gitignore doesn't exist, create it with:
@@ -118,92 +121,114 @@ git commit -m "chore: add Vite+ build config and dev tooling"
 **Files:**
 - Create: `app/lib/import.mjs`
 
-**Context:** Extract the two parsing functions from `app/index.html` (lines 1160–1184 for `parseImportInput`, lines 1055–1086 for `mergeImport` logic) into a standalone ES module. This module has no DOM dependencies and will be shared by both the browser (via `<script type="module">`) and CI (via Node.js `import()`).
+**Context:** Extract the parser from `app/index.html` (lines 1160–1184) into a standalone ES module. The parser reads fixed-width benchmark tables with a specific regex. The merger logic follows the pattern in `saveImport` (lines 1055–1086). This module has no DOM dependencies and will be shared by both the browser and CI.
 
-- [ ] **Step 1: Read existing parsing logic from `app/index.html`**
+**Parser Details:**
+- Input format: fixed-width table with `Model:` line followed by benchmark rows
+- Regex: `/^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)/gm`
+- Captures: benchmark name, accuracy (%), [skip correct count], samples, time_s, [skip think flag]
+- Score object shape (critical): `{ accuracy: number, samples: number, time_s: number }`
 
-Read lines 1160–1184 and 1055–1086 to understand the current parsing and merge logic.
+**NEW Entry Template (from `saveImport` lines 1069–1076):**
+```javascript
+{
+  model: string,
+  date: today (YYYY-MM-DD),
+  spec: { parameters_b: null, quantization: '', size_gb: null },
+  deprecated: false,
+  starred: false,
+  scores: { ... }
+}
+```
+**Important:** No `abilities` or `tiers` on NEW import; only `starred: false`. These are added later in Labeling Mode.
 
-- [ ] **Step 2: Write `app/lib/import.mjs` with `parseImportInput`**
+**OVERWRITE Behavior:**
+Only `scores` is overwritten. All other fields (date, spec, deprecated, starred, abilities, tiers) are preserved from existing entry.
+
+- [ ] **Step 1: Write `app/lib/import.mjs`**
 
 ```javascript
 /**
  * Parse benchmark stdout to extract model entries.
- * Scans for lines starting with "Model:" and collects subsequent score lines.
+ * Input: fixed-width table format (see app/index.html lines 1160-1184)
+ * 
+ * Example input:
+ * Model: gpt-oss-20b-RotorQuant-MLX-8bit
+ * Benchmark         Accuracy   Correct   Total   Time(s)   Think
+ * MMLU                 80.0%        24      30     492.9     Yes
+ * TRUTHFULQA           80.0%        24      30     138.8     Yes
+ * 
  * @param {string} text - Raw benchmark stdout
- * @returns {Array<{model: string, date?: string, scores: Object}>} Detected entries
+ * @returns {Array<{model: string, scores: Object}>} Detected entries with scores
  */
 export function parseImportInput(text) {
-  const entries = [];
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+  const results = []
+  const blocks = text.split(/(?=^Model:)/m)
+  const scoreRe = /^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)/gm
   
-  let currentModel = null;
-  let currentScores = {};
-  
-  for (const line of lines) {
-    if (line.startsWith('Model:')) {
-      // Save previous entry if exists
-      if (currentModel) {
-        entries.push({ model: currentModel, scores: currentScores });
+  for (const block of blocks) {
+    const trimmed = block.trim()
+    if (!trimmed.startsWith('Model:')) continue
+    
+    const modelName = trimmed.split('\n')[0].replace(/^Model:/, '').trim()
+    const scores = {}
+    scoreRe.lastIndex = 0
+    
+    let m
+    while ((m = scoreRe.exec(block)) !== null) {
+      const [, bench, accuracy, samples, time_s] = m
+      scores[bench] = {
+        accuracy: parseFloat(accuracy),
+        samples: parseInt(samples, 10),
+        time_s: parseFloat(time_s),
       }
-      // Start new entry
-      currentModel = line.replace('Model:', '').trim();
-      currentScores = {};
-    } else if (currentModel && line.includes(':')) {
-      // Parse score line (e.g., "MMLU: 46.2")
-      const [benchmarkName, scoreStr] = line.split(':');
-      const score = parseFloat(scoreStr.trim());
-      if (!isNaN(score)) {
-        currentScores[benchmarkName.trim()] = score;
-      }
+    }
+    
+    if (Object.keys(scores).length > 0) {
+      results.push({ model: modelName, scores })
     }
   }
   
-  // Save final entry
-  if (currentModel) {
-    entries.push({ model: currentModel, scores: currentScores });
-  }
-  
-  return entries;
+  return results
 }
 
 /**
  * Merge detected entries into current data array.
- * NEW entries: pushed with template defaults.
- * OVERWRITE entries: only scores updated; spec/abilities/tiers/deprecated preserved.
+ * NEW entries: pushed with template defaults (see CLAUDE.md).
+ * OVERWRITE entries: only scores updated; ALL other fields (date, spec, deprecated, starred, abilities, tiers) preserved.
+ * 
  * @param {Array} currentData - Existing data entries
  * @param {Array} detected - Newly detected entries from parseImportInput
  * @param {string} today - Today's date (YYYY-MM-DD)
  * @returns {Array} Merged data array
  */
 export function mergeImport(currentData, detected, today) {
-  const result = [...currentData];
+  const nextData = currentData.map(e => ({ ...e }))
+  const byModel = new Map(nextData.map((e, i) => [e.model, i]))
   
-  for (const detectedEntry of detected) {
-    const existingIndex = result.findIndex(e => e.model === detectedEntry.model);
-    
-    if (existingIndex === -1) {
-      // NEW entry
-      result.push({
-        model: detectedEntry.model,
-        date: today,
-        spec: {},
-        abilities: {},
-        deprecated: false,
-        tiers: {},
-        scores: detectedEntry.scores
-      });
+  for (const d of detected) {
+    if (byModel.has(d.model)) {
+      // OVERWRITE: only update scores
+      const idx = byModel.get(d.model)
+      nextData[idx] = { ...nextData[idx], scores: d.scores }
     } else {
-      // OVERWRITE: update scores only, preserve other fields
-      result[existingIndex].scores = detectedEntry.scores;
+      // NEW: push with template defaults
+      nextData.push({
+        model: d.model,
+        date: today,
+        spec: { parameters_b: null, quantization: '', size_gb: null },
+        deprecated: false,
+        starred: false,
+        scores: d.scores,
+      })
     }
   }
   
-  return result;
+  return nextData
 }
 ```
 
-- [ ] **Step 3: Write a simple unit test to verify exports**
+- [ ] **Step 2: Verify module loads without errors**
 
 ```bash
 node -e "
@@ -219,7 +244,7 @@ import('./app/lib/import.mjs').then(m => {
 
 Expected: Outputs object keys, parsed array, and merged result without errors.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add app/lib/import.mjs
@@ -233,7 +258,9 @@ git commit -m "feat: extract parser and merger to app/lib/import.mjs"
 **Files:**
 - Create: `app/lib/import.test.mjs`
 
-- [ ] **Step 1: Write test suite header and setup**
+**Context:** Vitest suite for parser and merger. Critical: all `scores` values must be objects with `{ accuracy, samples, time_s }`, not numbers.
+
+- [ ] **Step 1: Write test suite header**
 
 ```javascript
 import { describe, it, expect } from 'vitest';
@@ -248,119 +275,112 @@ describe('mergeImport', () => {
 });
 ```
 
-- [ ] **Step 2: Add parser tests — canonical stdout**
+- [ ] **Step 2: Add parser tests — canonical fixed-width format**
 
 ```javascript
 describe('parseImportInput', () => {
-  it('parses single model with multiple benchmarks', () => {
-    const input = `Model: Llama-2-7B
-MMLU: 46.2
-TRUTHFULQA: 42.1`;
+  it('parses fixed-width table with model and benchmarks', () => {
+    const input = `Model: gpt-oss-20b-RotorQuant-MLX-8bit
+Benchmark         Accuracy   Correct   Total   Time(s)   Think
+MMLU                 80.0%        24      30     492.9     Yes
+TRUTHFULQA           80.0%        24      30     138.8     Yes`;
     const result = parseImportInput(input);
+    
     expect(result).toHaveLength(1);
-    expect(result[0].model).toBe('Llama-2-7B');
-    expect(result[0].scores.MMLU).toBe(46.2);
-    expect(result[0].scores.TRUTHFULQA).toBe(42.1);
+    expect(result[0].model).toBe('gpt-oss-20b-RotorQuant-MLX-8bit');
+    expect(result[0].scores.MMLU).toEqual({
+      accuracy: 80.0,
+      samples: 30,
+      time_s: 492.9,
+    });
+    expect(result[0].scores.TRUTHFULQA).toEqual({
+      accuracy: 80.0,
+      samples: 30,
+      time_s: 138.8,
+    });
   });
 
   it('parses multiple model blocks', () => {
     const input = `Model: Llama-2-7B
-MMLU: 46.2
-TRUTHFULQA: 42.1
+MMLU                 46.2%        14      30     100.0     No
 Model: Llama-2-13B
-MMLU: 55.8
-TRUTHFULQA: 48.3`;
+MMLU                 55.8%        17      30     150.0     Yes`;
     const result = parseImportInput(input);
+    
     expect(result).toHaveLength(2);
     expect(result[0].model).toBe('Llama-2-7B');
+    expect(result[0].scores.MMLU.accuracy).toBe(46.2);
     expect(result[1].model).toBe('Llama-2-13B');
-    expect(result[1].scores.MMLU).toBe(55.8);
+    expect(result[1].scores.MMLU.accuracy).toBe(55.8);
+  });
+
+  it('skips model blocks with no benchmark rows', () => {
+    const input = `Model: NoScores
+SomeRandomText
+Model: WithScores
+MMLU                 50.0%        15      30     200.0     No`;
+    const result = parseImportInput(input);
+    
+    expect(result).toHaveLength(1);
+    expect(result[0].model).toBe('WithScores');
   });
 
   it('returns empty array on zero models', () => {
     const input = `Some random text
 without any models`;
     const result = parseImportInput(input);
+    
     expect(result).toEqual([]);
   });
 
-  it('handles missing benchmarks gracefully', () => {
-    const input = `Model: Test
-MMLU: 50`;
-    const result = parseImportInput(input);
-    expect(result[0].scores).toEqual({ MMLU: 50 });
-  });
-
-  it('ignores malformed score lines', () => {
-    const input = `Model: Test
-MMLU: 50
-InvalidLine
-Other: 75`;
-    const result = parseImportInput(input);
-    expect(result[0].scores).toEqual({ MMLU: 50, Other: 75 });
-  });
-
-  it('trims whitespace from model names and scores', () => {
-    const input = `Model:   Llama-2-7B   
-  MMLU  :  46.2  `;
-    const result = parseImportInput(input);
-    expect(result[0].model).toBe('Llama-2-7B');
-    expect(result[0].scores.MMLU).toBe(46.2);
-  });
-});
-```
-
-- [ ] **Step 3: Add parser edge case tests**
-
-```javascript
   it('handles empty input', () => {
     const result = parseImportInput('');
     expect(result).toEqual([]);
   });
-
-  it('handles input with only whitespace', () => {
-    const result = parseImportInput('   \n  \n  ');
-    expect(result).toEqual([]);
-  });
-
-  it('parses non-numeric scores as NaN and skips them', () => {
-    const input = `Model: Test
-MMLU: not-a-number
-OTHER: 75`;
-    const result = parseImportInput(input);
-    expect(result[0].scores).toEqual({ OTHER: 75 });
-    expect(result[0].scores.MMLU).toBeUndefined();
-  });
+});
 ```
 
-- [ ] **Step 4: Add merger tests — NEW entries**
+- [ ] **Step 3: Add merger tests — NEW entries**
 
 ```javascript
 describe('mergeImport', () => {
   it('pushes NEW entry with template defaults', () => {
     const current = [];
-    const detected = [{ model: 'NewModel', scores: { MMLU: 50 } }];
+    const detected = [{
+      model: 'NewModel',
+      scores: {
+        MMLU: { accuracy: 50, samples: 30, time_s: 100 }
+      }
+    }];
     const result = mergeImport(current, detected, '2026-05-28');
     
     expect(result).toHaveLength(1);
     expect(result[0]).toEqual({
       model: 'NewModel',
       date: '2026-05-28',
-      spec: {},
-      abilities: {},
+      spec: { parameters_b: null, quantization: '', size_gb: null },
       deprecated: false,
-      tiers: {},
-      scores: { MMLU: 50 }
+      starred: false,
+      scores: {
+        MMLU: { accuracy: 50, samples: 30, time_s: 100 }
+      }
     });
   });
 
   it('handles multiple NEW entries', () => {
     const current = [];
     const detected = [
-      { model: 'Model-A', scores: { MMLU: 50 } },
-      { model: 'Model-B', scores: { MMLU: 60 } }
+      {
+        model: 'Model-A',
+        scores: { MMLU: { accuracy: 50, samples: 30, time_s: 100 } }
+      },
+      {
+        model: 'Model-B',
+        scores: { MMLU: { accuracy: 60, samples: 30, time_s: 150 } }
+      }
     ];
     const result = mergeImport(current, detected, '2026-05-28');
+    
     expect(result).toHaveLength(2);
     expect(result[0].model).toBe('Model-A');
     expect(result[1].model).toBe('Model-B');
@@ -368,32 +388,43 @@ describe('mergeImport', () => {
 });
 ```
 
-- [ ] **Step 5: Add merger tests — OVERWRITE behavior**
+- [ ] **Step 4: Add merger tests — OVERWRITE behavior**
 
 ```javascript
-  it('OVERWRITE: updates scores only, preserves other fields', () => {
+  it('OVERWRITE: updates scores only, preserves all other fields', () => {
     const current = [
       {
         model: 'ExistingModel',
         date: '2026-05-25',
-        spec: { parameters_b: 35, quantization: '4bit' },
-        abilities: { thinking: true },
+        spec: { parameters_b: 35, quantization: '4bit', size_gb: 18 },
         deprecated: false,
-        tiers: { opus: true },
-        scores: { MMLU: 40 }
+        starred: true,
+        abilities: { thinking: true, mtp: false },
+        tiers: { opus: true, sonnet: false, haiku: false },
+        scores: { MMLU: { accuracy: 40, samples: 30, time_s: 100 } }
       }
     ];
-    const detected = [{ model: 'ExistingModel', scores: { MMLU: 55, TRUTHFULQA: 48 } }];
+    const detected = [{
+      model: 'ExistingModel',
+      scores: {
+        MMLU: { accuracy: 55, samples: 30, time_s: 120 },
+        TRUTHFULQA: { accuracy: 48, samples: 30, time_s: 80 }
+      }
+    }];
     const result = mergeImport(current, detected, '2026-05-28');
     
     expect(result).toHaveLength(1);
     expect(result[0].model).toBe('ExistingModel');
     expect(result[0].date).toBe('2026-05-25'); // preserved
-    expect(result[0].spec).toEqual({ parameters_b: 35, quantization: '4bit' }); // preserved
-    expect(result[0].abilities).toEqual({ thinking: true }); // preserved
+    expect(result[0].spec).toEqual({ parameters_b: 35, quantization: '4bit', size_gb: 18 }); // preserved
     expect(result[0].deprecated).toBe(false); // preserved
-    expect(result[0].tiers).toEqual({ opus: true }); // preserved
-    expect(result[0].scores).toEqual({ MMLU: 55, TRUTHFULQA: 48 }); // updated
+    expect(result[0].starred).toBe(true); // preserved
+    expect(result[0].abilities).toEqual({ thinking: true, mtp: false }); // preserved
+    expect(result[0].tiers).toEqual({ opus: true, sonnet: false, haiku: false }); // preserved
+    expect(result[0].scores).toEqual({
+      MMLU: { accuracy: 55, samples: 30, time_s: 120 },
+      TRUTHFULQA: { accuracy: 48, samples: 30, time_s: 80 }
+    }); // updated
   });
 
   it('handles mixed NEW and OVERWRITE in single batch', () => {
@@ -401,29 +432,35 @@ describe('mergeImport', () => {
       {
         model: 'Existing',
         date: '2026-05-25',
-        spec: {},
-        abilities: {},
+        spec: { parameters_b: 30, quantization: '8bit', size_gb: 10 },
         deprecated: false,
-        tiers: {},
-        scores: { MMLU: 40 }
+        starred: false,
+        scores: { MMLU: { accuracy: 40, samples: 30, time_s: 100 } }
       }
     ];
     const detected = [
-      { model: 'Existing', scores: { MMLU: 50 } },
-      { model: 'New', scores: { MMLU: 60 } }
+      {
+        model: 'Existing',
+        scores: { MMLU: { accuracy: 50, samples: 30, time_s: 120 } }
+      },
+      {
+        model: 'New',
+        scores: { MMLU: { accuracy: 60, samples: 30, time_s: 150 } }
+      }
     ];
     const result = mergeImport(current, detected, '2026-05-28');
     
     expect(result).toHaveLength(2);
     expect(result[0].model).toBe('Existing');
-    expect(result[0].scores.MMLU).toBe(50);
+    expect(result[0].date).toBe('2026-05-25'); // preserved
+    expect(result[0].scores.MMLU.accuracy).toBe(50); // updated
     expect(result[1].model).toBe('New');
-    expect(result[1].date).toBe('2026-05-28');
+    expect(result[1].date).toBe('2026-05-28'); // new entry
   });
 });
 ```
 
-- [ ] **Step 6: Run tests**
+- [ ] **Step 5: Run tests**
 
 ```bash
 vp test app/lib/import.test.mjs
@@ -431,7 +468,7 @@ vp test app/lib/import.test.mjs
 
 Expected: All tests pass (green checkmarks).
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add app/lib/import.test.mjs
@@ -440,18 +477,73 @@ git commit -m "test: add comprehensive unit tests for parser and merger"
 
 ---
 
-## Task 4: Update `app/index.html` to Load `import.mjs`
+## Task 4: Update `app/index.html` to Load `import.mjs` and Refactor `saveImport`
 
 **Files:**
 - Modify: `app/index.html`
 
-**Context:** Modify `index.html` to load `app/lib/import.mjs` as an ES module and assign the exported functions to global variables so existing inline onclick handlers continue to work without refactoring.
+**Context:** Load the extracted `import.mjs` module as an ES module. Replace the inline `parseImportInput` function with the imported version. Refactor `saveImport` to call the extracted `mergeImport` function instead of inlining the merge logic. Keep the modal orchestration and UI updates in `saveImport`.
 
-- [ ] **Step 1: Read the existing import button handler**
+**Before/After Pattern:**
 
-Locate the button or code that currently uses `parseImportInput` and `saveImport` in `app/index.html`. Note the line numbers.
+Before (lines 1055–1086):
+```javascript
+function saveImport() {
+  if (importDetected.length === 0) return
 
-- [ ] **Step 2: Add module loading at end of HTML `<body>`**
+  const today = new Date().toISOString().slice(0, 10)
+  const nextData = currentData.map(e => ({ ...e }))
+  const byModel = new Map(nextData.map((e, i) => [e.model, i]))
+
+  let newCount = 0, ovrCount = 0
+  for (const d of importDetected) {
+    if (d.status === 'overwrite') {
+      const idx = byModel.get(d.model)
+      nextData[idx] = { ...nextData[idx], scores: d.scores }
+      ovrCount++
+    } else {
+      nextData.push({
+        model: d.model,
+        date: today,
+        spec: { parameters_b: null, quantization: '', size_gb: null },
+        deprecated: false,
+        starred: false,
+        scores: d.scores,
+      })
+      newCount++
+    }
+  }
+
+  currentData = nextData
+  closeImportModal()
+  markDataDirty()
+  renderTable(currentData)
+  showToast(`Applied: ${newCount} new, ${ovrCount} overwrite. Click Export Data to save.`)
+}
+```
+
+After:
+```javascript
+function saveImport() {
+  if (importDetected.length === 0) return
+
+  const today = new Date().toISOString().slice(0, 10)
+  const detected = importDetected.filter(d => d.status === 'new' ? true : true)
+    .map(d => ({ model: d.model, scores: d.scores }))
+  
+  currentData = mergeImport(currentData, detected, today)
+  
+  const newCount = importDetected.filter(d => d.status === 'new').length
+  const ovrCount = importDetected.filter(d => d.status === 'overwrite').length
+  
+  closeImportModal()
+  markDataDirty()
+  renderTable(currentData)
+  showToast(`Applied: ${newCount} new, ${ovrCount} overwrite. Click Export Data to save.`)
+}
+```
+
+- [ ] **Step 1: Add module loading at end of HTML `<body>`**
 
 Before the closing `</body>` tag, add:
 
@@ -465,11 +557,38 @@ Before the closing `</body>` tag, add:
 
 This makes both functions globally available to existing onclick handlers.
 
-- [ ] **Step 3: Verify no duplicate function definitions**
+- [ ] **Step 2: Remove old `parseImportInput` function (lines ~1160–1184)**
 
-Search `app/index.html` for existing `function parseImportInput` and `function saveImport`. These should remain in the HTML (old code), but when called, the global versions will shadow them (module versions take precedence because they're assigned after page load). Alternatively, delete the old function bodies and keep only the global assignment. Choose: keep old defs for safety, or delete.
+Replace the entire function with a comment:
 
-**Decision:** Keep old function definitions commented out or deleted. Remove the old `parseImportInput` function body (lines ~1160–1184) and `mergeImport`-related code from `saveImport` (lines ~1055–1086). Replace with comment: `// parseImportInput and mergeImport now loaded from ./lib/import.mjs`.
+```javascript
+// parseImportInput is now loaded from ./lib/import.mjs (see <script type="module"> at end of body)
+```
+
+- [ ] **Step 3: Refactor `saveImport` to use `mergeImport`**
+
+Replace the inline merge loop (lines 1055–1086) with:
+
+```javascript
+function saveImport() {
+  if (importDetected.length === 0) return
+
+  const today = new Date().toISOString().slice(0, 10)
+  const detected = importDetected.map(d => ({ model: d.model, scores: d.scores }))
+  
+  currentData = mergeImport(currentData, detected, today)
+  
+  const newCount = importDetected.filter(d => d.status === 'new').length
+  const ovrCount = importDetected.filter(d => d.status === 'overwrite').length
+  
+  closeImportModal()
+  markDataDirty()
+  renderTable(currentData)
+  showToast(`Applied: ${newCount} new, ${ovrCount} overwrite. Click Export Data to save.`)
+}
+```
+
+The UI orchestration (modal close, dirty mark, table re-render, toast) remains in `saveImport`.
 
 - [ ] **Step 4: Verify module loads without errors**
 
@@ -486,10 +605,11 @@ Expected: Both are `'function'`.
 1. Start `vp dev`
 2. Open http://localhost:8080/app/
 3. Click `+ Import` button
-4. Paste the canonical stdout from the test
+4. Paste a fixed-width benchmark table (see Task 3 test example)
 5. Verify the modal shows detected models
 6. Click "Apply" — verify state updates
-7. Verify no JavaScript errors in browser console
+7. Click "Export Data" — verify JSON shows new/updated entries
+8. Verify no JavaScript errors in browser console
 
 Expected: All steps succeed without errors.
 
@@ -497,7 +617,7 @@ Expected: All steps succeed without errors.
 
 ```bash
 git add app/index.html
-git commit -m "refactor: load import functions from app/lib/import.mjs module"
+git commit -m "refactor: load import functions from app/lib/import.mjs and refactor saveImport"
 ```
 
 ---
@@ -512,14 +632,14 @@ git commit -m "refactor: load import functions from app/lib/import.mjs module"
 - [ ] **Step 1: Read `app/settings.json` to enumerate device keys**
 
 ```bash
-cat app/settings.json | jq '.devices | keys'
+jq '.devices | keys | .[]' app/settings.json
 ```
 
-Expected: Output is JSON array of device keys (e.g., `["m1-max-64GB-32c"]`).
+Expected: Output device keys (e.g., `m1-max-64GB-32c`).
 
 - [ ] **Step 2: Create `.github/ISSUE_TEMPLATE/auto-data-import.yml`**
 
-Replace `<DEVICE_LIST>` with the actual device keys from step 1:
+Replace `<DEVICE_LIST>` with actual device keys from step 1. Use the exact visible label text from the YAML field (not the field-id):
 
 ```yaml
 name: Auto Data Import
@@ -552,25 +672,19 @@ body:
       description: Paste complete benchmark runner output
       placeholder: |
         Model: Llama-2-7B
-        MMLU: 46.2
-        TRUTHFULQA: 42.1
+        MMLU                 46.2%        14      30     100.0     No
+        TRUTHFULQA           42.1%        12      30      80.5     Yes
         Model: Llama-2-13B
-        MMLU: 55.8
-        TRUTHFULQA: 48.3
+        MMLU                 55.8%        17      30     150.0     Yes
+        TRUTHFULQA           48.3%        14      30     120.0     Yes
       render: text
     validations:
       required: true
 ```
 
-- [ ] **Step 3: Verify YAML syntax**
+**Critical:** The body field headings will be extracted by visible label, not field-id. The workflow script looks for `### Device` and `### Benchmark stdout` (the `label` values from YAML).
 
-```bash
-python3 -m yaml < .github/ISSUE_TEMPLATE/auto-data-import.yml > /dev/null && echo "Valid"
-```
-
-Expected: Output `Valid` (no YAML parse errors).
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add .github/ISSUE_TEMPLATE/auto-data-import.yml
@@ -584,7 +698,10 @@ git commit -m "feat: add Issue template for auto-data-import"
 **Files:**
 - Create: `scripts/apply-import.mjs`
 
-**Context:** This Node.js script is called by GitHub Actions. It reads the Issue body, parses YAML to extract device and benchmark_stdout fields, uses the shared parser/merger logic, writes the data file, and creates a git commit and branch.
+**Context:** This Node.js script is called by GitHub Actions. It reads issue number and body from environment variables (not argv, to avoid shell injection), extracts device and benchmark_stdout fields, uses the shared parser/merger logic, writes the data file, and creates a git commit and branch.
+
+**Field Extraction:**
+GitHub Issue Form renders visible heading `### Device` (from YAML `label`) in the body, NOT the field-id. Extract by matching the label text.
 
 - [ ] **Step 1: Create `scripts/apply-import.mjs`**
 
@@ -595,24 +712,19 @@ import { execSync } from 'child_process';
 import { parseImportInput, mergeImport } from '../app/lib/import.mjs';
 
 /**
- * Parse YAML-like GitHub Issue body.
- * Extracts device and benchmark_stdout from the form.
- * @param {string} issueBody - Raw Issue body
- * @returns {{device?: string, benchmark_stdout?: string}}
+ * Extract a field from GitHub Issue body by visible label heading.
+ * GitHub Issue Form renders:
+ * ### Device
+ * m1-max-64GB-32c
+ * ### Benchmark stdout
+ * Model: ...
+ * 
+ * @param {string} body - Raw Issue body
+ * @param {string} label - Visible heading label (e.g., 'Device', 'Benchmark stdout')
+ * @returns {string|undefined} Field value (trimmed)
  */
-function parseIssueBody(issueBody) {
-  const device = extractField(issueBody, 'device');
-  const benchmark_stdout = extractField(issueBody, 'benchmark_stdout');
-  return { device, benchmark_stdout };
-}
-
-function extractField(body, fieldId) {
-  // GitHub Issue form generates YAML-like output:
-  // ### device
-  // m1-max-64GB-32c
-  // ### benchmark_stdout
-  // Model: ...
-  const pattern = new RegExp(`### ${fieldId}\\s*\\n([\\s\\S]*?)(?=###|$)`);
+function extractField(body, label) {
+  const pattern = new RegExp(`### ${label}\\s*\\n([\\s\\S]*?)(?=###|$)`, 'i');
   const match = body.match(pattern);
   return match ? match[1].trim() : undefined;
 }
@@ -626,11 +738,12 @@ function extractField(body, fieldId) {
  */
 export async function applyImport(issueNumber, issueBody, today = new Date().toISOString().split('T')[0]) {
   try {
-    // Parse Issue body
-    const { device, benchmark_stdout } = parseIssueBody(issueBody);
+    // Extract fields from Issue body
+    const device = extractField(issueBody, 'Device');
+    const benchmark_stdout = extractField(issueBody, 'Benchmark stdout');
     
     if (!device || !benchmark_stdout) {
-      return { success: false, error: 'Missing device or benchmark_stdout field in Issue' };
+      return { success: false, error: 'Missing Device or Benchmark stdout field in Issue' };
     }
     
     // Verify device exists in settings.json
@@ -692,11 +805,11 @@ export async function applyImport(issueNumber, issueBody, today = new Date().toI
 
 // CLI entry point
 if (process.argv[1] === new URL(import.meta.url).pathname) {
-  const issueNumber = process.argv[2];
-  const issueBody = process.argv[3];
+  const issueNumber = process.env.ISSUE_NUMBER;
+  const issueBody = process.env.ISSUE_BODY;
   
   if (!issueNumber || !issueBody) {
-    console.error('Usage: node apply-import.mjs <issueNumber> <issueBody>');
+    console.error('Usage: ISSUE_NUMBER=<n> ISSUE_BODY=<body> node apply-import.mjs');
     process.exit(1);
   }
   
@@ -719,29 +832,25 @@ Create a test Issue body file:
 
 ```bash
 cat > /tmp/test-issue.txt <<'EOF'
-### device
+### Device
 m1-max-64GB-32c
 
-### benchmark_stdout
+### Benchmark stdout
 Model: Llama-2-7B
-MMLU: 46.2
-TRUTHFULQA: 42.1
+MMLU                 46.2%        14      30     100.0     No
+TRUTHFULQA           42.1%        12      30      80.5     Yes
 EOF
 ```
 
 Then run (without actually committing):
 
 ```bash
-node scripts/apply-import.mjs 999 "$(cat /tmp/test-issue.txt)"
+ISSUE_NUMBER=999 ISSUE_BODY="$(cat /tmp/test-issue.txt)" node scripts/apply-import.mjs
 ```
 
 Expected: Script outputs either `[SUCCESS]` or `[ERROR]` messages and exits with code 0 or 1 accordingly.
 
-- [ ] **Step 3: Verify output on success**
-
-If the test succeeds, check that `app/data/m1-max-64GB-32c.json` contains the new entry (or has been created if it didn't exist).
-
-- [ ] **Step 4: Commit**
+- [ ] **Step 3: Commit**
 
 ```bash
 git add scripts/apply-import.mjs
@@ -755,7 +864,7 @@ git commit -m "feat: add CI script for applying benchmark imports"
 **Files:**
 - Create: `.github/workflows/auto-data-import.yml`
 
-**Context:** This workflow orchestrates the entire import process. It listens for Issue creation by the owner or for `approved-import` label addition, runs the CI script, and creates a PR with auto-merge enabled.
+**Context:** This workflow orchestrates the entire import process. It listens for Issue creation by the owner or for `approved-import` label addition, runs the CI script via environment variables (not argv), and creates a PR with auto-merge enabled.
 
 - [ ] **Step 1: Create `.github/workflows/auto-data-import.yml`**
 
@@ -795,8 +904,10 @@ jobs:
       
       - name: Run apply-import script
         id: apply
-        run: |
-          node scripts/apply-import.mjs "${{ github.event.issue.number }}" "${{ github.event.issue.body }}"
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node scripts/apply-import.mjs
         continue-on-error: true
       
       - name: Comment on failure
@@ -833,15 +944,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 ```
 
-- [ ] **Step 2: Verify YAML syntax**
+**Key Change:** Pass issue body and number via environment variables, not as bash arguments, to avoid shell injection.
 
-```bash
-python3 -m yaml < .github/workflows/auto-data-import.yml > /dev/null && echo "Valid"
-```
-
-Expected: Output `Valid`.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
 git add .github/workflows/auto-data-import.yml
@@ -884,26 +989,17 @@ jobs:
           node-version: '20'
       
       - name: Install dependencies
-        run: npm install
+        run: vp install
       
       - name: Run tests
-        run: npm run test
+        run: vp test
       
-      - name: Check data files
+      - name: Check data files are valid JSON
         run: |
-          # Optional: additional validation beyond unit tests
           find app/data -name '*.json' -exec sh -c 'echo "Validating {}..." && node -e "JSON.parse(require(\"fs\").readFileSync(\"{}\", \"utf8\"))"' \;
 ```
 
-- [ ] **Step 2: Verify YAML syntax**
-
-```bash
-python3 -m yaml < .github/workflows/validate-data.yml > /dev/null && echo "Valid"
-```
-
-Expected: Output `Valid`.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
 git add .github/workflows/validate-data.yml
@@ -971,15 +1067,7 @@ jobs:
             });
 ```
 
-- [ ] **Step 2: Verify YAML syntax**
-
-```bash
-python3 -m yaml < .github/workflows/post-merge-notify.yml > /dev/null && echo "Valid"
-```
-
-Expected: Output `Valid`.
-
-- [ ] **Step 3: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
 git add .github/workflows/post-merge-notify.yml
@@ -1008,7 +1096,7 @@ serve:
 
 - [ ] **Step 2: Update `CLAUDE.md`**
 
-Find the line containing "Keep `app/index.html` serverless: no external JS, no build step, no bundler." and replace the full sentence with:
+Find the line containing "Keep `app/index.html` serverless: no external JS, no build step, no bundler." and replace with:
 
 ```markdown
 - Keep `app/index.html` serverless. Dev server via `vp dev`, tests via `vp test`. 
@@ -1063,7 +1151,56 @@ git commit -m "docs: update dev/test commands for Vite+"
 
 ---
 
-## Task 11: Manual Testing & Integration Verification
+## Task 11: Add Contributing Section to `README.md`
+
+**Files:**
+- Modify: `README.md`
+
+**Context:** Add a `## Contributing` section explaining two paths for contributing benchmark data: (a) GitHub Issue with auto-import, (b) direct PR to `app/data/`. Keep it under 200 words.
+
+- [ ] **Step 1: Open `README.md` and locate insertion point**
+
+Find the section "## Why do I need to make this repository?" (currently appears after the website link) and insert the new section before it.
+
+- [ ] **Step 2: Add Contributing section**
+
+Insert after the website link:
+
+```markdown
+## Contributing
+
+There are two ways to contribute benchmark results:
+
+**Option A: GitHub Issue (Owner-friendly auto-merge)**
+1. Open a new [Auto Data Import](https://github.com/TonyPythoneer/omlx-intelligence-benchmark/issues/new?template=auto-data-import.yml) Issue
+2. Select target device from the dropdown
+3. Paste your benchmark runner output
+4. If you're the owner, the workflow auto-merges; if you're a contributor, ask the owner to add the `approved-import` label to trigger the workflow
+5. Validation runs automatically on the PR; checks must pass before merge
+
+**Option B: Direct PR (Manual fork & edit)**
+1. Fork this repository
+2. Edit `app/data/<device>.json` directly
+3. Open a Pull Request with your changes
+4. Validation checks run on your PR
+
+The auto-merge workflow validates all data with unit tests before merging to main.
+```
+
+- [ ] **Step 3: Verify placement**
+
+Ensure the new section appears after the website link and before "## Why do I need to make this repository?"
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add README.md
+git commit -m "docs: add Contributing section to README"
+```
+
+---
+
+## Task 12: Manual Testing & Integration Verification
 
 **Files:**
 - None (testing only)
@@ -1082,30 +1219,32 @@ Expected: Server running on http://localhost:8080
 
 1. Open http://localhost:8080/app/
 2. Click `+ Import`
-3. Paste:
+3. Paste a fixed-width benchmark table:
    ```
    Model: Test-Model
-   MMLU: 50
-   TRUTHFULQA: 45
+   Benchmark         Accuracy   Correct   Total   Time(s)   Think
+   MMLU                 50.0%        15      30     100.0     No
+   TRUTHFULQA           45.0%        13      30      80.0     Yes
    ```
 4. Click "Apply"
 5. Click "Export Data"
-6. Verify JSON shows the new entry
+6. Verify JSON shows the new entry with correct score object shape: `{ accuracy, samples, time_s }`
 
 Expected: All UI interactions work; no console errors.
 
 - [ ] **Step 3: Test the CI script locally**
 
 ```bash
-node scripts/apply-import.mjs 999 "### device
+ISSUE_NUMBER=999 ISSUE_BODY="### Device
 m1-max-64GB-32c
 
-### benchmark_stdout
+### Benchmark stdout
 Model: LocalTest
-MMLU: 75"
+Benchmark         Accuracy   Correct   Total   Time(s)   Think
+MMLU                 75.0%        22      30     150.0     No" node scripts/apply-import.mjs
 ```
 
-Expected: Script succeeds, `app/data/m1-max-64GB-32c.json` is updated.
+Expected: Script succeeds, `app/data/m1-max-64GB-32c.json` is updated with correct score object shape.
 
 - [ ] **Step 4: Run full test suite**
 
@@ -1118,10 +1257,10 @@ Expected: All tests pass.
 - [ ] **Step 5: Verify all workflows exist**
 
 ```bash
-ls -la .github/workflows/
+ls -la .github/workflows/ | grep -E "(auto-data-import|validate-data|post-merge-notify)"
 ```
 
-Expected: Three files: `auto-data-import.yml`, `validate-data.yml`, `post-merge-notify.yml`
+Expected: Three files found.
 
 - [ ] **Step 6: Verify Issue template exists**
 
@@ -1139,23 +1278,40 @@ All implementation steps completed.
 
 ## Summary of Changes
 
-**Created Files:**
-- `package.json` (dev config)
-- `vite.config.ts` (Vite config)
-- `app/lib/import.mjs` (parser + merger)
-- `app/lib/import.test.mjs` (tests)
-- `scripts/apply-import.mjs` (CI entry point)
-- `.github/ISSUE_TEMPLATE/auto-data-import.yml` (Issue form)
-- `.github/workflows/auto-data-import.yml` (main workflow)
-- `.github/workflows/validate-data.yml` (validation workflow)
-- `.github/workflows/post-merge-notify.yml` (notification workflow)
+**File Structure:**
 
-**Modified Files:**
-- `app/index.html` (load import.mjs)
-- `Makefile` (serve → vp dev)
-- `CLAUDE.md` (serverless note)
-- `docs/readme/pages/development.md` (dev commands)
-- `.gitignore` (add node_modules/)
+```
+Created Files:
+  package.json
+  vite.config.ts
+  app/lib/import.mjs
+  app/lib/import.test.mjs
+  scripts/apply-import.mjs
+  .github/ISSUE_TEMPLATE/auto-data-import.yml
+  .github/workflows/auto-data-import.yml
+  .github/workflows/validate-data.yml
+  .github/workflows/post-merge-notify.yml
 
-**Total commits:** 11 (one per task)
+Modified Files:
+  app/index.html
+  Makefile
+  CLAUDE.md
+  README.md
+  docs/readme/pages/development.md
+  .gitignore
+```
 
+**Total Commits:** 12
+
+1. chore: add Vite+ build config and dev tooling
+2. feat: extract parser and merger to app/lib/import.mjs
+3. test: add comprehensive unit tests for parser and merger
+4. refactor: load import functions from app/lib/import.mjs and refactor saveImport
+5. feat: add Issue template for auto-data-import
+6. feat: add CI script for applying benchmark imports
+7. ci: add auto-data-import workflow (Issue → PR)
+8. ci: add data validation workflow (required check)
+9. ci: add post-merge notification workflow
+10. docs: update dev/test commands for Vite+
+11. docs: add Contributing section to README
+12. [manual testing — no commit]
