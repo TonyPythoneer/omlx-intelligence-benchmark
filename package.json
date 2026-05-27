@@ -1,0 +1,14 @@
+{
+  "name": "omlx-intelligence-benchmark",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "vp dev",
+    "test": "vp test",
+    "build": "echo 'Do not run vp build — site is serverless'"
+  },
+  "devDependencies": {
+    "vite-plus": "^0.1.22"
+  }
+}
