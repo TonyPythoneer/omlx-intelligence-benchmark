@@ -1,6 +1,9 @@
 PORT ?= 8080
 
-.PHONY: serve
+.PHONY: serve test
 
 serve:
-	python3 -m http.server $(PORT) --directory app
+	vp dev --port $(PORT)
+
+test:
+	vp test
