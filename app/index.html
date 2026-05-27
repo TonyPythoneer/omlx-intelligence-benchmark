@@ -286,6 +286,7 @@
       border-collapse: collapse;
       font-size: 0.875rem;
       min-width: 900px;
+      table-layout: fixed;
     }
 
     th, td {
@@ -427,20 +428,13 @@
       margin-bottom: 4px;
     }
 
-    /* Fixed widths for non-score columns; prevents layout shifts when metrics/filters change
-       or when toggling Labeling mode. min == max locks the column regardless of content. */
-    #benchmark-table thead tr.leaf-row th:nth-child(1),
-    #benchmark-table tbody td:nth-child(1) { width: 300px; min-width: 300px; max-width: 300px; }
-    #benchmark-table thead tr.leaf-row th:nth-child(2),
-    #benchmark-table tbody td:nth-child(2) { width: 72px;  min-width: 72px;  max-width: 72px;  }
-    #benchmark-table thead tr.leaf-row th:nth-child(3),
-    #benchmark-table tbody td:nth-child(3) { width: 72px;  min-width: 72px;  max-width: 72px;  }
-    #benchmark-table thead tr.leaf-row th:nth-child(4),
-    #benchmark-table tbody td:nth-child(4) { width: 88px;  min-width: 88px;  max-width: 88px;  }
-    #benchmark-table thead tr.leaf-row th:nth-child(5),
-    #benchmark-table tbody td:nth-child(5) { width: 80px;  min-width: 80px;  max-width: 80px;  }
-    #benchmark-table thead tr.leaf-row th:nth-child(6),
-    #benchmark-table tbody td:nth-child(6) { width: 80px;  min-width: 80px;  max-width: 80px;  }
+    /* With table-layout: fixed, the first row's widths are authoritative for the whole column. */
+    #benchmark-table th:nth-child(1) { width: 300px; }
+    #benchmark-table th:nth-child(2) { width: 72px; }
+    #benchmark-table th:nth-child(3) { width: 72px; }
+    #benchmark-table th:nth-child(4) { width: 88px; }
+    #benchmark-table th:nth-child(5) { width: 80px; }
+    #benchmark-table th:nth-child(6) { width: 80px; }
 
     /* Labeling-mode inline editors stay inside the locked column widths AND match the
        intrinsic row height in view mode (so toggling Labeling does not shift row heights). */
