@@ -64,4 +64,4 @@ Safari users can use Import but Save will trigger a download instead of overwrit
 - Import on a duplicate model **only overwrites `scores`**; spec / abilities / tiers / deprecated are preserved.
 - Labeling Mode is the only place to edit spec / abilities / tiers / deprecated post-import.
 - File writes require the File System Access API; only the user's Save As confirmation actually writes to disk.
-- Keep `app/index.html` serverless: no external JS, no build step, no bundler.
+- Keep `app/index.html` serverless. Dev server via `vp dev` (`make serve`), tests via `vp test` (`make test`). **Do not run `vp build`** — the site is serverless by design.
