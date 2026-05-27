@@ -1,0 +1,113 @@
+name: Auto Data Import
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+
+    # Only run if:
+    # 1. Issue opened by owner, OR
+    # 2. approved-import label added (any Issue)
+    if: |
+      (github.event.action == 'opened' && github.event.issue.user.login == github.repository_owner) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'approved-import')
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Run apply-import script
+        id: apply
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node scripts/apply-import.mjs
+        continue-on-error: true
+
+      - name: Comment on failure
+        if: steps.apply.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ Import failed. Check the workflow logs for details. Edit the issue and re-add the `approved-import` label to retry.'
+            });
+
+      - name: Exit on failure
+        if: steps.apply.outcome == 'failure'
+        run: exit 1
+
+      - name: Create pull request
+        id: pr
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_URL=$(gh pr create \
+            --title "data: auto-import benchmark results (issue #${{ github.event.issue.number }})" \
+            --body "Automated benchmark import from issue #${{ github.event.issue.number }}" \
+            --base main \
+            --head "import/issue-${{ github.event.issue.number }}")
+          echo "url=$PR_URL" >> "$GITHUB_OUTPUT"
+          PR_NUMBER=$(echo "$PR_URL" | grep -oE '[0-9]+$')
+          echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Install pnpm
+        if: success()
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11
+
+      - name: Install dependencies
+        if: success()
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright Chromium
+        if: success()
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Capture screenshot
+        if: success()
+        run: node scripts/screenshot.mjs
+
+      - name: Upload screenshot artifact
+        if: success()
+        id: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshot-pr-${{ steps.pr.outputs.number }}
+          path: screenshot.png
+          retention-days: 30
+
+      - name: Comment screenshot link on PR
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ steps.pr.outputs.number }} \
+            --body "📸 [Full-page screenshot](${{ steps.upload.outputs.artifact-url }}) — download artifact to preview the rendered page after this import."
+
+      - name: Enable auto-merge
+        if: success()
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge --auto --squash --delete-branch ${{ steps.pr.outputs.number }}

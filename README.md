@@ -1,22 +1,30 @@
 # oMLX Intelligence Benchmark
 
-Value the human time and looking for the alternative solution to set up the local model to maximize the working efficiency in the Mac device.
+The aim of this repository is to build a collection list for the most suitable local AI models running on Mac devices, with the intention of freeing up more time for humans.
 
-## Local development
+Cloud AI models are strong nowadays. But local AI models are still needed.
 
-```bash
-make serve            # serves app/ at http://localhost:8080
-make serve PORT=3000  # custom port
-```
+![Landing Page](docs/readme/assets/landing-page.png)
 
-Open `http://localhost:8080` in your browser.
+View the website: `https://TonyPythoneer.github.io/omlx-intelligence-benchmark/`
 
-## Deployment
+## Contributing
 
-Merging to `main` triggers GitHub Actions, which deploys the `app/` directory to GitHub Pages automatically.
+There are two ways to contribute benchmark data:
 
-Live URL: `https://TonyPythoneer.github.io/omlx-intelligence-benchmark/`
+**1. Open an Issue (recommended)**
 
-## Add benchmark results
+Use the [Auto Data Import](.github/ISSUE_TEMPLATE/auto-data-import.yml) issue template: pick a device, paste your benchmark runner stdout, submit.
 
-Use the "Import Data" feature in the app to add benchmark results. Paste benchmark output, configure device and parameters, then export the labeled data back to your device file.
+- **If you're the repo owner**, the workflow runs automatically — a PR is opened, validated by `vp test`, and auto-merged.
+- **If you're a contributor**, the workflow won't auto-trigger. The owner will review and add the `approved-import` label to run the import.
+
+**2. Open a Pull Request directly**
+
+Fork the repo, edit `app/data/<device>.json` by hand (or run the app locally with `make serve` and use the in-browser `+ Import`), then open a PR against `main`. The same `vp test` validation runs on every PR touching `app/data/**` or `app/lib/**` before merge.
+
+## Why do I need to make this repository?
+
+The process of intelligence benchmarking is time-consuming and requires a lot of effort.
+
+If there is a open data in the network. People can directly use it instead of evaluating the models themselves.

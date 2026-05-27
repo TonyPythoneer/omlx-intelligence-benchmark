@@ -1,0 +1,22 @@
+{
+  "name": "omlx-intelligence-benchmark",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vp dev",
+    "test": "vp test",
+    "build": "echo 'Do not run vp build — site is serverless'"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "playwright": "^1.60.0",
+    "vite": "^8.0.14",
+    "vite-plus": "^0.1.22",
+    "vitest": "^4.1.7"
+  },
+  "packageManager": "pnpm@11.4.0"
+}

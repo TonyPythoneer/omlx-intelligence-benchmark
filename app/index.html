@@ -1056,29 +1056,13 @@
       if (importDetected.length === 0) return
 
       const today = new Date().toISOString().slice(0, 10)
-      const nextData = currentData.map(e => ({ ...e }))
-      const byModel = new Map(nextData.map((e, i) => [e.model, i]))
+      const detected = importDetected.map(d => ({ model: d.model, scores: d.scores }))
 
-      let newCount = 0, ovrCount = 0
-      for (const d of importDetected) {
-        if (d.status === 'overwrite') {
-          const idx = byModel.get(d.model)
-          nextData[idx] = { ...nextData[idx], scores: d.scores }
-          ovrCount++
-        } else {
-          nextData.push({
-            model: d.model,
-            date: today,
-            spec: { parameters_b: null, quantization: '', size_gb: null },
-            deprecated: false,
-            starred: false,
-            scores: d.scores,
-          })
-          newCount++
-        }
-      }
+      currentData = mergeImport(currentData, detected, today)
 
-      currentData = nextData
+      const newCount = importDetected.filter(d => d.status === 'new').length
+      const ovrCount = importDetected.filter(d => d.status === 'overwrite').length
+
       closeImportModal()
       markDataDirty()
       renderTable(currentData)
@@ -1157,31 +1141,7 @@
     }
 
     // ── Import parser ────────────────────────────────────────────────────────
-    function parseImportInput(text) {
-      const results = []
-      const blocks = text.split(/(?=^Model:)/m)
-      const scoreRe = /^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)/gm
-      for (const block of blocks) {
-        const trimmed = block.trim()
-        if (!trimmed.startsWith('Model:')) continue
-        const modelName = trimmed.split('\n')[0].replace(/^Model:/, '').trim()
-        const scores = {}
-        scoreRe.lastIndex = 0
-        let m
-        while ((m = scoreRe.exec(block)) !== null) {
-          const [, bench, accuracy, samples, time_s] = m
-          scores[bench] = {
-            accuracy: parseFloat(accuracy),
-            samples: parseInt(samples, 10),
-            time_s: parseFloat(time_s),
-          }
-        }
-        if (Object.keys(scores).length > 0) {
-          results.push({ model: modelName, scores })
-        }
-      }
-      return results
-    }
+    // parseImportInput is now loaded from ./lib/import.mjs (see <script type="module"> at end of body)
 
     let importDetected = []   // [{model, scores, status: 'new' | 'overwrite'}]
 
@@ -1610,6 +1570,12 @@
       await loadDevice(settings.defaultDevice)
     }
     boot().catch(err => console.error('Boot failed:', err))
+  </script>
+
+  <script type="module">
+    import { parseImportInput, mergeImport } from './lib/import.mjs';
+    window.parseImportInput = parseImportInput;
+    window.mergeImport = mergeImport;
   </script>
 </body>
 </html>
