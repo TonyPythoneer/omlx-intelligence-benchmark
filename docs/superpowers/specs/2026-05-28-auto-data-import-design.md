@@ -139,16 +139,17 @@ export async function applyImport(issueNumber, issueBody, today = '2026-05-28') 
 **目的**：從 `app/index.html` 提取的純 ES 模組；瀏覽器和 CI 共用。
 
 **導出**：
-- `parseImportInput(text)` — 解析基準測試 stdout，返回 `{ model, date, scores }` 條目陣列
-  - 掃描以 `Model:` 開頭的行
-  - 對於每個模型，收集以 `BenchmarkName: value` 格式的分數行
-  - 返回陣列；如果未檢測到任何模型，返回 `[]`
-  
+- `parseImportInput(text)` — 解析基準測試 stdout，返回 `{ model, scores }` 條目陣列
+  - 以 `(?=^Model:)` 切塊；每個塊第一行取 model 名稱
+  - 逐行用 regex `/^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)/gm` 解析固定寬度表格
+  - 每個 score 是物件 `{ accuracy: float, samples: int, time_s: float }`（非純數字）
+  - 沒有任何 score 行的塊會被跳過；零模型輸入返回 `[]`
+
 - `mergeImport(currentData, detected, today)` — 應用檢測到的條目
   - 對於每個檢測到的條目：
     - 按 `model` 名稱查詢現有條目
-    - **NEW**（未找到）：推送 `{ model, date: today, spec: {}, abilities: {}, deprecated: false, tiers: {}, scores }`
-    - **OVERWRITE**（已找到）：僅更新 `scores`；保留 `spec / abilities / tiers / deprecated`
+    - **NEW**（未找到）：推送 `{ model, date: today, spec: { parameters_b: null, quantization: '', size_gb: null }, deprecated: false, starred: false, scores }`（無 `abilities` / `tiers`，這些於 Labeling Mode 補上）
+    - **OVERWRITE**（已找到）：僅更新 `scores`；保留所有其他欄位（date / spec / deprecated / starred / abilities / tiers）
   - 返回新陣列
 
 **契約**：
