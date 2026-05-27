@@ -382,6 +382,7 @@
       color: #0f172a;
       display: flex;
       align-items: center;
+      position: relative;
     }
     .model-name-text {
       flex: 1 1 auto;
@@ -395,6 +396,35 @@
     }
     .model-name-text:hover {
       border-bottom-color: #94a3b8;
+    }
+    .model-name-text::after {
+      content: attr(data-full-name);
+      position: absolute;
+      left: 0;
+      top: 100%;
+      margin-top: 4px;
+      z-index: 50;
+      background: #0f172a;
+      color: #f8fafc;
+      font-weight: 500;
+      font-size: 0.78rem;
+      padding: 6px 10px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+    }
+    .model-name-text:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
+    tbody tr:last-child .model-name-text::after {
+      top: auto;
+      bottom: 100%;
+      margin-top: 0;
+      margin-bottom: 4px;
     }
 
     /* Fixed widths for non-score columns; prevents layout shifts when metrics/filters change
@@ -1411,13 +1441,7 @@
       const nameSpan = document.createElement('span')
       nameSpan.className = 'model-name-text'
       nameSpan.textContent = entry.model
-      nameSpan.addEventListener('mouseenter', () => {
-        if (nameSpan.scrollWidth > nameSpan.clientWidth) {
-          nameSpan.title = entry.model
-        } else {
-          nameSpan.removeAttribute('title')
-        }
-      })
+      nameSpan.dataset.fullName = entry.model
 
       actions.appendChild(copyBtn)
       actions.appendChild(hfBtn)
