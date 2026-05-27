@@ -1,0 +1,73 @@
+name: Auto Data Import
+
+on:
+  issues:
+    types: [opened, labeled]
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+
+    # Only run if:
+    # 1. Issue opened by owner, OR
+    # 2. approved-import label added (any Issue)
+    if: |
+      (github.event.action == 'opened' && github.event.issue.user.login == github.repository_owner) ||
+      (github.event.action == 'labeled' && github.event.label.name == 'approved-import')
+
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run apply-import script
+        id: apply
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: node scripts/apply-import.mjs
+        continue-on-error: true
+
+      - name: Comment on failure
+        if: steps.apply.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '❌ Import failed. Check the workflow logs for details. Edit the issue and re-add the `approved-import` label to retry.'
+            });
+
+      - name: Exit on failure
+        if: steps.apply.outcome == 'failure'
+        run: exit 1
+
+      - name: Create pull request
+        if: success()
+        run: |
+          gh pr create \
+            --title "data: auto-import benchmark results (issue #${{ github.event.issue.number }})" \
+            --body "Automated benchmark import from issue #${{ github.event.issue.number }}" \
+            --base main \
+            --head "import/issue-${{ github.event.issue.number }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Enable auto-merge
+        run: |
+          gh pr merge --auto --squash --delete-branch "import/issue-${{ github.event.issue.number }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
