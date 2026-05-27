@@ -1457,49 +1457,43 @@
 
         const labelingErrors = labelingErrorsByModel.get(entry.model) || new Set()
 
-        const createNumInput = (key, parent, placeholder, validate) => {
+        const applyValidation = (input, key, isValid) => {
+          input.classList.toggle('import-error', !isValid)
+          if (isValid) labelingErrors.delete(key)
+          else         labelingErrors.add(key)
+          labelingErrorsByModel.set(entry.model, labelingErrors)
+          updateLabelingExportState()
+          markDataDirty()
+        }
+
+        const makeLabelInput = (type, key, parent, placeholder) => {
           const input = document.createElement('input')
-          input.type = 'number'
+          input.type = type
           input.value = parent[key] ?? ''
           input.placeholder = placeholder
           input.className = 'label-input'
           if (labelingErrors.has(key)) input.classList.add('import-error')
+          return input
+        }
+
+        const createNumInput = (key, parent, placeholder, validate) => {
+          const input = makeLabelInput('number', key, parent, placeholder)
           input.oninput = () => {
             const v = parseFloat(input.value)
-            if (validate(v)) {
-              parent[key] = key === 'parameters_b' ? parseInt(input.value, 10) : Math.round(v * 100) / 100
-              input.classList.remove('import-error')
-              labelingErrors.delete(key)
-            } else {
-              input.classList.add('import-error')
-              labelingErrors.add(key)
-            }
-            labelingErrorsByModel.set(entry.model, labelingErrors)
-            updateLabelingExportState()
-            markDataDirty()
+            const valid = validate(v)
+            if (valid) parent[key] = key === 'parameters_b' ? parseInt(input.value, 10) : Math.round(v * 100) / 100
+            applyValidation(input, key, valid)
           }
           return input
         }
 
         const createTextInput = (key, parent, placeholder) => {
-          const input = document.createElement('input')
-          input.type = 'text'
-          input.value = parent[key] ?? ''
-          input.placeholder = placeholder
-          input.className = 'label-input'
-          if (labelingErrors.has(key)) input.classList.add('import-error')
+          const input = makeLabelInput('text', key, parent, placeholder)
           input.oninput = () => {
-            if (input.value.trim()) {
-              parent[key] = input.value.trim()
-              input.classList.remove('import-error')
-              labelingErrors.delete(key)
-            } else {
-              input.classList.add('import-error')
-              labelingErrors.add(key)
-            }
-            labelingErrorsByModel.set(entry.model, labelingErrors)
-            updateLabelingExportState()
-            markDataDirty()
+            const trimmed = input.value.trim()
+            const valid = trimmed.length > 0
+            if (valid) parent[key] = trimmed
+            applyValidation(input, key, valid)
           }
           return input
         }
