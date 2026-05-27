@@ -1558,7 +1558,9 @@
       updateSortIndicators()
       const tbody = document.querySelector('#benchmark-table tbody')
       tbody.innerHTML = ''
-      sorted.forEach(entry => tbody.appendChild(buildRow(entry)))
+      const pinned   = sorted.filter(e => e.starred)
+      const unpinned = sorted.filter(e => !e.starred)
+      ;[...pinned, ...unpinned].forEach(entry => tbody.appendChild(buildRow(entry)))
     }
 
     // ── Sort handler ─────────────────────────────────────────────────────────
