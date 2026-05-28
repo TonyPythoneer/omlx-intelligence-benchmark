@@ -25,7 +25,7 @@ docs/
     specs/                  — brainstorming output: design documents
     plans/                  — implementation plans (produced by writing-plans skill)
 
-outputs/                    — machine-generated, machine-verified; human provides context/scenario only
+outputs/                    — webwright workspaces; machine-generated, machine-verified; human provides context/scenario only
   ui-validation/            — Playwright UI validation workspace
     plan.md                 — critical points checklist
     final_script.py         — validated Playwright script (9 CPs, runs against localhost:8080)
