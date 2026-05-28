@@ -3,7 +3,7 @@ import asyncio
 from pathlib import Path
 from playwright.async_api import async_playwright
 
-RUN_DIR = Path(__file__).parent / "final_runs" / "run_2"
+RUN_DIR = Path(__file__).parent / "runs" / "run_2"
 SS = RUN_DIR / "screenshots"
 LOG = RUN_DIR / "final_script_log.txt"
 URL = "http://localhost:8080/"
