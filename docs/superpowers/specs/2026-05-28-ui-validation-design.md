@@ -41,6 +41,14 @@ outputs/ui-validation/
 - Screenshots: `final_execution_<step>_<action>.png` per CP
 - Each CP verified from screenshot evidence before marking passed
 
+## CI Integration
+
+A GitHub Actions workflow `.github/workflows/ci-ui-validation.yml` wraps the script:
+
+- **Trigger:** `push` / `pull_request` on paths `app/**/*.html` and `app/**/*.js` only — no other changes trigger it
+- **Steps:** install Node + Python deps → `make serve` (background) → wait for port 8080 → `python ui_validation.py` → upload `final_runs/` as artifact on failure
+- Workflow name: `ci-ui-validation`
+
 ## Prerequisite
 
 `make serve` must be running on port 8080 before executing the script.
