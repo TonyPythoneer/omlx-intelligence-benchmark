@@ -1,0 +1,58 @@
+name: ci-ui-validation
+
+on:
+  push:
+    paths:
+      - 'app/**/*.html'
+      - 'app/**/*.js'
+      - 'app/**/*.mjs'
+  pull_request:
+    paths:
+      - 'app/**/*.html'
+      - 'app/**/*.js'
+      - 'app/**/*.mjs'
+
+jobs:
+  ui-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 11
+
+      - name: Install Node dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Playwright
+        run: pip install playwright && playwright install firefox --with-deps
+
+      - name: Start dev server
+        run: make serve &
+
+      - name: Wait for port 8080
+        run: npx wait-on http://localhost:8080/ --timeout 30000
+
+      - name: Run UI validation
+        run: python3 outputs/ui-validation/ui_validation.py
+
+      - name: Upload failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-validation-failure
+          path: outputs/ui-validation/final_runs/
