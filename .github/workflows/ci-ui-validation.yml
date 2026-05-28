@@ -48,11 +48,11 @@ jobs:
         run: npx wait-on http://localhost:8080/ --timeout 30000
 
       - name: Run UI validation
-        run: python3 outputs/ui-validation/ui_validation.py
+        run: python3 outputs/ui-validation/final_script.py
 
       - name: Upload failure artifacts
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: ui-validation-failure
-          path: outputs/ui-validation/runs/
+          path: outputs/ui-validation/final_runs/
