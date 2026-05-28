@@ -25,17 +25,11 @@ docs/
     specs/                  — brainstorming output: design documents
     plans/                  — implementation plans (produced by writing-plans skill)
 
-outputs/                    — webwright workspaces (gitignored run artifacts)
+outputs/                    — machine-generated, machine-verified; human provides context/scenario only
   ui-validation/            — Playwright UI validation workspace
     plan.md                 — critical points checklist
     final_script.py         — validated Playwright script (9 CPs, runs against localhost:8080)
     final_runs/             — execution artifacts: screenshots + logs (gitignored)
-
-  NOTE: contents of outputs/ are machine-generated and machine-verified.
-  Humans provide the context and scenario (what to validate, what the critical
-  points are); the agent authors the script, runs it, and self-verifies from
-  screenshots. Do not hand-edit scripts inside outputs/ — re-run the webwright
-  workflow instead.
 
 .github/workflows/          — CI/CD
   ci-ui-validation.yml      — runs final_script.py on app HTML/JS changes
