@@ -4,6 +4,41 @@
 
 Static benchmark comparison page for oMLX/MLX model results. Single HTML file, no server needed. All data management (import, edit, export) happens in-browser; no Python or CLI tooling.
 
+## Project Directory
+
+```
+app/                        — static site (served by make serve, no build step)
+  index.html                — single-page benchmark viewer + data editor (HTML + CSS + vanilla JS)
+  settings.json             — defaultDevice, parametersBreakpoints, device metadata
+  data/*.json               — device-specific benchmark data (pure JSON arrays)
+  data/device.json.template — empty template for new devices
+  lib/                      — JS modules (import.mjs: benchmark stdout parser + merge logic)
+
+scripts/                    — local dev utilities (not imported by the app)
+  apply-import.mjs          — CLI to apply benchmark stdout directly to a data file
+  screenshot.mjs            — headless screenshot helper
+  explore.js                — ad-hoc browser exploration scratch script
+
+docs/
+  readme/                   — assets and pages for project documentation
+  superpowers/
+    specs/                  — brainstorming output: design documents
+    plans/                  — implementation plans (produced by writing-plans skill)
+
+outputs/                    — webwright workspaces (gitignored run artifacts)
+  ui-validation/            — Playwright UI validation workspace
+    plan.md                 — critical points checklist
+    final_script.py         — validated Playwright script (9 CPs, runs against localhost:8080)
+    final_runs/             — execution artifacts: screenshots + logs (gitignored)
+
+.github/workflows/          — CI/CD
+  ci-ui-validation.yml      — runs final_script.py on app HTML/JS changes
+  validate-data.yml         — validates data JSON on data/lib changes
+  cd-static.yml             — deploys static site
+  auto-data-import.yml      — automates benchmark data import
+  post-merge-notify.yml     — post-merge notifications
+```
+
 ## Architecture
 
 ```
