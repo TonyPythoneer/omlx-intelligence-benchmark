@@ -33,6 +33,5 @@ body:
         Model: Llama-2-13B
         MMLU                 55.8%        17      30     150.0     Yes
         TRUTHFULQA           48.3%        14      30     120.0     Yes
-      render: text
     validations:
       required: true
