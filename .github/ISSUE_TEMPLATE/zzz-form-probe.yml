@@ -1,0 +1,9 @@
+name: Form Probe
+description: Minimal YAML issue form to test form indexing. Safe to delete.
+body:
+  - type: input
+    id: probe_field
+    attributes:
+      label: Probe field
+    validations:
+      required: true
