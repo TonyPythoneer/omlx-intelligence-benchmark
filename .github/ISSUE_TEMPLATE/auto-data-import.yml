@@ -1,16 +1,20 @@
 name: Auto Data Import
-description: |
-  Paste benchmark stdout to trigger automatic data merge to main.
-
-  ⚠️ **Owner Only (Auto-Trigger)**
-  When you (repository owner) create this issue, the workflow automatically runs.
-
-  **Contributors**: you can create this issue, but auto-trigger requires owner approval.
-  To approve, the owner adds the `approved-import` label to manually trigger the workflow.
-
-  Edit the issue body to retry; re-add the label.
+description: Paste benchmark stdout to trigger automatic data merge to main.
 
 body:
+  - type: markdown
+    attributes:
+      value: |
+        Paste benchmark stdout to trigger automatic data merge to main.
+
+        ⚠️ **Owner Only (Auto-Trigger)**
+        When you (repository owner) create this issue, the workflow automatically runs.
+
+        **Contributors**: you can create this issue, but auto-trigger requires owner approval.
+        To approve, the owner adds the `approved-import` label to manually trigger the workflow.
+
+        Edit the issue body to retry; re-add the label.
+
   - type: dropdown
     id: device
     attributes:
@@ -28,10 +32,11 @@ body:
       description: Paste complete benchmark runner output
       placeholder: |
         Model: Llama-2-7B
-        MMLU                 46.2%        14      30     100.0     No
-        TRUTHFULQA           42.1%        12      30      80.5     Yes
+        MMLU                 46.2%        14      30     100.0     "No"
+        TRUTHFULQA           42.1%        12      30      80.5     "Yes"
+
         Model: Llama-2-13B
-        MMLU                 55.8%        17      30     150.0     Yes
-        TRUTHFULQA           48.3%        14      30     120.0     Yes
+        MMLU                 55.8%        17      30     150.0     "Yes"
+        TRUTHFULQA           48.3%        14      30     120.0     "Yes"
     validations:
       required: true
