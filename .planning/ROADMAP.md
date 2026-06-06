@@ -13,7 +13,7 @@
 
 - [ ] **Phase 1: Scaffold & Bootstrap (+ keystone spike)** - Vue 3 + Vite+ SPA proven end-to-end; foundational decisions locked
 - [x] **Phase 2: Data Loading & Settings** - JSON data and settings load client-side (no SSG) (completed 2026-06-06)
-- [ ] **Phase 3: Table Core** - Three-tier benchmark table with sorting and row actions
+- [x] **Phase 3: Table Core** - Three-tier benchmark table with sorting and row actions (completed 2026-06-06)
 - [ ] **Phase 4: Filters** - Model search, tier, metrics, params, and deprecated filters
 - [ ] **Phase 5: Import Flow** - Local-only benchmark import modal with parser
 - [ ] **Phase 6: Labeling & Export** - Inline editing and File System Access save
@@ -96,10 +96,10 @@
 4. Each table row has 📋 (copy model name) and 🤗 (open `huggingface.co/models?search=<model>`) buttons
 5. **CI (incremental):** Playwright table checkpoints (page-load rows, sort) pass against the new DOM — selectors updated as needed
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 - [x] 03-01-PLAN.md — Three-tier header + color-coding (Wave 1)
-- [ ] 03-02-PLAN.md — Sorting + row actions (Wave 2)
+- [x] 03-02-PLAN.md — Sorting + row actions (Wave 2)
 
 **UI hint:** yes
 
@@ -192,7 +192,7 @@
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
 | 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
-| 3. Table Core | 1/2 | In Progress|  |
+| 3. Table Core | 2/2 | Complete   | 2026-06-06 |
 | 4. Filters | 0/4 | Not started | — |
 | 5. Import Flow | 0/3 | Not started | — |
 | 6. Labeling & Export | 0/4 | Not started | — |
