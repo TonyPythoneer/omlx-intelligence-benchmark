@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-current_phase: 2
+current_phase: 3
 status: executing
-last_updated: "2026-06-06T10:16:09.522Z"
+last_updated: "2026-06-06T10:35:44.034Z"
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 3
-  percent: 14
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 5
+  percent: 29
 ---
 
 # STATE: oMLX Intelligence Benchmark — Vue 3 + Vite+ Migration
 
 **Milestone:** Vue 3 + Vite+ Static Site Migration at Feature Parity
-**Current Phase:** 2
-**Status:** Executing Phase 2
+**Current Phase:** 3
+**Status:** Executing Phase 3
 **Last Updated:** 2026-06-06
 
 ---
@@ -28,7 +28,7 @@ progress:
 Browse and compare MLX benchmark results in a fast, fully static page — and import, label, and export that data entirely in the browser, with no server ever required.
 
 **Current Focus:**
-Phase 2 — Data Loading & Settings
+Phase 3 — Table Core
 
 **Key Constraints:**
 
@@ -43,7 +43,7 @@ Phase 2 — Data Loading & Settings
 
 ## Current Position
 
-Phase: 2 (Data Loading & Settings) — EXECUTING
+Phase: 3 (Table Core) — EXECUTING
 Plan: 1 of 2
 **Phase:** 1 — Scaffold & Bootstrap (+ keystone spike)
 **Plan:** 01-01 / 01-02 / 01-03 (3 plans, 2 waves) — verified, ready to execute

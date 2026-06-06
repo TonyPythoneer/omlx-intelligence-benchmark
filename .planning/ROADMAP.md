@@ -96,9 +96,9 @@
 4. Each table row has 📋 (copy model name) and 🤗 (open `huggingface.co/models?search=<model>`) buttons
 5. **CI (incremental):** Playwright table checkpoints (page-load rows, sort) pass against the new DOM — selectors updated as needed
 
-**Plans:** 2 plans in 2 waves
+**Plans:** 1/2 plans executed
 
-- [ ] 03-01-PLAN.md — Three-tier header + color-coding (Wave 1)
+- [x] 03-01-PLAN.md — Three-tier header + color-coding (Wave 1)
 - [ ] 03-02-PLAN.md — Sorting + row actions (Wave 2)
 
 **UI hint:** yes
@@ -192,7 +192,7 @@
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
 | 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
-| 3. Table Core | 2/2 | Planned | 2026-06-06 |
+| 3. Table Core | 1/2 | In Progress|  |
 | 4. Filters | 0/4 | Not started | — |
 | 5. Import Flow | 0/3 | Not started | — |
 | 6. Labeling & Export | 0/4 | Not started | — |
