@@ -12,7 +12,7 @@
 ## Phases
 
 - [ ] **Phase 1: Scaffold & Bootstrap (+ keystone spike)** - Vue 3 + Vite+ SPA proven end-to-end; foundational decisions locked
-- [ ] **Phase 2: Data Loading & Settings** - JSON data and settings load client-side (no SSG)
+- [x] **Phase 2: Data Loading & Settings** - JSON data and settings load client-side (no SSG) (completed 2026-06-06)
 - [ ] **Phase 3: Table Core** - Three-tier benchmark table with sorting and row actions
 - [ ] **Phase 4: Filters** - Model search, tier, metrics, params, and deprecated filters
 - [ ] **Phase 5: Import Flow** - Local-only benchmark import modal with parser
@@ -72,10 +72,10 @@
 2. `app/settings.json` (defaultDevice, parametersBreakpoints, devices) loads; device selector works
 3. Pure-JSON data contract is preserved; no schema changes to existing `app/data/*.json`; `vp build` output carries the JSON through unprocessed
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 - [x] 02-01-PLAN.md — Vite config + useSettings composable (Wave 1)
-- [ ] 02-02-PLAN.md — useBenchmarkData + DeviceSelector + table wiring (Wave 2)
+- [x] 02-02-PLAN.md — useBenchmarkData + DeviceSelector + table wiring (Wave 2)
 
 **UI hint:** yes
 
@@ -187,7 +187,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
-| 2. Data Loading & Settings | 1/2 | In Progress|  |
+| 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
 | 3. Table Core | 0/3 | Not started | — |
 | 4. Filters | 0/4 | Not started | — |
 | 5. Import Flow | 0/3 | Not started | — |
