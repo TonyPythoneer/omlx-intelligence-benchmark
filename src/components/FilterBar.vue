@@ -1,95 +1,101 @@
 <template>
-  <div class="filter-bar">
-    <!-- Model Search Input -->
-    <div class="search-group">
-      <input
-        type="text"
-        placeholder="🔍 Search models..."
-        class="search-input"
-        :value="modelSearch"
-        @input="$emit('update:modelSearch', ($event.target as HTMLInputElement).value)"
-      />
-    </div>
+  <UiCard class="mb-6 px-4 py-3">
+    <div class="flex flex-wrap items-center gap-x-5 gap-y-3">
 
-    <!-- Tier Filter Group -->
-    <div class="filter-group">
-      <span class="filter-label">Tier:</span>
-      <div class="segmented-buttons">
-        <button
-          v-for="option in tierOptions"
-          :key="option.value"
-          class="segmented-button"
-          :class="{ active: tierFilter === option.value }"
-          :data-val="option.value"
-          @click="$emit('update:tierFilter', option.value)"
-        >
-          {{ option.label }}
-        </button>
+      <!-- Search -->
+      <div class="flex-1 min-w-[200px]">
+        <UiInput
+          type="text"
+          placeholder="Search models..."
+          :value="modelSearch"
+          @input="$emit('update:modelSearch', ($event.target as HTMLInputElement).value)"
+        />
       </div>
-    </div>
 
-    <!-- Metrics Filter Group -->
-    <div class="filter-group">
-      <span class="filter-label">Metrics:</span>
-      <div class="segmented-buttons">
-        <button
-          v-for="option in metricsOptions"
-          :key="option.value"
-          class="segmented-button"
-          :class="{ active: metricsFilter === option.value }"
-          :data-val="option.value"
-          @click="$emit('update:metricsFilter', option.value)"
-        >
-          {{ option.label }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Params Slider Group -->
-    <div class="filter-group">
-      <span class="filter-label">Params:</span>
-      <div class="params-slider-container">
-        <span class="params-label-left">{{ paramsLabelAt(paramsMinIdxLocal) }}</span>
-        <div class="params-slider-wrapper">
-          <input
-            id="params-min"
-            type="range"
-            :min="0"
-            :max="parametersBreakpoints.length"
-            step="1"
-            :value="paramsMinIdxLocal"
-            @input="paramsMinIdxLocal = parseInt(($event.target as HTMLInputElement).value, 10)"
-          />
-          <input
-            id="params-max"
-            type="range"
-            :min="0"
-            :max="parametersBreakpoints.length"
-            step="1"
-            :value="paramsMaxIdxLocal"
-            @input="paramsMaxIdxLocal = parseInt(($event.target as HTMLInputElement).value, 10)"
-          />
+      <!-- Tier -->
+      <div class="flex items-center gap-2">
+        <UiLabel>Tier</UiLabel>
+        <div class="inline-flex border border-border rounded-md overflow-hidden bg-background">
+          <button
+            v-for="opt in tierOptions"
+            :key="opt.value"
+            class="px-3 py-1.5 text-sm font-medium transition-colors"
+            :class="tierFilter === opt.value
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+            @click="$emit('update:tierFilter', opt.value)"
+          >{{ opt.label }}</button>
         </div>
-        <span class="params-label-right">{{ paramsLabelAt(paramsMaxIdxLocal) }}</span>
       </div>
-    </div>
 
-    <!-- Show Deprecated Checkbox -->
-    <div class="filter-group">
-      <label class="checkbox-label">
+      <!-- Metrics -->
+      <div class="flex items-center gap-2">
+        <UiLabel>Metrics</UiLabel>
+        <div class="inline-flex border border-border rounded-md overflow-hidden bg-background">
+          <button
+            v-for="opt in metricsOptions"
+            :key="opt.value"
+            class="px-3 py-1.5 text-sm font-medium transition-colors"
+            :class="metricsFilter === opt.value
+              ? 'bg-primary text-primary-foreground'
+              : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'"
+            @click="$emit('update:metricsFilter', opt.value)"
+          >{{ opt.label }}</button>
+        </div>
+      </div>
+
+      <!-- Params Slider -->
+      <div class="flex items-center gap-2">
+        <UiLabel>Params</UiLabel>
+        <div class="flex items-center gap-2 min-w-[200px]">
+          <span class="text-xs text-muted-foreground font-medium min-w-[32px] text-center">{{ paramsLabelAt(paramsMinIdxLocal) }}</span>
+          <div class="relative flex-1 h-5 flex items-center">
+            <input
+              id="params-min"
+              type="range"
+              :min="0"
+              :max="parametersBreakpoints.length"
+              step="1"
+              :value="paramsMinIdxLocal"
+              @input="paramsMinIdxLocal = parseInt(($event.target as HTMLInputElement).value, 10)"
+              class="slider-thumb absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:bg-border [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:-mt-1.5"
+            />
+            <input
+              id="params-max"
+              type="range"
+              :min="0"
+              :max="parametersBreakpoints.length"
+              step="1"
+              :value="paramsMaxIdxLocal"
+              @input="paramsMaxIdxLocal = parseInt(($event.target as HTMLInputElement).value, 10)"
+              class="slider-thumb absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:bg-border [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:-mt-1.5"
+            />
+          </div>
+          <span class="text-xs text-muted-foreground font-medium min-w-[32px] text-center">{{ paramsLabelAt(paramsMaxIdxLocal) }}</span>
+        </div>
+      </div>
+
+      <!-- Show Deprecated -->
+      <div class="flex items-center gap-2">
         <input
+          id="show-deprecated"
           type="checkbox"
           :checked="showDeprecated"
           @change="$emit('update:showDeprecated', ($event.target as HTMLInputElement).checked)"
+          class="h-4 w-4 rounded border-border text-primary accent-primary cursor-pointer"
         />
-        <span>Show Deprecated</span>
-      </label>
+        <UiLabel for="show-deprecated" class="normal-case cursor-pointer font-medium text-sm text-foreground tracking-normal">Show Deprecated</UiLabel>
+      </div>
+
     </div>
-  </div>
+  </UiCard>
 </template>
 
 <script setup lang="ts">
 import { ref, watch } from 'vue';
+import UiCard from './ui/card.vue';
+import UiInput from './ui/input.vue';
+import UiLabel from './ui/label.vue';
 
 const emit = defineEmits<{
   'update:modelSearch': [value: string];
@@ -98,6 +104,16 @@ const emit = defineEmits<{
   'update:paramsMinIdx': [value: number];
   'update:paramsMaxIdx': [value: number];
   'update:showDeprecated': [value: boolean];
+}>();
+
+const props = defineProps<{
+  modelSearch: string;
+  tierFilter: 'all' | 'opus' | 'sonnet' | 'haiku';
+  metricsFilter: 'all' | 'basic' | 'advanced';
+  paramsMinIdx: number;
+  paramsMaxIdx: number;
+  parametersBreakpoints: number[];
+  showDeprecated: boolean;
 }>();
 
 const tierOptions = [
@@ -113,37 +129,14 @@ const metricsOptions = [
   { label: 'Advanced', value: 'advanced' as const },
 ];
 
-// Local refs for slider inputs (used to detect cross-handle swaps)
 const paramsMinIdxLocal = ref<number>(0);
 const paramsMaxIdxLocal = ref<number>(0);
 
-// Get props reference for helper functions
-const props = defineProps<{
-  modelSearch: string;
-  tierFilter: 'all' | 'opus' | 'sonnet' | 'haiku';
-  metricsFilter: 'all' | 'basic' | 'advanced';
-  paramsMinIdx: number;
-  paramsMaxIdx: number;
-  parametersBreakpoints: number[];
-  showDeprecated: boolean;
-}>();
-
-// Helper function to convert slider index to parameter value
-function paramsValueAt(idx: number): number | Infinity {
-  return idx >= props.parametersBreakpoints.length
-    ? Infinity
-    : props.parametersBreakpoints[idx];
-}
-
-// Helper function to convert slider index to label string
 function paramsLabelAt(idx: number): string {
-  if (idx >= props.parametersBreakpoints.length) {
-    return 'Inf';
-  }
+  if (idx >= props.parametersBreakpoints.length) return 'Inf';
   return `${props.parametersBreakpoints[idx]}B`;
 }
 
-// Watch for cross-handle swap: if min > max, swap them
 watch([paramsMinIdxLocal, paramsMaxIdxLocal], ([min, max]) => {
   if (min > max) {
     paramsMinIdxLocal.value = max;
@@ -156,207 +149,6 @@ watch([paramsMinIdxLocal, paramsMaxIdxLocal], ([min, max]) => {
   }
 });
 
-// Sync local refs when props change (initial mount and external updates)
-watch(
-  () => props.paramsMinIdx,
-  (newVal) => {
-    paramsMinIdxLocal.value = newVal;
-  },
-  { immediate: true }
-);
-
-watch(
-  () => props.paramsMaxIdx,
-  (newVal) => {
-    paramsMaxIdxLocal.value = newVal;
-  },
-  { immediate: true }
-);
+watch(() => props.paramsMinIdx, (v) => { paramsMinIdxLocal.value = v; }, { immediate: true });
+watch(() => props.paramsMaxIdx, (v) => { paramsMaxIdxLocal.value = v; }, { immediate: true });
 </script>
-
-<style scoped>
-.filter-bar {
-  display: flex;
-  align-items: center;
-  gap: 12px 22px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 18px;
-  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-}
-
-.search-group {
-  flex: 1;
-  min-width: 200px;
-}
-
-.search-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 4px;
-  font-size: 14px;
-  font-family: inherit;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-}
-
-.search-input:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.filter-label {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #94a3b8;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  white-space: nowrap;
-}
-
-.segmented-buttons {
-  display: inline-flex;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  background: white;
-}
-
-.segmented-button {
-  padding: 8px 16px;
-  border: none;
-  background: transparent;
-  color: #475569;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.segmented-button:not(:last-child) {
-  border-right: 1px solid #d1d5db;
-}
-
-.segmented-button:hover:not(.active) {
-  background: #f1f5f9;
-  color: #1e293b;
-}
-
-.segmented-button.active {
-  background: #2563eb;
-  color: white;
-  border-radius: 4px;
-}
-
-/* Params Slider Styles */
-.params-slider-container {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 200px;
-}
-
-.params-label-left,
-.params-label-right {
-  font-size: 13px;
-  color: #64748b;
-  min-width: 32px;
-  text-align: center;
-  font-weight: 500;
-}
-
-.params-slider-wrapper {
-  position: relative;
-  height: 20px;
-  flex: 1;
-  display: flex;
-  align-items: center;
-}
-
-.params-slider-wrapper input[type='range'] {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 100%;
-  pointer-events: none;
-  -webkit-appearance: none;
-  appearance: none;
-  background: transparent;
-  height: 20px;
-}
-
-.params-slider-wrapper input[type='range']::-webkit-slider-runnable-track {
-  height: 4px;
-  background: #e5e7eb;
-  border-radius: 2px;
-}
-
-.params-slider-wrapper input[type='range']::-moz-range-track {
-  height: 4px;
-  background: #e5e7eb;
-  border-radius: 2px;
-  border: none;
-}
-
-.params-slider-wrapper input[type='range']::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  pointer-events: auto;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #2563eb;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 0 0 1px #2563eb;
-  margin-top: -6px;
-}
-
-.params-slider-wrapper input[type='range']::-moz-range-thumb {
-  pointer-events: auto;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #2563eb;
-  cursor: pointer;
-  border: 2px solid white;
-  box-shadow: 0 0 0 1px #2563eb;
-}
-
-.params-slider-wrapper input[type='range']:focus {
-  outline: none;
-}
-
-/* Checkbox Styles */
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  user-select: none;
-  font-size: 14px;
-  color: #475569;
-}
-
-.checkbox-label input[type='checkbox'] {
-  width: 16px;
-  height: 16px;
-  cursor: pointer;
-  accent-color: #2563eb;
-}
-
-.checkbox-label span {
-  font-weight: 500;
-}
-</style>

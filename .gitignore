@@ -151,3 +151,6 @@ __pycache__/
 # Screenshots
 screenshot.png
 outputs/ui-validation/final_runs/
+
+# Visual brainstorming companion
+.superpowers/brainstorm/
