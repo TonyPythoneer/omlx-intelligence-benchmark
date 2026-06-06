@@ -79,43 +79,43 @@ Deferred to a future milestone. Tracked, not in this roadmap.
 
 ## Traceability
 
-Populated during roadmap creation (every v1 requirement maps to exactly one phase).
-
 | Requirement | Phase | Status |
-| SCAF-01 | — | Pending |
-| SCAF-02 | — | Pending |
-| SCAF-03 | — | Pending |
-| SCAF-04 | — | Pending |
-| DATA-01 | — | Pending |
-| DATA-02 | — | Pending |
-| DATA-03 | — | Pending |
-| TBL-01 | — | Pending |
-| TBL-02 | — | Pending |
-| TBL-03 | — | Pending |
-| TBL-04 | — | Pending |
-| FLT-01 | — | Pending |
-| FLT-02 | — | Pending |
-| FLT-03 | — | Pending |
-| FLT-04 | — | Pending |
-| FLT-05 | — | Pending |
-| IMP-01 | — | Pending |
-| IMP-02 | — | Pending |
-| IMP-03 | — | Pending |
-| IMP-04 | — | Pending |
-| LAB-01 | — | Pending |
-| LAB-02 | — | Pending |
-| LAB-03 | — | Pending |
-| LAB-04 | — | Pending |
-| LAB-05 | — | Pending |
-| PAR-01 | — | Pending |
-| PAR-02 | — | Pending |
-| PAR-03 | — | Pending |
+|-------------|-------|--------|
+| SCAF-01 | 1 | Pending |
+| SCAF-02 | 1 | Pending |
+| SCAF-03 | 1 | Pending |
+| SCAF-04 | 1 | Pending |
+| DATA-01 | 2 | Pending |
+| DATA-02 | 2 | Pending |
+| DATA-03 | 2 | Pending |
+| TBL-01 | 3 | Pending |
+| TBL-02 | 3 | Pending |
+| TBL-03 | 3 | Pending |
+| TBL-04 | 3 | Pending |
+| FLT-01 | 4 | Pending |
+| FLT-02 | 4 | Pending |
+| FLT-03 | 4 | Pending |
+| FLT-04 | 4 | Pending |
+| FLT-05 | 4 | Pending |
+| IMP-01 | 5 | Pending |
+| IMP-02 | 5 | Pending |
+| IMP-03 | 5 | Pending |
+| IMP-04 | 5 | Pending |
+| LAB-01 | 6 | Pending |
+| LAB-02 | 6 | Pending |
+| LAB-03 | 6 | Pending |
+| LAB-04 | 6 | Pending |
+| LAB-05 | 6 | Pending |
+| PAR-01 | 7 | Pending |
+| PAR-02 | 7 | Pending |
+| PAR-03 | 7 | Pending |
 
 **Coverage:**
 - v1 requirements: 28 total
-- Mapped to phases: 0 ⚠️ (roadmap pending)
-- Unmapped: 28 ⚠️
+- Mapped to phases: 28 ✓
+- Unmapped: 0 ✓
 
 ---
+
 *Requirements defined: 2026-06-06*
-*Last updated: 2026-06-06 after initialization*
+*Traceability updated: 2026-06-06 (roadmap created)*
