@@ -12,7 +12,7 @@
       <div v-if="dataLoading" class="loading-state">Loading data...</div>
       <div v-if="dataError" class="error-state">Data error: {{ dataError }}</div>
 
-      <!-- Toolbar with Import button -->
+      <!-- Toolbar with Import and Label buttons -->
       <div class="toolbar">
         <button
           v-if="isLocalhost"
@@ -20,6 +20,13 @@
           @click="openModal"
         >
           + Import
+        </button>
+        <button
+          v-if="isLocalhost"
+          class="btn btn-label"
+          @click="toggleLabelingMode(mutableEntries)"
+        >
+          {{ isLabelingMode ? '✓ Done' : '✏ Label' }}
         </button>
       </div>
 
@@ -39,7 +46,14 @@
         @update:showDeprecated="showDeprecated = $event"
       />
 
-      <BenchmarkTable :entries="filteredEntries" :visibleBenchmarks="visibleBenchmarks" />
+      <BenchmarkTable
+        :entries="filteredEntries"
+        :visibleBenchmarks="visibleBenchmarks"
+        :isLabelingMode="isLabelingMode"
+        :labelEdits="labelEdits"
+        :validationErrors="validationErrors"
+        @update:labelEdit="(modelName, field, value) => updateLabelEdit(modelName, field, value)"
+      />
 
       <!-- Import Modal -->
       <ImportModal
@@ -68,6 +82,7 @@ import { useSettings } from './composables/useSettings';
 import { useBenchmarkData } from './composables/useBenchmarkData';
 import { useFilters } from './composables/useFilters';
 import { useImport } from './composables/useImport';
+import { useLabeling } from './composables/useLabeling';
 
 const { settings, defaultDevice, devices, parametersBreakpoints, isLoading: settingsLoading, error: settingsError } = useSettings();
 const selectedDevice = ref<string | null>(null);
@@ -79,6 +94,18 @@ watch(entries, (newEntries) => {
   // Deep copy to ensure independence from fetched data
   mutableEntries.value = JSON.parse(JSON.stringify(newEntries));
 }, { immediate: true });
+
+// Labeling mode composable
+const {
+  isLabelingMode,
+  isDirty,
+  labelEdits,
+  validationErrors,
+  toggleLabelingMode,
+  updateLabelEdit,
+  commitLabelEdits,
+  setDirty
+} = useLabeling(mutableEntries);
 
 // Hostname guard: only show Import button on localhost/127.0.0.1
 const isLocalhost = computed<boolean>(() => {
@@ -120,6 +147,8 @@ const enrichedParsedEntries = computed(() => {
 // Wrapper for applyImport that passes mutableEntries
 function applyImport() {
   performApplyImport(mutableEntries);
+  // Mark as dirty when import is applied
+  setDirty();
 }
 
 watch(defaultDevice, (device) => {
@@ -210,5 +239,25 @@ p {
 
 .btn-import:active {
   background: #1d4ed8;
+}
+
+.btn-label {
+  padding: 8px 16px;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-label:hover {
+  background: #7c3aed;
+}
+
+.btn-label:active {
+  background: #6d28d9;
 }
 </style>
