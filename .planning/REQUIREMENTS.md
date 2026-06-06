@@ -29,11 +29,11 @@ Migration to Vue 3 + Vite+ (vite-ssg) at **feature parity** with the current `ap
 
 ### Filters
 
-- [ ] **FLT-01**: Model substring search filters rows live
-- [ ] **FLT-02**: Tier segmented filter (All / Opus / Sonnet / Haiku)
-- [ ] **FLT-03**: Metrics segmented filter (All / Basic / Advanced)
-- [ ] **FLT-04**: Params dual-handle range slider filters by `parameters_b` using `parametersBreakpoints`
-- [ ] **FLT-05**: Show Deprecated toggle (deprecated rows hidden by default, preserved on save)
+- [x] **FLT-01**: Model substring search filters rows live
+- [x] **FLT-02**: Tier segmented filter (All / Opus / Sonnet / Haiku)
+- [x] **FLT-03**: Metrics segmented filter (All / Basic / Advanced)
+- [x] **FLT-04**: Params dual-handle range slider filters by `parameters_b` using `parametersBreakpoints`
+- [x] **FLT-05**: Show Deprecated toggle (deprecated rows hidden by default, preserved on save)
 
 ### Import (local only)
 
@@ -92,11 +92,11 @@ Deferred to a future milestone. Tracked, not in this roadmap.
 | TBL-02 | 3 | Pending |
 | TBL-03 | 3 | Pending |
 | TBL-04 | 3 | Pending |
-| FLT-01 | 4 | Pending |
-| FLT-02 | 4 | Pending |
-| FLT-03 | 4 | Pending |
-| FLT-04 | 4 | Pending |
-| FLT-05 | 4 | Pending |
+| FLT-01 | 4 | Complete |
+| FLT-02 | 4 | Complete |
+| FLT-03 | 4 | Complete |
+| FLT-04 | 4 | Complete |
+| FLT-05 | 4 | Complete |
 | IMP-01 | 5 | Pending |
 | IMP-02 | 5 | Pending |
 | IMP-03 | 5 | Pending |
@@ -111,6 +111,7 @@ Deferred to a future milestone. Tracked, not in this roadmap.
 | PAR-03 | 7 | Pending |
 
 **Coverage:**
+
 - v1 requirements: 28 total
 - Mapped to phases: 28 ✓
 - Unmapped: 0 ✓
