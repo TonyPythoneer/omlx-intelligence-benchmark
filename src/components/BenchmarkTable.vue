@@ -264,7 +264,7 @@ function getSortValue(entry: Entry, col: string): any {
  * Computed property that returns a sorted copy of entries
  */
 const sortedEntries = computed(() => {
-  const sorted = [...entries].sort((a, b) => {
+  const sorted = [...props.entries].sort((a, b) => {
     const av = getSortValue(a, sortCol.value);
     const bv = getSortValue(b, sortCol.value);
 
