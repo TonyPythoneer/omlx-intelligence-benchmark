@@ -63,9 +63,9 @@
             </span>
             <span class="model-name-text">{{ entry.model }}</span>
           </td>
-          <td>{{ entry.spec.parameters_b }}</td>
-          <td>{{ entry.spec.quantization }}</td>
-          <td>{{ entry.spec.size_gb }}</td>
+          <td>{{ formatParams(entry.spec.parameters_b) }}</td>
+          <td>{{ entry.spec.quantization || '–' }}</td>
+          <td>{{ formatSize(entry.spec.size_gb) }}</td>
           <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
             <td>
               <span v-if="entry.scores[benchmark]?.accuracy" :class="scoreColorClass(entry.scores[benchmark].accuracy)">
@@ -73,7 +73,7 @@
               </span>
               <span v-else>–</span>
             </td>
-            <td>{{ entry.scores[benchmark]?.time_s ?? '–' }}</td>
+            <td>{{ formatTime(entry.scores[benchmark]?.time_s) }}</td>
           </template>
         </tr>
 
@@ -341,6 +341,21 @@ function scoreColorClass(accuracy: number | undefined): string {
  */
 function formattedAccuracy(accuracy: number): string {
   return accuracy.toFixed(1);
+}
+
+function formatTime(time_s: number | null | undefined): string {
+  if (time_s == null) return '–';
+  const secs = Math.round(time_s);
+  if (secs < 60) return `${secs}s`;
+  return `${Math.round(secs / 60)}m`;
+}
+
+function formatParams(val: number | null | undefined): string {
+  return val != null ? `${val}B` : '–';
+}
+
+function formatSize(val: number | null | undefined): string {
+  return val != null ? `${val.toFixed(2)} GB` : '–';
 }
 </script>
 

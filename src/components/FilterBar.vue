@@ -178,9 +178,14 @@ watch(
 .filter-bar {
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: 12px 22px;
   margin-bottom: 24px;
   flex-wrap: wrap;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px 18px;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
 }
 
 .search-group {
@@ -211,9 +216,11 @@ watch(
 }
 
 .filter-label {
-  font-weight: 600;
-  color: #1e293b;
-  font-size: 14px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   white-space: nowrap;
 }
 

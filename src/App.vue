@@ -1,41 +1,32 @@
 <template>
   <div id="app-root">
-    <h1>oMLX Intelligence Benchmark</h1>
     <div v-if="settingsLoading" class="loading-state">Loading settings...</div>
     <div v-else-if="settingsError" class="error-state">Error: {{ settingsError }}</div>
     <div v-else>
-      <div class="device-section">
-        <label>Device:</label>
-        <DeviceSelector :devices="devices" v-model:modelValue="selectedDevice" />
-      </div>
+      <header class="app-header">
+        <h1>oMLX Intelligence Benchmark</h1>
+        <div class="header-controls">
+          <button
+            v-if="isLocalhost"
+            class="btn btn-import"
+            @click="openModal"
+          >+ Import</button>
+          <button
+            v-if="isLocalhost"
+            class="btn btn-label"
+            @click="toggleLabelingMode(mutableEntries)"
+          >{{ isLabelingMode ? '✓ Done' : '✏ Label' }}</button>
+          <button
+            v-if="isLocalhost && showExportButton"
+            class="btn btn-export"
+            @click="isExportModalOpen = true"
+          >Export Data</button>
+          <DeviceSelector :devices="devices" v-model:modelValue="selectedDevice" />
+        </div>
+      </header>
 
       <div v-if="dataLoading" class="loading-state">Loading data...</div>
       <div v-if="dataError" class="error-state">Data error: {{ dataError }}</div>
-
-      <!-- Toolbar with Import, Label, and Export buttons -->
-      <div class="toolbar">
-        <button
-          v-if="isLocalhost"
-          class="btn btn-import"
-          @click="openModal"
-        >
-          + Import
-        </button>
-        <button
-          v-if="isLocalhost"
-          class="btn btn-label"
-          @click="toggleLabelingMode(mutableEntries)"
-        >
-          {{ isLabelingMode ? '✓ Done' : '✏ Label' }}
-        </button>
-        <button
-          v-if="isLocalhost && showExportButton"
-          class="btn btn-export"
-          @click="isExportModalOpen = true"
-        >
-          📥 Export Data
-        </button>
-      </div>
 
       <FilterBar
         :modelSearch="modelSearch"
@@ -82,6 +73,7 @@
         :selectedDevice="selectedDevice || 'benchmark'"
         @close="isExportModalOpen = false"
       />
+      <footer class="app-footer">created by TonyPythoneer</footer>
     </div>
   </div>
 </template>
@@ -202,15 +194,26 @@ body {
   padding: 40px 48px;
 }
 
-h1 {
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 16px;
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 36px;
 }
 
-p {
-  font-size: 14px;
-  color: #64748b;
+h1 {
+  font-size: 2.25rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #0f172a 0%, #2563eb 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .loading-state {
@@ -228,81 +231,40 @@ p {
   margin-top: 8px;
 }
 
-.device-section {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 24px;
-}
-
-.device-section label {
-  font-weight: 600;
-  color: #1e293b;
-}
-
-.toolbar {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
+.btn {
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
 }
 
 .btn-import {
-  padding: 8px 16px;
   background: #3b82f6;
   color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
 }
-
-.btn-import:hover {
-  background: #2563eb;
-}
-
-.btn-import:active {
-  background: #1d4ed8;
-}
+.btn-import:hover { background: #2563eb; }
 
 .btn-label {
-  padding: 8px 16px;
   background: #8b5cf6;
   color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
 }
-
-.btn-label:hover {
-  background: #7c3aed;
-}
-
-.btn-label:active {
-  background: #6d28d9;
-}
+.btn-label:hover { background: #7c3aed; }
 
 .btn-export {
-  padding: 8px 16px;
   background: #10b981;
   color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s ease;
 }
+.btn-export:hover { background: #059669; }
 
-.btn-export:hover {
-  background: #059669;
-}
-
-.btn-export:active {
-  background: #047857;
+.app-footer {
+  text-align: center;
+  margin-top: 32px;
+  font-size: 0.8rem;
+  color: #94a3b8;
 }
 </style>
