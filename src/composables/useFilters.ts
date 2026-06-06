@@ -55,7 +55,7 @@ export function useFilters(entries: Ref<Entry[]>, settings: Ref<Settings | null>
    * Helper: paramsValueAt - Convert slider index to parameter value
    * Returns the breakpoint value at the given index, or Infinity if index is at/beyond the length
    */
-  function paramsValueAt(idx: number, breakpoints: number[]): number | Infinity {
+  function paramsValueAt(idx: number, breakpoints: number[]): number {
     return idx >= breakpoints.length ? Infinity : breakpoints[idx];
   }
 
