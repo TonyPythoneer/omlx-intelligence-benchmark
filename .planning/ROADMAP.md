@@ -15,7 +15,7 @@
 - [x] **Phase 2: Data Loading & Settings** - JSON data and settings load client-side (no SSG) (completed 2026-06-06)
 - [x] **Phase 3: Table Core** - Three-tier benchmark table with sorting and row actions (completed 2026-06-06)
 - [x] **Phase 4: Filters** - Model search, tier, metrics, params, and deprecated filters (completed 2026-06-06)
-- [ ] **Phase 5: Import Flow** - Local-only benchmark import modal with parser (planned 2026-06-06)
+- [x] **Phase 5: Import Flow** - Local-only benchmark import modal with parser (planned 2026-06-06) (completed 2026-06-06)
 - [ ] **Phase 6: Labeling & Export** - Inline editing and File System Access save
 - [ ] **Phase 7: Parity, CI & Swap** - Full Playwright regression, data-validation, atomic swap to the Vue app
 
@@ -145,10 +145,10 @@
 4. NEW entries require spec fields (params / quant / size) to be filled before Apply is enabled
 5. **CI (incremental):** Playwright import checkpoint (open modal → paste → apply) passes against the new DOM
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 - [x] 05-01-PLAN.md — Modal UI + hostname guard + useImport state setup (Wave 1)
-- [ ] 05-02-PLAN.md — Merge logic + unit tests + Playwright checkpoint (Wave 2)
+- [x] 05-02-PLAN.md — Merge logic + unit tests + Playwright checkpoint (Wave 2)
 
 **UI hint:** yes
 
@@ -202,7 +202,7 @@
 | 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
 | 3. Table Core | 2/2 | Complete   | 2026-06-06 |
 | 4. Filters | 2/2 | Complete    | 2026-06-06 |
-| 5. Import Flow | 1/2 | In Progress|  |
+| 5. Import Flow | 2/2 | Complete   | 2026-06-06 |
 | 6. Labeling & Export | 0/4 | Not started | — |
 | 7. Parity, CI & Swap | 0/3 | Not started | — |
 
