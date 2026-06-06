@@ -145,9 +145,9 @@
 4. NEW entries require spec fields (params / quant / size) to be filled before Apply is enabled
 5. **CI (incremental):** Playwright import checkpoint (open modal → paste → apply) passes against the new DOM
 
-**Plans:** 2/2 plans in 2 waves
+**Plans:** 1/2 plans executed
 
-- [ ] 05-01-PLAN.md — Modal UI + hostname guard + useImport state setup (Wave 1)
+- [x] 05-01-PLAN.md — Modal UI + hostname guard + useImport state setup (Wave 1)
 - [ ] 05-02-PLAN.md — Merge logic + unit tests + Playwright checkpoint (Wave 2)
 
 **UI hint:** yes
@@ -202,7 +202,7 @@
 | 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
 | 3. Table Core | 2/2 | Complete   | 2026-06-06 |
 | 4. Filters | 2/2 | Complete    | 2026-06-06 |
-| 5. Import Flow | 2/2 | Planned   | 2026-06-06 |
+| 5. Import Flow | 1/2 | In Progress|  |
 | 6. Labeling & Export | 0/4 | Not started | — |
 | 7. Parity, CI & Swap | 0/3 | Not started | — |
 

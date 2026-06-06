@@ -1,4 +1,4 @@
-import { ref, computed, Ref, ComputedRef } from 'vue';
+import { ref, computed, Ref } from 'vue';
 import { type Entry, type Scores } from '../types/benchmark';
 // @ts-ignore — import.mjs has no types
 import { parseImportInput } from '../lib/import.mjs';
@@ -43,53 +43,6 @@ export function useImport() {
    */
   function getTodaysDate(): string {
     return new Date().toISOString().split('T')[0];
-  }
-
-  /**
-   * Helper: Parse import text and enrich with status, specFilled, and spec fields
-   * Returns array of ParsedResult objects with NEW/OVERWRITE status determined
-   */
-  function parseImportText(text: string, currentEntries: Entry[]): ParsedResult[] {
-    if (!text.trim()) {
-      return [];
-    }
-
-    try {
-      const raw = parseImportInput(text);
-      const existingModels = new Set(currentEntries.map(e => e.model));
-
-      return raw.map((result: { model: string; scores: Scores }) => {
-        const status = existingModels.has(result.model) ? 'OVERWRITE' : 'NEW';
-
-        // Initialize spec form for NEW entries if not already present
-        if (status === 'NEW' && !specForms.value[result.model]) {
-          specForms.value[result.model] = {
-            parameters_b: '',
-            quantization: '',
-            size_gb: '',
-          };
-        }
-
-        // Check if spec is filled (all three fields non-empty)
-        const form = specForms.value[result.model];
-        const specFilled = status === 'NEW' ? (form && form.parameters_b !== '' && form.quantization !== '' && form.size_gb !== '') : false;
-
-        return {
-          model: result.model,
-          scores: result.scores,
-          status,
-          specFilled,
-          spec: {
-            parameters_b: null,
-            quantization: '',
-            size_gb: null,
-          },
-        };
-      });
-    } catch (err) {
-      console.error('Error parsing import text:', err);
-      return [];
-    }
   }
 
   /**
