@@ -14,7 +14,7 @@
 - [ ] **Phase 1: Scaffold & Bootstrap (+ keystone spike)** - Vue 3 + Vite+ SPA proven end-to-end; foundational decisions locked
 - [x] **Phase 2: Data Loading & Settings** - JSON data and settings load client-side (no SSG) (completed 2026-06-06)
 - [x] **Phase 3: Table Core** - Three-tier benchmark table with sorting and row actions (completed 2026-06-06)
-- [ ] **Phase 4: Filters** - Model search, tier, metrics, params, and deprecated filters
+- [x] **Phase 4: Filters** - Model search, tier, metrics, params, and deprecated filters (completed 2026-06-06)
 - [ ] **Phase 5: Import Flow** - Local-only benchmark import modal with parser
 - [ ] **Phase 6: Labeling & Export** - Inline editing and File System Access save
 - [ ] **Phase 7: Parity, CI & Swap** - Full Playwright regression, data-validation, atomic swap to the Vue app
@@ -121,7 +121,7 @@
 5. All filters combine correctly (AND logic for multi-filter selections)
 6. **CI (incremental):** Playwright filter checkpoints (tier, model search, show-deprecated, params) pass against the new DOM
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 - [x] 04-01-PLAN.md — Filter infrastructure + model search + tier/metrics filters (Wave 1)
 - [x] 04-02-PLAN.md — Params slider + show deprecated toggle (Wave 2)
@@ -197,7 +197,7 @@
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
 | 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
 | 3. Table Core | 2/2 | Complete   | 2026-06-06 |
-| 4. Filters | 1/2 | In Progress|  |
+| 4. Filters | 2/2 | Complete   | 2026-06-06 |
 | 5. Import Flow | 0/3 | Not started | — |
 | 6. Labeling & Export | 0/4 | Not started | — |
 | 7. Parity, CI & Swap | 0/3 | Not started | — |
