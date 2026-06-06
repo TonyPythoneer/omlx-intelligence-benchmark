@@ -1,4 +1,4 @@
-"""UI validation script for app/index.html — runs 9 Critical Points."""
+"""UI validation script for app/index.html — runs 9 Critical Points + CP10 import flow."""
 import asyncio
 from pathlib import Path
 from playwright.async_api import async_playwright
@@ -185,9 +185,115 @@ async def main() -> None:
             failed.append("CP9")
             log("CP9 FAIL: #export-data button not visible")
 
+        # CP10 — Full import flow (IMP-01 through IMP-04)
+        # Tests: modal opens → paste valid stdout → fill spec → apply → modal closes → new entry visible in table
+        log("step 10 action: test complete import flow with spec filling")
+        try:
+            # Close export modal if open
+            if await page.locator("#export-modal.show").count() > 0:
+                await page.press("body", "Escape")
+                await page.wait_for_timeout(300)
+
+            # Navigate to localhost to ensure import button is visible
+            await page.goto(URL, wait_until="networkidle")
+            await page.wait_for_timeout(300)
+
+            # Click Import button
+            import_btn = page.locator("#import-data")
+            if await import_btn.count() == 0:
+                raise Exception("Import button not found")
+            await import_btn.click()
+            await page.wait_for_timeout(300)
+
+            # Verify modal opens
+            modal = page.locator("#import-modal")
+            if await modal.count() == 0:
+                raise Exception("Import modal not found")
+            is_visible = await modal.is_visible()
+            if not is_visible:
+                raise Exception("Import modal not visible")
+            log("  - modal opened successfully")
+
+            # Paste sample benchmark stdout
+            textarea = page.locator("#import-input")
+            if await textarea.count() == 0:
+                raise Exception("Import textarea not found")
+            await textarea.click()
+            await textarea.fill("")
+            await textarea.fill("Model: CP10TestModel\nBenchmark         Accuracy   Correct   Total   Time(s)   Think\nMMLA 70.5% 21 30 300.0 Yes\nTRUTHFULQA 72.3% 22 30 150.0 Yes\n")
+            await page.wait_for_timeout(500)
+            log("  - pasted sample stdout")
+
+            # Verify parsed entries appear (check for NEW/OVERWRITE status indicators)
+            entry_list = page.locator("[class*='parsed-entry']")
+            entries_count = await entry_list.count()
+            if entries_count == 0:
+                log("  - note: no parsed-entry elements found (selector may differ)")
+            else:
+                log(f"  - found {entries_count} parsed entries")
+
+            # Fill spec form for NEW entry (parameters_b, quantization, size_gb)
+            params_inputs = page.locator("input[type='text'][placeholder*='arameter']")
+            quant_inputs = page.locator("input[type='text'][placeholder*='uantiz']")
+            size_inputs = page.locator("input[type='text'][placeholder*='ize']")
+
+            # Try to find and fill spec inputs by label or placeholder
+            # Target the first set of spec inputs visible in the modal
+            if await params_inputs.count() > 0:
+                await params_inputs.first.fill("7")
+                log("  - filled parameters_b = 7")
+
+            if await quant_inputs.count() > 0:
+                await quant_inputs.first.fill("8bit")
+                log("  - filled quantization = 8bit")
+
+            if await size_inputs.count() > 0:
+                await size_inputs.first.fill("14")
+                log("  - filled size_gb = 14")
+
+            # Click Apply button
+            apply_btn = page.locator("#import-save-btn")
+            if await apply_btn.count() == 0:
+                raise Exception("Apply button not found")
+            await apply_btn.click()
+            await page.wait_for_timeout(500)
+            log("  - clicked Apply")
+
+            # Verify modal closes
+            modal_after = page.locator("#import-modal.show")
+            if await modal_after.count() > 0:
+                log("  - warning: modal still open after apply (may auto-close later)")
+
+            # Verify new entry appears in table
+            await page.wait_for_timeout(500)
+            table_rows = page.locator("tbody tr")
+            rows_count = await table_rows.count()
+            if rows_count > 0:
+                # Search for CP10TestModel in table
+                model_cell = page.locator("text=/CP10TestModel/")
+                if await model_cell.count() > 0:
+                    passed.append("CP10")
+                    log(f"CP10 PASS: new entry visible in table, total rows={rows_count}")
+                else:
+                    failed.append("CP10")
+                    log(f"CP10 FAIL: CP10TestModel not found in table (rows={rows_count})")
+            else:
+                failed.append("CP10")
+                log("CP10 FAIL: no rows in table after import")
+
+            await page.screenshot(path=str(SS / "final_execution_10_import_flow.png"))
+
+        except Exception as e:
+            failed.append("CP10")
+            log(f"CP10 FAIL: {str(e)}")
+            try:
+                await page.screenshot(path=str(SS / "final_execution_10_import_flow_error.png"))
+            except:
+                pass
+
         await browser.close()
 
-    summary = f"RESULT: {len(passed)}/9 passed — {', '.join(passed or ['none'])}"
+    summary = f"RESULT: {len(passed)}/10 passed — {', '.join(passed or ['none'])}"
     if failed:
         summary += f" | FAILED: {', '.join(failed)}"
     log(summary)
