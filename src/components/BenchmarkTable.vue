@@ -53,27 +53,150 @@
       <tr v-if="entries.length === 0">
         <td :colspan="4 + visibleBenchmarksInOrder.length * 2">No entries loaded</td>
       </tr>
-      <tr v-for="entry in sortedEntries" :key="entry.model">
-        <td class="model-name">
-          <span class="model-actions">
-            <button @click="copyModelName(entry.model)" class="model-action-btn" title="Copy model name">📋</button>
-            <button @click="searchHuggingFace(entry.model)" class="model-action-btn" title="Search on HuggingFace">🤗</button>
-          </span>
-          <span class="model-name-text">{{ entry.model }}</span>
-        </td>
-        <td>{{ entry.spec.parameters_b }}</td>
-        <td>{{ entry.spec.quantization }}</td>
-        <td>{{ entry.spec.size_gb }}</td>
-        <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
-          <td>
-            <span v-if="entry.scores[benchmark]?.accuracy" :class="scoreColorClass(entry.scores[benchmark].accuracy)">
-              {{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%
+      <template v-for="entry in sortedEntries" :key="entry.model">
+        <!-- Normal row display -->
+        <tr v-if="!isLabelingMode">
+          <td class="model-name">
+            <span class="model-actions">
+              <button @click="copyModelName(entry.model)" class="model-action-btn" title="Copy model name">📋</button>
+              <button @click="searchHuggingFace(entry.model)" class="model-action-btn" title="Search on HuggingFace">🤗</button>
             </span>
-            <span v-else>–</span>
+            <span class="model-name-text">{{ entry.model }}</span>
           </td>
-          <td>{{ entry.scores[benchmark]?.time_s ?? '–' }}</td>
-        </template>
-      </tr>
+          <td>{{ entry.spec.parameters_b }}</td>
+          <td>{{ entry.spec.quantization }}</td>
+          <td>{{ entry.spec.size_gb }}</td>
+          <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
+            <td>
+              <span v-if="entry.scores[benchmark]?.accuracy" :class="scoreColorClass(entry.scores[benchmark].accuracy)">
+                {{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%
+              </span>
+              <span v-else>–</span>
+            </td>
+            <td>{{ entry.scores[benchmark]?.time_s ?? '–' }}</td>
+          </template>
+        </tr>
+
+        <!-- Labeling mode row with edit controls -->
+        <tr v-if="isLabelingMode" class="labeling-row">
+          <td class="model-name">
+            <span class="model-name-text">{{ entry.model }}</span>
+          </td>
+          <td :colspan="3 + visibleBenchmarksInOrder.length * 2" class="labeling-controls-cell">
+            <div class="labeling-controls">
+              <div class="control-section">
+                <label>Spec</label>
+                <div class="control-group">
+                  <div class="control-field">
+                    <label>Parameters (B)</label>
+                    <input
+                      type="number"
+                      :value="labelEdits?.[entry.model]?.parameters_b ?? ''"
+                      @input="emit('update:labelEdit', entry.model, 'parameters_b', $event.target.value)"
+                      class="control-input"
+                      :class="{ 'input-error': validationErrors?.[entry.model]?.parameters_b }"
+                    />
+                    <div v-if="validationErrors?.[entry.model]?.parameters_b" class="error-message">
+                      {{ validationErrors[entry.model].parameters_b.join(', ') }}
+                    </div>
+                  </div>
+
+                  <div class="control-field">
+                    <label>Quantization</label>
+                    <input
+                      type="text"
+                      :value="labelEdits?.[entry.model]?.quantization ?? ''"
+                      @input="emit('update:labelEdit', entry.model, 'quantization', $event.target.value)"
+                      class="control-input"
+                      :class="{ 'input-error': validationErrors?.[entry.model]?.quantization }"
+                    />
+                  </div>
+
+                  <div class="control-field">
+                    <label>Size (GB)</label>
+                    <input
+                      type="number"
+                      :value="labelEdits?.[entry.model]?.size_gb ?? ''"
+                      @input="emit('update:labelEdit', entry.model, 'size_gb', $event.target.value)"
+                      class="control-input"
+                      :class="{ 'input-error': validationErrors?.[entry.model]?.size_gb }"
+                    />
+                    <div v-if="validationErrors?.[entry.model]?.size_gb" class="error-message">
+                      {{ validationErrors[entry.model].size_gb.join(', ') }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="control-section">
+                <label>Abilities</label>
+                <div class="control-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      :checked="labelEdits?.[entry.model]?.thinking ?? false"
+                      @change="emit('update:labelEdit', entry.model, 'thinking', $event.target.checked)"
+                    />
+                    Thinking
+                  </label>
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      :checked="labelEdits?.[entry.model]?.mtp ?? false"
+                      @change="emit('update:labelEdit', entry.model, 'mtp', $event.target.checked)"
+                    />
+                    MTP
+                  </label>
+                </div>
+              </div>
+
+              <div class="control-section">
+                <label>Other</label>
+                <div class="control-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      :checked="labelEdits?.[entry.model]?.deprecated ?? false"
+                      @change="emit('update:labelEdit', entry.model, 'deprecated', $event.target.checked)"
+                    />
+                    Deprecated
+                  </label>
+                </div>
+              </div>
+
+              <div class="control-section">
+                <label>Tiers</label>
+                <div class="control-group checkbox-group">
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      :checked="labelEdits?.[entry.model]?.tier_opus ?? false"
+                      @change="emit('update:labelEdit', entry.model, 'tier_opus', $event.target.checked)"
+                    />
+                    Opus
+                  </label>
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      :checked="labelEdits?.[entry.model]?.tier_sonnet ?? false"
+                      @change="emit('update:labelEdit', entry.model, 'tier_sonnet', $event.target.checked)"
+                    />
+                    Sonnet
+                  </label>
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      :checked="labelEdits?.[entry.model]?.tier_haiku ?? false"
+                      @change="emit('update:labelEdit', entry.model, 'tier_haiku', $event.target.checked)"
+                    />
+                    Haiku
+                  </label>
+                </div>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </template>
     </tbody>
   </table>
 </template>
@@ -86,6 +209,14 @@ import { type Entry } from '../types/benchmark';
 const props = defineProps<{
   entries: Entry[];
   visibleBenchmarks?: string[];
+  isLabelingMode?: boolean;
+  labelEdits?: Record<string, any>;
+  validationErrors?: Record<string, Record<string, string[]>>;
+}>();
+
+// Define emits for label edit updates
+const emit = defineEmits<{
+  'update:labelEdit': [modelName: string, field: string, value: any];
 }>();
 
 // All benchmark keys in display order
@@ -317,5 +448,113 @@ tbody tr:hover {
 
 .model-name-text {
   word-break: break-all;
+}
+
+/* Labeling mode styles */
+.labeling-row {
+  background: #f0f9ff;
+  border-top: 2px solid #0ea5e9;
+}
+
+.labeling-controls-cell {
+  padding: 12px 0 !important;
+  background: #f0f9ff !important;
+}
+
+.labeling-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  padding: 12px 16px;
+  background: #f0f9ff;
+}
+
+.control-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-section > label {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  color: #1e293b;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.control-group.checkbox-group {
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.control-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control-field > label {
+  font-size: 12px;
+  color: #475569;
+  font-weight: 500;
+}
+
+.control-input {
+  padding: 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+
+.control-input:focus {
+  outline: none;
+  border-color: #0ea5e9;
+  background: white;
+}
+
+.control-input.input-error {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.control-input.input-error:focus {
+  border-color: #dc2626;
+}
+
+.error-message {
+  font-size: 12px;
+  color: #dc2626;
+  margin-top: 4px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #475569;
+  cursor: pointer;
+  user-select: none;
+  padding: 6px;
+  border-radius: 3px;
+  transition: background 0.15s ease;
+}
+
+.checkbox-label:hover {
+  background: #e0f2fe;
+}
+
+.checkbox-label input[type="checkbox"] {
+  cursor: pointer;
+  width: 18px;
+  height: 18px;
 }
 </style>

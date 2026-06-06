@@ -171,8 +171,8 @@ describe('useLabeling', () => {
 
       expect(mutableEntries.value[0].spec.parameters_b).toBe(35);
       expect(mutableEntries.value[0].spec.quantization).toBe('4bit');
-      expect(mutableEntries.value[0].abilities.thinking).toBe(true);
-      expect(mutableEntries.value[0].tiers.opus).toBe(true);
+      expect(mutableEntries.value[0].abilities!.thinking).toBe(true);
+      expect(mutableEntries.value[0].tiers!.opus).toBe(true);
       expect(labeling.isLabelingMode.value).toBe(false);
       expect(labeling.labelEdits.value).toEqual({});
     });
@@ -284,8 +284,8 @@ describe('useLabeling', () => {
       expect(mutableEntries.value[0].spec.quantization).toBe('fp16');
       expect(mutableEntries.value[0].spec.size_gb).toBe(3.5);
       expect(mutableEntries.value[0].deprecated).toBe(false);
-      expect(mutableEntries.value[0].tiers.sonnet).toBe(true);
-      expect(mutableEntries.value[0].abilities.mtp).toBe(true);
+      expect(mutableEntries.value[0].tiers!.sonnet).toBe(true);
+      expect(mutableEntries.value[0].abilities!.mtp).toBe(true);
       expect(mutableEntries.value[0].scores).toEqual({ MMLU: { accuracy: 95, samples: 100, time_s: 10 } });
     });
   });
@@ -336,8 +336,8 @@ describe('useLabeling', () => {
       labeling.commitLabelEdits(mutableEntries);
 
       // Verify changes
-      expect(mutableEntries.value[0].abilities.thinking).toBe(false);
-      expect(mutableEntries.value[0].tiers.sonnet).toBe(true);
+      expect(mutableEntries.value[0].abilities!.thinking).toBe(false);
+      expect(mutableEntries.value[0].tiers!.sonnet).toBe(true);
       expect(mutableEntries.value[1].spec.parameters_b).toBe(100);
       expect(mutableEntries.value[1].deprecated).toBe(true);
       expect(labeling.isLabelingMode.value).toBe(false);
