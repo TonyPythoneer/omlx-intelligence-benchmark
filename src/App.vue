@@ -12,7 +12,7 @@
       <div v-if="dataLoading" class="loading-state">Loading data...</div>
       <div v-if="dataError" class="error-state">Data error: {{ dataError }}</div>
 
-      <!-- Toolbar with Import and Label buttons -->
+      <!-- Toolbar with Import, Label, and Export buttons -->
       <div class="toolbar">
         <button
           v-if="isLocalhost"
@@ -27,6 +27,13 @@
           @click="toggleLabelingMode(mutableEntries)"
         >
           {{ isLabelingMode ? '✓ Done' : '✏ Label' }}
+        </button>
+        <button
+          v-if="isLocalhost && showExportButton"
+          class="btn btn-export"
+          @click="isExportModalOpen = true"
+        >
+          📥 Export Data
         </button>
       </div>
 
@@ -67,6 +74,14 @@
         @update:importText="importText = $event"
         @update:specForms="specForms = $event"
       />
+
+      <!-- Export Modal -->
+      <ExportModal
+        :isOpen="isExportModalOpen"
+        :entries="mutableEntries"
+        :selectedDevice="selectedDevice || 'benchmark'"
+        @close="isExportModalOpen = false"
+      />
     </div>
   </div>
 </template>
@@ -78,6 +93,7 @@ import BenchmarkTable from './components/BenchmarkTable.vue';
 import FilterBar from './components/FilterBar.vue';
 import DeviceSelector from './components/DeviceSelector.vue';
 import ImportModal from './components/ImportModal.vue';
+import ExportModal from './components/ExportModal.vue';
 import { useSettings } from './composables/useSettings';
 import { useBenchmarkData } from './composables/useBenchmarkData';
 import { useFilters } from './composables/useFilters';
@@ -107,11 +123,19 @@ const {
   setDirty
 } = useLabeling(mutableEntries);
 
+// Export modal state
+const isExportModalOpen = ref<boolean>(false);
+
 // Hostname guard: only show Import button on localhost/127.0.0.1
 const isLocalhost = computed<boolean>(() => {
   if (typeof window === 'undefined') return false;
   const hostname = window.location.hostname;
   return hostname === 'localhost' || hostname === '127.0.0.1';
+});
+
+// Export button visibility: appears when isDirty or isLabelingMode
+const showExportButton = computed<boolean>(() => {
+  return isDirty.value || isLabelingMode.value;
 });
 
 // useFilters now works with mutableEntries instead of entries
@@ -259,5 +283,25 @@ p {
 
 .btn-label:active {
   background: #6d28d9;
+}
+
+.btn-export {
+  padding: 8px 16px;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-export:hover {
+  background: #059669;
+}
+
+.btn-export:active {
+  background: #047857;
 }
 </style>
