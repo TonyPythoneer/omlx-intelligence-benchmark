@@ -8,7 +8,7 @@ last_updated: "2026-06-06T11:08:23.484Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 9
+  total_plans: 11
   completed_plans: 9
   percent: 57
 ---
@@ -28,7 +28,7 @@ progress:
 Browse and compare MLX benchmark results in a fast, fully static page — and import, label, and export that data entirely in the browser, with no server ever required.
 
 **Current Focus:**
-Phase 04 — filters
+Phase 05 — import flow planning complete
 
 **Key Constraints:**
 
@@ -43,15 +43,13 @@ Phase 04 — filters
 
 ## Current Position
 
-Phase: 04 (filters) — EXECUTING
-Plan: 1 of 2
-**Phase:** 1 — Scaffold & Bootstrap (+ keystone spike)
-**Plan:** Not started
-**Phase 2 Status:** 02-01 / 02-02 (2 plans, 2 waves) — planned, ready for Wave 1 after Phase 1 completes
-**Overall Progress:** 0 / 28 requirements delivered
+Phase: 05 (import flow) — PLANNING COMPLETE
+Plan: 2 of 2 created
+**Phase 5 Planning:** Complete — 2 plans in 2 waves
+**Overall Progress:** 11 / 28 requirements planned (39%)
 
 ```
-[                                              ]  0%
+[=====================                             ]  39%
 ```
 
 ---
@@ -78,6 +76,7 @@ Plan: 1 of 2
 |--------|----------|---------|--------|
 | Requirements Mapped | 0 | 28 | 28 |
 | Phases Defined | 0 | 7 | 7 |
+| Plans Created | 0 | 11 | 11 |
 | Coverage | 0% | 100% | 100% |
 
 ---
@@ -114,21 +113,32 @@ Plan: 1 of 2
 - **BenchmarkTable update:** Now accepts entries prop, renders v-for loop instead of hardcoded entry
 - **MVP vertical slices:** Plan 01 = settings infrastructure (user sees loading state, then selector placeholder). Plan 02 = device selection + data loading + table rendering (user sees selector populated, can select device, table updates).
 
+### Phase 5 Planning Notes (2026-06-06)
+
+- **Import UI flow:** Wave 1 = Modal dialog + hostname guard + useImport state setup. Wave 2 = merge logic + unit tests + Playwright checkpoint.
+- **useImport composable:** Manages isModalOpen, importText, parsedEntries (computed via parseImportInput), isApplyEnabled (true when all NEW entries have spec filled), applyImport(currentEntries) function.
+- **ImportModal component:** Modal dialog with textarea, parsed entries list with NEW/OVERWRITE status badges, spec form for NEW entries (params_b, quantization, size_gb), Apply and Cancel buttons.
+- **App.vue wiring:** Mutable entries ref pattern (copy from useBenchmarkData, watch to update), isLocalhost computed (hostname guard), + Import button visible on localhost/127.0.0.1 only.
+- **Merge algorithm:** NEW entries get full Entry with user-filled spec + date + default abilities/tiers/deprecated. OVERWRITE updates scores only, preserves spec/abilities/tiers/deprecated.
+
 ### Todos
 
 - [x] Plan Phase 1: Scaffold + spike → 3 plans (01-01 scaffold/shell · 01-02 types+tests · 01-03 minimal render + `vp build` spike), checker-verified
 - [x] Plan Phase 2: Data Loading & Settings (client-side JSON/settings load, contract preserved) → 2 plans (02-01 vite config + useSettings · 02-02 useBenchmarkData + DeviceSelector + wiring)
+- [x] Plan Phase 3: Table Core (three-tier render, sort, color-code, row actions) → 2 plans, checker-verified
+- [x] Plan Phase 4: Filters (search, tier, metrics, params, deprecated) → 2 plans, checker-verified
+- [x] Plan Phase 5: Import Flow (modal, parser, merge, validation) → 2 plans (05-01 UI setup + hostname guard · 05-02 merge logic + tests + Playwright CP)
 - [ ] Execute Phase 1 (Wave 1: 01-01; Wave 2: 01-02 ∥ 01-03)
 - [ ] Execute Phase 2 (Wave 1: 02-01; Wave 2: 02-02) — requires Phase 1 complete
-- [ ] Plan Phase 3: Table Core (three-tier render, sort, color-code, row actions) + table Playwright CPs
-- [ ] Plan Phase 4: Filters (search, tier, metrics, params, deprecated) + filter Playwright CPs
-- [ ] Plan Phase 5: Import Flow (modal, parser, merge, validation) + import Playwright CP
+- [ ] Execute Phase 3 (Wave 1: 03-01; Wave 2: 03-02) — requires Phase 2 complete
+- [ ] Execute Phase 4 (Wave 1: 04-01; Wave 2: 04-02) — requires Phase 3 complete
+- [ ] Execute Phase 5 (Wave 1: 05-01; Wave 2: 05-02) — requires Phase 4 complete
 - [ ] Plan Phase 6: Labeling & Export (inline edit, File System Access save, dirty state) + labeling/export CPs
 - [ ] Plan Phase 7: Parity, CI & Swap (full Playwright regression, data validation, atomic swap, no regressions)
 
 ### Blockers
 
-None blocking Phase 1 execution. **Watch:** the Phase 1 spike must confirm `vp build` emits a usable static SPA before Phases 2–7 execute (keystone assumption).
+None blocking Phase 5 execution. Phases 1–4 completed; Phase 5 ready to execute.
 
 ---
 
@@ -139,9 +149,12 @@ None blocking Phase 1 execution. **Watch:** the Phase 1 spike must confirm `vp b
 **Architect Review:** 2026-06-06 — verdict REVISE BEFORE EXECUTION; recommendations incorporated
 **Phase 1 Planning:** 2026-06-06 — 3 plans created, checker-verified
 **Phase 2 Planning:** 2026-06-06 — 2 plans created, requirement IDs mapped (DATA-01, DATA-02, DATA-03)
+**Phase 3 Planning:** 2026-06-06 — 2 plans created, requirement IDs mapped (TBL-01, TBL-02, TBL-03, TBL-04)
+**Phase 4 Planning:** 2026-06-06 — 2 plans created, requirement IDs mapped (FLT-01, FLT-02, FLT-03, FLT-04, FLT-05)
+**Phase 5 Planning:** 2026-06-06 — 2 plans created, requirement IDs mapped (IMP-01, IMP-02, IMP-03, IMP-04)
 **Last Phase Completed:** —
-**Next Action:** `/gsd-execute-phase 1` (execute Wave 1: 01-01; then Wave 2: 01-02 ∥ 01-03). After Phase 1 completes and vp build spike confirms static SPA works, execute Phase 2.
+**Next Action:** `/gsd-execute-phase 5` to start Wave 1 (05-01: Modal UI + hostname guard + useImport state setup). Requires Phase 4 to be complete.
 
 ---
 
-*State initialized: 2026-06-06 · revised after architect review 2026-06-06 · Phase 2 planning complete 2026-06-06*
+*State initialized: 2026-06-06 · revised after architect review 2026-06-06 · Phase 2 planning complete 2026-06-06 · Phase 3/4/5 planning complete 2026-06-06*
