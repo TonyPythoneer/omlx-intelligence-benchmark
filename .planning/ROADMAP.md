@@ -207,7 +207,7 @@
 | 3. Table Core | 2/2 | Complete   | 2026-06-06 |
 | 4. Filters | 2/2 | Complete    | 2026-06-06 |
 | 5. Import Flow | 2/2 | Complete    | 2026-06-06 |
-| 6. Labeling & Export | 2/2 | Complete   | 2026-06-06 |
+| 6. Labeling & Export | 2/2 | Complete    | 2026-06-06 |
 | 7. Parity, CI & Swap | 0/3 | Not started | — |
 
 ---

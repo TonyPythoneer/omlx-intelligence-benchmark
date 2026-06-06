@@ -44,11 +44,11 @@ Migration to Vue 3 + Vite+ (vite-ssg) at **feature parity** with the current `ap
 
 ### Labeling & Export
 
-- [ ] **LAB-01**: Labeling mode inline-edits spec (params / quant / size), abilities (thinking / mtp), deprecated, and tiers (opus / sonnet / haiku)
-- [ ] **LAB-02**: Validation errors disable Export Data until resolved
-- [ ] **LAB-03**: Export Data opens a modal with the full JSON and copies it to the clipboard
-- [ ] **LAB-04**: Save writes to disk via File System Access API (`showSaveFilePicker`); Safari falls back to a download
-- [ ] **LAB-05**: Export Data surfaces whenever data is dirty (after Apply or a labeling edit) or labeling mode is on
+- [x] **LAB-01**: Labeling mode inline-edits spec (params / quant / size), abilities (thinking / mtp), deprecated, and tiers (opus / sonnet / haiku)
+- [x] **LAB-02**: Validation errors disable Export Data until resolved
+- [x] **LAB-03**: Export Data opens a modal with the full JSON and copies it to the clipboard
+- [x] **LAB-04**: Save writes to disk via File System Access API (`showSaveFilePicker`); Safari falls back to a download
+- [x] **LAB-05**: Export Data surfaces whenever data is dirty (after Apply or a labeling edit) or labeling mode is on
 
 ### Parity & CI
 
@@ -101,11 +101,11 @@ Deferred to a future milestone. Tracked, not in this roadmap.
 | IMP-02 | 5 | Complete |
 | IMP-03 | 5 | Complete |
 | IMP-04 | 5 | Complete |
-| LAB-01 | 6 | Pending |
-| LAB-02 | 6 | Pending |
-| LAB-03 | 6 | Pending |
-| LAB-04 | 6 | Pending |
-| LAB-05 | 6 | Pending |
+| LAB-01 | 6 | Complete |
+| LAB-02 | 6 | Complete |
+| LAB-03 | 6 | Complete |
+| LAB-04 | 6 | Complete |
+| LAB-05 | 6 | Complete |
 | PAR-01 | 7 | Pending |
 | PAR-02 | 7 | Pending |
 | PAR-03 | 7 | Pending |
