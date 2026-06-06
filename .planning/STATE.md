@@ -1,8 +1,23 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+current_phase: 2
+status: executing
+last_updated: "2026-06-06T10:16:09.522Z"
+progress:
+  total_phases: 7
+  completed_phases: 1
+  total_plans: 5
+  completed_plans: 3
+  percent: 14
+---
+
 # STATE: oMLX Intelligence Benchmark — Vue 3 + Vite+ Migration
 
 **Milestone:** Vue 3 + Vite+ Static Site Migration at Feature Parity
-**Current Phase:** 1 (Scaffold & Bootstrap + spike) — Phase 2 planning complete
-**Status:** Phase 1 planned and ready to execute; Phase 2 planned (2 plans, verified)
+**Current Phase:** 2
+**Status:** Executing Phase 2
 **Last Updated:** 2026-06-06
 
 ---
@@ -13,9 +28,10 @@
 Browse and compare MLX benchmark results in a fast, fully static page — and import, label, and export that data entirely in the browser, with no server ever required.
 
 **Current Focus:**
-Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 + Vite+ SPA** (static `vp build`, vite-ssg deferred), preserving serverless operation, the pure-JSON data contract, and all in-browser import/label/export workflows.
+Phase 2 — Data Loading & Settings
 
 **Key Constraints:**
+
 - Serverless / static output only (SPA via `vp build`)
 - Pure-JSON data contract unchanged
 - Browser-only APIs (File System Access, clipboard, hostname guard) run client-side only
@@ -27,6 +43,8 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 
 ## Current Position
 
+Phase: 2 (Data Loading & Settings) — EXECUTING
+Plan: 1 of 2
 **Phase:** 1 — Scaffold & Bootstrap (+ keystone spike)
 **Plan:** 01-01 / 01-02 / 01-03 (3 plans, 2 waves) — verified, ready to execute
 **Phase 2 Status:** 02-01 / 02-02 (2 plans, 2 waves) — planned, ready for Wave 1 after Phase 1 completes
@@ -67,6 +85,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 ## Accumulated Context
 
 ### Key Decisions (locked after architect review — see `.planning/REVIEW-ARCHITECT.md`)
+
 - **Plain Vue 3 + Vite+ SPA (static `vp build`), not Nuxt, vite-ssg deferred:** one data-heavy page; SPA is simpler, still serverless, and avoids SSG build-time execution of `window`/`location` (kills 2 critical risks).
 - **State = Composition API composables** (no Pinia): single-page scope; lightweight, type-safe.
 - **TypeScript types in Phase 1** (`types/benchmark.ts`): Entry / Spec / Scores / Tiers / Abilities.
@@ -77,6 +96,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 - **Strict feature parity first**; enhancements → v2. **Pure-JSON data format preserved**; port `import.mjs` as-is.
 
 ### Architecture Notes
+
 - App type: **client-rendered SPA**; entry `app/main.ts` mounted into an `index.html` shell; built via `vp build`.
 - Data: `app/data/*.json` (pure arrays) loaded in the browser; settings `app/settings.json` (defaultDevice, parametersBreakpoints, devices).
 - State: composables (`useTableState` / `useFilters` / `useImportState` or similar).
@@ -86,6 +106,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 - Migration safety: new files alongside the legacy app on the branch; atomic swap of `app/index.html` only at Phase 7.
 
 ### Phase 2 Planning Notes (2026-06-06)
+
 - **Data serving:** `publicDir: '../public'` with symlinks to app/data and app/settings.json (ensures dev works, files copied to dist on build, pure-JSON contract preserved)
 - **useSettings composable:** Fetches /settings.json, returns reactive { settings, defaultDevice, parametersBreakpoints, devices, isLoading, error }
 - **useBenchmarkData composable:** Watches selectedDevice ref, fetches /data/{device}.json reactively, returns { entries: Entry[], isLoading, error }
@@ -94,6 +115,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 - **MVP vertical slices:** Plan 01 = settings infrastructure (user sees loading state, then selector placeholder). Plan 02 = device selection + data loading + table rendering (user sees selector populated, can select device, table updates).
 
 ### Todos
+
 - [x] Plan Phase 1: Scaffold + spike → 3 plans (01-01 scaffold/shell · 01-02 types+tests · 01-03 minimal render + `vp build` spike), checker-verified
 - [x] Plan Phase 2: Data Loading & Settings (client-side JSON/settings load, contract preserved) → 2 plans (02-01 vite config + useSettings · 02-02 useBenchmarkData + DeviceSelector + wiring)
 - [ ] Execute Phase 1 (Wave 1: 01-01; Wave 2: 01-02 ∥ 01-03)
@@ -105,6 +127,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 - [ ] Plan Phase 7: Parity, CI & Swap (full Playwright regression, data validation, atomic swap, no regressions)
 
 ### Blockers
+
 None blocking Phase 1 execution. **Watch:** the Phase 1 spike must confirm `vp build` emits a usable static SPA before Phases 2–7 execute (keystone assumption).
 
 ---

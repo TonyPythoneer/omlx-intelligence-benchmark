@@ -33,6 +33,7 @@
 **Spike first (de-risk before Phases 2–7 commit):** prove `vp build` emits a static, serverless SPA bundle, and render one hardcoded benchmark row through a minimal `BenchmarkTable.vue` to validate the whole toolchain end-to-end. If `vp build` cannot emit a usable static SPA, resolve (or reconsider vite-ssg) before proceeding.
 
 **Foundational decisions established here (from architect review):**
+
 - SPA, no SSG/prerender (vite-ssg deferred)
 - State = Composition API composables (no Pinia)
 - `types/benchmark.ts` — Entry / Spec / Scores / Tiers / Abilities schema
@@ -40,6 +41,7 @@
 - All work stays on `feat/vue-vite-static-site`; live `app/index.html` untouched until the Phase 7 swap
 
 **Success Criteria** (what must be TRUE):
+
 1. `vp dev` serves the Vue app on localhost:8080 with hot-reload working
 2. `vp test` runs the vitest suite; the ported parser unit tests are green
 3. `vp build` produces a static, serverless SPA output (index.html + JS/CSS, data JSON carried through); serving `dist` works with no server
@@ -48,6 +50,7 @@
 6. Live `app/index.html` is unchanged on disk (migration isolated to new files on the feature branch)
 
 **Plans:** 3 plans in 2 waves
+
 - [ ] 01-01-PLAN.md — Vite scaffold + shell (Wave 1)
 - [ ] 01-02-PLAN.md — Types + test integration (Wave 2)
 - [ ] 01-03-PLAN.md — Table render + build spike (Wave 2)
@@ -64,12 +67,14 @@
 **Requirements:** DATA-01, DATA-02, DATA-03
 
 **Success Criteria** (what must be TRUE):
+
 1. Loading localhost:8080 populates the reactive data store from `app/data/*.json` (loaded in the browser, not inlined at build time)
 2. `app/settings.json` (defaultDevice, parametersBreakpoints, devices) loads; device selector works
 3. Pure-JSON data contract is preserved; no schema changes to existing `app/data/*.json`; `vp build` output carries the JSON through unprocessed
 
-**Plans:** 2 plans in 2 waves
-- [ ] 02-01-PLAN.md — Vite config + useSettings composable (Wave 1)
+**Plans:** 1/2 plans executed
+
+- [x] 02-01-PLAN.md — Vite config + useSettings composable (Wave 1)
 - [ ] 02-02-PLAN.md — useBenchmarkData + DeviceSelector + table wiring (Wave 2)
 
 **UI hint:** yes
@@ -84,6 +89,7 @@
 **Requirements:** TBL-01, TBL-02, TBL-03, TBL-04
 
 **Success Criteria** (what must be TRUE):
+
 1. Three-tier table header (category group → benchmark sub-group → Acc/Time leaf) renders from loaded data
 2. Score color-coding applies (≥90% green, ≥80% amber, <80% red)
 3. Default sort is `date DESC`; other columns are clickable to sort; Model column is non-sortable
@@ -103,6 +109,7 @@
 **Requirements:** FLT-01, FLT-02, FLT-03, FLT-04, FLT-05
 
 **Success Criteria** (what must be TRUE):
+
 1. Model substring search filters rows live as user types
 2. Tier (All / Opus / Sonnet / Haiku) and Metrics (All / Basic / Advanced) segmented filters apply correctly
 3. Params dual-handle range slider filters by `parameters_b` using `parametersBreakpoints`
@@ -123,6 +130,7 @@
 **Requirements:** IMP-01, IMP-02, IMP-03, IMP-04
 
 **Success Criteria** (what must be TRUE):
+
 1. `+ Import` button is visible on localhost/127.0.0.1; hidden on other hosts (client-side hostname guard)
 2. Pasting benchmark runner stdout shows the parsed NEW / OVERWRITE entry list in the modal
 3. Apply merges entries into in-memory state; duplicate model overwrites **scores only** (spec / abilities / tiers / deprecated preserved)
@@ -142,6 +150,7 @@
 **Requirements:** LAB-01, LAB-02, LAB-03, LAB-04, LAB-05
 
 **Success Criteria** (what must be TRUE):
+
 1. ✏ Label button opens inline editors for spec (params / quant / size), abilities (thinking / mtp), deprecated, and tiers (opus / sonnet / haiku)
 2. Validation errors prevent Export Data from being applied until resolved
 3. Export Data modal shows the full JSON and copies it to the clipboard
@@ -162,6 +171,7 @@
 **Requirements:** PAR-01, PAR-02, PAR-03
 
 **Success Criteria** (what must be TRUE):
+
 1. The full 9-point Playwright suite (`outputs/ui-validation/final_script.py`) passes as a final regression — per-phase selectors already validated in Phases 3–6
 2. Data-validation CI workflow stays green on data/ and lib/ changes
 3. No behavioral regressions vs. current `app/index.html`; all filters, import/export, labeling, and table features work identically
@@ -177,7 +187,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
-| 2. Data Loading & Settings | 2/2 | Planned | — |
+| 2. Data Loading & Settings | 1/2 | In Progress|  |
 | 3. Table Core | 0/3 | Not started | — |
 | 4. Filters | 0/4 | Not started | — |
 | 5. Import Flow | 0/3 | Not started | — |
