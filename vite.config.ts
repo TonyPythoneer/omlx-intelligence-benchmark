@@ -15,7 +15,7 @@ export default defineConfig({
     emptyOutDir: true
   },
   test: {
-    include: ['lib/**/*.test.mjs'],
+    include: ['lib/**/*.test.mjs', 'composables/**/*.test.ts'],
     globals: true
   }
 });
