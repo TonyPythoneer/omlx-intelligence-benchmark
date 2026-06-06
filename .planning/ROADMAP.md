@@ -96,7 +96,11 @@
 4. Each table row has 📋 (copy model name) and 🤗 (open `huggingface.co/models?search=<model>`) buttons
 5. **CI (incremental):** Playwright table checkpoints (page-load rows, sort) pass against the new DOM — selectors updated as needed
 
-**Plans:** TBD
+**Plans:** 2 plans in 2 waves
+
+- [ ] 03-01-PLAN.md — Three-tier header + color-coding (Wave 1)
+- [ ] 03-02-PLAN.md — Sorting + row actions (Wave 2)
+
 **UI hint:** yes
 
 ---
@@ -188,7 +192,7 @@
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
 | 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
-| 3. Table Core | 0/3 | Not started | — |
+| 3. Table Core | 2/2 | Planned | 2026-06-06 |
 | 4. Filters | 0/4 | Not started | — |
 | 5. Import Flow | 0/3 | Not started | — |
 | 6. Labeling & Export | 0/4 | Not started | — |
@@ -199,3 +203,4 @@
 *Roadmap created: 2026-06-06 · revised 2026-06-06 per opus architect review (see `.planning/REVIEW-ARCHITECT.md`)*
 *Phase 1 plans finalized: 2026-06-06 (3 plans in 2 execution waves)*
 *Phase 2 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
+*Phase 3 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
