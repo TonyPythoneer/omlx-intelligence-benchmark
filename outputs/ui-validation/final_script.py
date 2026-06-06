@@ -1,4 +1,4 @@
-"""UI validation script for app/index.html — runs 9 Critical Points + CP10 import flow."""
+"""UI validation script for app/index.html — runs 9 Critical Points + CP10 import + CP11 labeling-export flow."""
 import asyncio
 from pathlib import Path
 from playwright.async_api import async_playwright
@@ -291,9 +291,111 @@ async def main() -> None:
             except:
                 pass
 
+        # CP11 — Labeling mode + Export flow
+        log("step 11 action: test labeling mode activation and export data button")
+        try:
+            # Ensure we're on the page with data
+            await page.goto(URL, wait_until="networkidle")
+            await page.wait_for_timeout(300)
+
+            # Click Label button to enter labeling mode
+            label_btn = page.locator("button:has-text('✏ Label')")
+            if await label_btn.count() == 0:
+                raise Exception("Label button not found")
+            await label_btn.click()
+            await page.wait_for_timeout(500)
+            log("  - clicked Label button")
+
+            # Verify labeling mode is active by checking for inline edit inputs in tbody
+            tbody_inputs = await page.locator("tbody input").count()
+            if tbody_inputs == 0:
+                raise Exception("No inline edit inputs found in labeling mode")
+            log(f"  - labeling mode active, found {tbody_inputs} input fields")
+
+            # Find Export Data button (should now be visible since we're in labeling mode)
+            export_btn = page.locator("button:has-text('📥 Export Data')")
+            if await export_btn.count() == 0:
+                raise Exception("Export Data button not found or not visible")
+            log("  - Export Data button is visible")
+
+            # Click Export Data button to open modal
+            await export_btn.click()
+            await page.wait_for_timeout(500)
+            log("  - clicked Export Data button")
+
+            # Verify modal opens and contains JSON content
+            modal = page.locator("div.modal-overlay:has(div.export-modal)")
+            if await modal.count() == 0:
+                raise Exception("Export modal not found")
+            modal_visible = await modal.is_visible()
+            if not modal_visible:
+                raise Exception("Export modal not visible")
+            log("  - export modal opened")
+
+            # Verify JSON preview contains valid JSON (starts with '[')
+            json_preview = page.locator("div.export-modal pre.json-preview")
+            if await json_preview.count() == 0:
+                raise Exception("JSON preview not found in modal")
+            json_text = await json_preview.inner_text()
+            if not json_text.strip().startswith("["):
+                raise Exception(f"JSON preview does not start with '[': {json_text[:80]!r}")
+            log(f"  - JSON preview valid, length={len(json_text)}")
+
+            # Verify Copy to Clipboard button is visible
+            copy_btn = page.locator("div.export-modal button:has-text('Copy to Clipboard')")
+            if await copy_btn.count() == 0:
+                raise Exception("Copy button not found")
+            log("  - Copy to Clipboard button visible")
+
+            # Verify Save to File button is visible
+            save_btn = page.locator("div.export-modal button:has-text('Save to File')")
+            if await save_btn.count() == 0:
+                raise Exception("Save button not found")
+            log("  - Save to File button visible")
+
+            # Click Close button in modal
+            close_btn = page.locator("div.export-modal button:has-text('Close')")
+            if await close_btn.count() == 0:
+                raise Exception("Close button not found")
+            await close_btn.click()
+            await page.wait_for_timeout(300)
+            log("  - closed export modal")
+
+            # Verify modal is closed
+            modal_after = page.locator("div.modal-overlay:has(div.export-modal):visible")
+            if await modal_after.count() > 0:
+                raise Exception("Modal still visible after close")
+            log("  - export modal closed successfully")
+
+            # Click Done button to exit labeling mode
+            done_btn = page.locator("button:has-text('✓ Done')")
+            if await done_btn.count() == 0:
+                raise Exception("Done button not found")
+            await done_btn.click()
+            await page.wait_for_timeout(300)
+            log("  - exited labeling mode")
+
+            # Verify we exited labeling mode (Export button should still be visible if data is dirty)
+            label_btn_after = page.locator("button:has-text('✏ Label')")
+            if await label_btn_after.count() == 0:
+                raise Exception("Label button not visible after exiting labeling mode")
+            log("  - returned to normal mode successfully")
+
+            passed.append("CP11")
+            log("CP11 PASS: labeling mode + export flow complete")
+            await page.screenshot(path=str(SS / "final_execution_11_labeling_export.png"))
+
+        except Exception as e:
+            failed.append("CP11")
+            log(f"CP11 FAIL: {str(e)}")
+            try:
+                await page.screenshot(path=str(SS / "final_execution_11_labeling_export_error.png"))
+            except:
+                pass
+
         await browser.close()
 
-    summary = f"RESULT: {len(passed)}/10 passed — {', '.join(passed or ['none'])}"
+    summary = f"RESULT: {len(passed)}/11 passed — {', '.join(passed or ['none'])}"
     if failed:
         summary += f" | FAILED: {', '.join(failed)}"
     log(summary)
