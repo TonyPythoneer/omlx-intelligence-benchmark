@@ -19,6 +19,13 @@
         @update:tierFilter="tierFilter = $event"
         :metricsFilter="metricsFilter"
         @update:metricsFilter="metricsFilter = $event"
+        :paramsMinIdx="paramsMinIdx"
+        @update:paramsMinIdx="paramsMinIdx = $event"
+        :paramsMaxIdx="paramsMaxIdx"
+        @update:paramsMaxIdx="paramsMaxIdx = $event"
+        :parametersBreakpoints="parametersBreakpoints"
+        :showDeprecated="showDeprecated"
+        @update:showDeprecated="showDeprecated = $event"
       />
 
       <BenchmarkTable :entries="filteredEntries" :visibleBenchmarks="visibleBenchmarks" />
@@ -35,7 +42,7 @@ import { useSettings } from './composables/useSettings';
 import { useBenchmarkData } from './composables/useBenchmarkData';
 import { useFilters } from './composables/useFilters';
 
-const { settings, defaultDevice, devices, isLoading: settingsLoading, error: settingsError } = useSettings();
+const { settings, defaultDevice, devices, parametersBreakpoints, isLoading: settingsLoading, error: settingsError } = useSettings();
 const selectedDevice = ref<string | null>(null);
 const { entries, isLoading: dataLoading, error: dataError } = useBenchmarkData(selectedDevice);
 
@@ -44,7 +51,10 @@ const {
   visibleBenchmarks,
   modelSearch,
   tierFilter,
-  metricsFilter
+  metricsFilter,
+  paramsMinIdx,
+  paramsMaxIdx,
+  showDeprecated
 } = useFilters(entries, settings);
 
 watch(defaultDevice, (device) => {
