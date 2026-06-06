@@ -170,7 +170,11 @@
 5. Export Data button surfaces whenever data is dirty (after Apply or labeling edit) or labeling mode is on
 6. **CI (incremental):** Playwright labeling + export checkpoints pass against the new DOM
 
-**Plans:** TBD
+**Plans:** 2/2 plans complete
+
+- [x] 06-01-PLAN.md — Labeling state + inline editors (Wave 1)
+- [x] 06-02-PLAN.md — Export modal + file save (Wave 2)
+
 **UI hint:** yes
 
 ---
@@ -203,7 +207,7 @@
 | 3. Table Core | 2/2 | Complete   | 2026-06-06 |
 | 4. Filters | 2/2 | Complete    | 2026-06-06 |
 | 5. Import Flow | 2/2 | Complete    | 2026-06-06 |
-| 6. Labeling & Export | 0/4 | Not started | — |
+| 6. Labeling & Export | 2/2 | Complete    | 2026-06-06 |
 | 7. Parity, CI & Swap | 0/3 | Not started | — |
 
 ---
@@ -214,3 +218,4 @@
 *Phase 3 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
 *Phase 4 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
 *Phase 5 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
+*Phase 6 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
