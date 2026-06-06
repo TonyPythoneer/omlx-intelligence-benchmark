@@ -1,5 +1,5 @@
-import { ref, computed, type Ref, type ComputedRef } from 'vue';
-import type { Entry, Spec, Abilities, Tiers } from '../types/benchmark';
+import { ref, computed, type Ref } from 'vue';
+import type { Entry } from '../types/benchmark';
 
 /**
  * Label edit shape: per-model edits that can be made to entries

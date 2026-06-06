@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { useLabeling, validateEditField, type ValidationErrors } from './useLabeling';
-import { ref, type Ref } from 'vue';
+import { useLabeling, validateEditField } from './useLabeling';
+import { ref } from 'vue';
+
 import type { Entry } from '../types/benchmark';
 
 describe('useLabeling', () => {
