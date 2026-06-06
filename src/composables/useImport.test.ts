@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { ref } from 'vue';
 import { useImport } from './useImport';
-import type { Entry, Scores } from '../types/benchmark';
+import type { Entry } from '../types/benchmark';
 
 /**
  * Test suite for useImport composable - merge behavior verification
@@ -42,8 +42,8 @@ TRUTHFULQA           75.0%        15      20     138.8     Yes`;
       expect(entry.spec.parameters_b).toBe(20);
       expect(entry.spec.quantization).toBe('8bit');
       expect(entry.spec.size_gb).toBe(40);
-      expect(entry.abilities.thinking).toBe(false);
-      expect(entry.abilities.mtp).toBe(false);
+      expect(entry.abilities?.thinking).toBe(false);
+      expect(entry.abilities?.mtp).toBe(false);
       expect(entry.tiers.opus).toBe(false);
       expect(entry.tiers.sonnet).toBe(false);
       expect(entry.tiers.haiku).toBe(false);
@@ -115,8 +115,8 @@ TRUTHFULQA           48.0%        14      30     80.0      Yes`;
       expect(entry.tiers.opus).toBe(true);
       expect(entry.tiers.sonnet).toBe(false);
       expect(entry.tiers.haiku).toBe(false);
-      expect(entry.abilities.thinking).toBe(true);
-      expect(entry.abilities.mtp).toBe(false);
+      expect(entry.abilities?.thinking).toBe(true);
+      expect(entry.abilities?.mtp).toBe(false);
 
       // Updated scores
       expect(entry.scores.MMLU).toEqual({
