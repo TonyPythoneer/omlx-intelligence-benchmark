@@ -47,7 +47,11 @@
 5. TypeScript compiles clean; `types/benchmark.ts` defines the entry schema; Vue SFCs type-check
 6. Live `app/index.html` is unchanged on disk (migration isolated to new files on the feature branch)
 
-**Plans:** TBD
+**Plans:** 3 plans in 2 waves
+- [ ] 01-01-PLAN.md — Vite scaffold + shell (Wave 1)
+- [ ] 01-02-PLAN.md — Types + test integration (Wave 2)
+- [ ] 01-03-PLAN.md — Table render + build spike (Wave 2)
+
 **UI hint:** yes
 
 ---
@@ -169,7 +173,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Scaffold & Bootstrap (+ spike) | 0/4 | Not started | — |
+| 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
 | 2. Data Loading & Settings | 0/2 | Not started | — |
 | 3. Table Core | 0/3 | Not started | — |
 | 4. Filters | 0/4 | Not started | — |
@@ -180,3 +184,4 @@
 ---
 
 *Roadmap created: 2026-06-06 · revised 2026-06-06 per opus architect review (see `.planning/REVIEW-ARCHITECT.md`)*
+*Phase 1 plans finalized: 2026-06-06 (3 plans in 2 execution waves)*

@@ -2,7 +2,7 @@
 
 **Milestone:** Vue 3 + Vite+ Static Site Migration at Feature Parity
 **Current Phase:** 1 (Scaffold & Bootstrap + spike)
-**Status:** Roadmap created + opus architect review incorporated (REVISE → resolved); awaiting phase planning
+**Status:** Phase 1 planned (3 plans, checker-verified, blocker fixed); ready to execute
 **Last Updated:** 2026-06-06
 
 ---
@@ -28,8 +28,8 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 ## Current Position
 
 **Phase:** 1 — Scaffold & Bootstrap (+ keystone spike)
-**Plan:** Pending
-**Status:** Not started
+**Plan:** 01-01 / 01-02 / 01-03 (3 plans, 2 waves) — verified, ready
+**Status:** Planned & verified — awaiting execution
 **Progress:** 0 / 28 requirements delivered
 
 ```
@@ -86,7 +86,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 - Migration safety: new files alongside the legacy app on the branch; atomic swap of `app/index.html` only at Phase 7.
 
 ### Todos
-- [ ] Plan Phase 1: Scaffold + spike (vp dev/test/static-build, minimal `BenchmarkTable.vue` render, `types/benchmark.ts`, composables skeleton, client-only guard, branch isolation)
+- [x] Plan Phase 1: Scaffold + spike → 3 plans (01-01 scaffold/shell · 01-02 types+tests · 01-03 minimal render + `vp build` spike), checker-verified
 - [ ] Plan Phase 2: Data Loading & Settings (client-side JSON/settings load, contract preserved)
 - [ ] Plan Phase 3: Table Core (three-tier render, sort, color-code, row actions) + table Playwright CPs
 - [ ] Plan Phase 4: Filters (search, tier, metrics, params, deprecated) + filter Playwright CPs
@@ -105,7 +105,7 @@ None blocking planning. **Watch:** the Phase 1 spike must confirm `vp build` emi
 **Roadmap Created:** 2026-06-06
 **Architect Review:** 2026-06-06 — verdict REVISE BEFORE EXECUTION; recommendations incorporated
 **Last Phase Completed:** —
-**Next Action:** `/gsd-plan-phase 1` (Scaffold & Bootstrap + spike)
+**Next Action:** `/gsd-execute-phase 1` (execute 3 plans — Wave 1: 01-01; Wave 2: 01-02 ∥ 01-03; note 01-03 ends in a human-verify build checkpoint)
 
 ---
 
