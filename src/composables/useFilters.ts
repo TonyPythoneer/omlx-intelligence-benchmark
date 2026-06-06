@@ -52,6 +52,41 @@ export function useFilters(entries: Ref<Entry[]>, settings: Ref<Settings | null>
   });
 
   /**
+   * Helper: paramsValueAt - Convert slider index to parameter value
+   * Returns the breakpoint value at the given index, or Infinity if index is at/beyond the length
+   */
+  function paramsValueAt(idx: number, breakpoints: number[]): number | Infinity {
+    return idx >= breakpoints.length ? Infinity : breakpoints[idx];
+  }
+
+  /**
+   * Helper: paramsMatch - Check if entry matches the params filter
+   * Entries with null parameters_b always pass; others must be within [minIdx, maxIdx] range
+   */
+  function paramsMatch(
+    entry: Entry,
+    minIdx: number,
+    maxIdx: number,
+    breakpoints: number[]
+  ): boolean {
+    const p = entry.spec.parameters_b;
+    if (p == null) return true; // null values pass the filter
+    const lo = paramsValueAt(minIdx, breakpoints);
+    const hi = paramsValueAt(maxIdx, breakpoints);
+    return p >= lo && p <= hi;
+  }
+
+  /**
+   * Helper: deprecatedMatch - Check if entry matches the deprecated filter
+   * If showDeprecated is true, all entries pass
+   * Otherwise, only non-deprecated entries pass
+   */
+  function deprecatedMatch(entry: Entry, showDeprecated: boolean): boolean {
+    if (showDeprecated) return true;
+    return !entry.deprecated;
+  }
+
+  /**
    * Computed: filteredEntries - Returns filtered array of entries based on all active filters
    * Applies filters with AND logic: must pass ALL filters to be included
    */
@@ -65,6 +100,11 @@ export function useFilters(entries: Ref<Entry[]>, settings: Ref<Settings | null>
         }
       }
 
+      // Deprecated filter (apply early to skip hidden rows)
+      if (!deprecatedMatch(entry, showDeprecated.value)) {
+        return false;
+      }
+
       // Tier filter
       if (tierFilter.value !== 'all') {
         if (!entry.tiers[tierFilter.value]) {
@@ -72,14 +112,14 @@ export function useFilters(entries: Ref<Entry[]>, settings: Ref<Settings | null>
         }
       }
 
+      // Params filter
+      const bp = settings.value?.parametersBreakpoints || [];
+      if (!paramsMatch(entry, paramsMinIdx.value, paramsMaxIdx.value, bp)) {
+        return false;
+      }
+
       // Metrics filter - doesn't filter rows, only columns (handled via visibleBenchmarks)
-      // So always return true for now
-
-      // Params filter - placeholder for now, always return true
-      // Will be implemented in Phase 04-02
-
-      // Deprecated filter - placeholder for now, always return true
-      // Will be implemented in Phase 04-02
+      // All rows pass; columns are hidden via visibleBenchmarks in BenchmarkTable
 
       return true;
     });
