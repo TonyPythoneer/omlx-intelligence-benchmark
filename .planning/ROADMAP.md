@@ -121,7 +121,7 @@
 5. All filters combine correctly (AND logic for multi-filter selections)
 6. **CI (incremental):** Playwright filter checkpoints (tier, model search, show-deprecated, params) pass against the new DOM
 
-**Plans:** 2/2 plans complete
+**Plans:** 1/2 plans executed
 
 - [x] 04-01-PLAN.md — Filter infrastructure + model search + tier/metrics filters (Wave 1)
 - [x] 04-02-PLAN.md — Params slider + show deprecated toggle (Wave 2)
@@ -197,7 +197,7 @@
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
 | 2. Data Loading & Settings | 2/2 | Complete   | 2026-06-06 |
 | 3. Table Core | 2/2 | Complete   | 2026-06-06 |
-| 4. Filters | 2/2 | Planned    | 2026-06-06 |
+| 4. Filters | 1/2 | In Progress|  |
 | 5. Import Flow | 0/3 | Not started | — |
 | 6. Labeling & Export | 0/4 | Not started | — |
 | 7. Parity, CI & Swap | 0/3 | Not started | — |
