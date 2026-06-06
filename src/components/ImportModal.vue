@@ -8,7 +8,6 @@
           v-model="importTextLocal"
           class="import-textarea"
           placeholder="Paste benchmark runner stdout here..."
-          @input="$emit('update:importText', importTextLocal)"
         ></textarea>
 
         <!-- Parsed entries list -->
@@ -66,7 +65,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, watch } from 'vue';
 
 interface ParsedResult {
   model: string;
@@ -105,10 +104,9 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>();
 
-const importTextLocal = computed({
-  get: () => props.importText,
-  set: (value) => emit('update:importText', value),
-});
+const importTextLocal = ref(props.importText);
+watch(() => props.importText, v => { importTextLocal.value = v; });
+watch(importTextLocal, v => { emit('update:importText', v); });
 
 function updateSpecForm(model: string, field: 'parameters_b' | 'quantization' | 'size_gb', event: Event) {
   const target = event.target as HTMLInputElement;

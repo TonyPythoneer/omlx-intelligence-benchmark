@@ -3,14 +3,14 @@ name: ci-ui-validation
 on:
   push:
     paths:
-      - 'app/**/*.html'
-      - 'app/**/*.js'
-      - 'app/**/*.mjs'
+      - 'src/**'
+      - 'app/lib/**'
+      - 'app/data/**'
   pull_request:
     paths:
-      - 'app/**/*.html'
-      - 'app/**/*.js'
-      - 'app/**/*.mjs'
+      - 'src/**'
+      - 'app/lib/**'
+      - 'app/data/**'
 
 jobs:
   ui-validation:
