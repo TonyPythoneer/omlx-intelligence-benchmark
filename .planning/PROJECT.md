@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A static, serverless benchmark comparison site for oMLX / MLX model results. Today it is a single 1581-line vanilla-JS `app/index.html` (viewer + in-browser data editor). This milestone migrates it into a component-based **Vue 3 + Vite+ (`vp`) static site** — built as a client-rendered SPA via `vp build` (vite-ssg deferred per architect review; see Key Decisions), borrowing the `jen-lab` toolchain family — while preserving the serverless, in-browser data-import/label/export model and the pure-JSON data contract.
+A static, serverless benchmark comparison site for oMLX / MLX model results. It is a component-based **Vue 3 + Vite+ (`vp`) static SPA** — migrated from a single 1581-line vanilla-JS `app/index.html` in v1.0. Built via `vp build`, deployed from `dist/` to GitHub Pages. The in-browser data-import/label/export model and the pure-JSON data contract are preserved. **Milestone v1.0 complete (all 7 phases).**
 
 ## Core Value
 
@@ -12,30 +12,26 @@ Browse and compare MLX benchmark results in a fast, fully static page — and im
 
 ### Validated
 
-<!-- Inferred from the existing app/index.html — shipped and relied upon. Must survive the migration at parity. -->
+<!-- All original parity requirements + migration requirements shipped. -->
 
-- ✓ Three-tier benchmark table (category group → benchmark sub-group → Acc/Time leaf) with score color-coding (≥90 green, ≥80 amber, <80 red) — existing
-- ✓ Filters: model substring search, Tier (All/Opus/Sonnet/Haiku), Metrics (All/Basic/Advanced), Params dual-handle range slider, Show Deprecated — existing
-- ✓ Default sort by `date DESC`; sortable columns; Model column non-sortable — existing
-- ✓ Per-row 📋 copy-model-name and 🤗 open-HuggingFace-search actions — existing
-- ✓ Import modal: paste benchmark stdout → JS parser → NEW/OVERWRITE list → in-memory merge (overwrite **scores only** on duplicate model) — existing
-- ✓ Labeling mode: inline edit of spec (params/quant/size), abilities (thinking/mtp), deprecated, tiers (opus/sonnet/haiku) with validation gating Export — existing
-- ✓ Export Data: full JSON via clipboard or File System Access API (`showSaveFilePicker`, Safari falls back to download) — existing
-- ✓ Pure-JSON data files per device (`app/data/*.json`) + `app/settings.json` (defaultDevice, parametersBreakpoints, devices) — existing
-- ✓ Hostname guard: `+ Import` hidden when not on localhost/127.0.0.1 — existing
-- ✓ Vite+ dev/test wiring (`vp dev` / `vp test`, `make serve` on :8080) — existing
-- ✓ CI: UI-validation (Playwright `final_script.py`) + data-JSON validation — existing
+- ✓ Three-tier benchmark table (category group → benchmark sub-group → Acc/Time leaf) with score color-coding — Phase 1/3
+- ✓ Filters: model substring search, Tier, Metrics, Params dual-handle range slider, Show Deprecated — Phase 4
+- ✓ Default sort by `date DESC`; sortable columns; Model column non-sortable — Phase 3
+- ✓ Per-row 📋 copy-model-name and 🤗 open-HuggingFace-search actions — Phase 3
+- ✓ Import modal: paste benchmark stdout → JS parser → NEW/OVERWRITE list → in-memory merge (overwrite scores only on duplicate) — Phase 5
+- ✓ Labeling mode: inline edit of spec/abilities/deprecated/tiers with validation gating Export — Phase 6
+- ✓ Export Data: full JSON via clipboard or File System Access API (Safari fallback) — Phase 6
+- ✓ Pure-JSON data files per device + settings.json (defaultDevice, parametersBreakpoints, devices) — Phase 1/2
+- ✓ Hostname guard: `+ Import` hidden when not on localhost/127.0.0.1 — Phase 5
+- ✓ Vite+ dev/test wiring (`vp dev` / `vp test`, `make serve` on :8080) — Phase 1
+- ✓ CI: UI-validation (Playwright `final_script.py`) + data-JSON validation — Phase 7
+- ✓ Vue 3 SFC component-based architecture with Composition API composables — Phase 1–6
+- ✓ Static `vp build` producing `dist/` deployed to GitHub Pages via `cd-static.yml` — Phase 7
+- ✓ 35 Vitest tests (parser + composables) green; 11/11 Playwright CPs green — Phase 5/6/7
 
 ### Active
 
-<!-- This migration. Hypotheses until shipped. -->
-
-- [ ] Rebuild the viewer UI as Vue 3 single-file components on Vite+ (vite-ssg), at **feature parity** with the current index.html
-- [ ] Adopt the `jen-lab` toolchain pattern as appropriate: `@vitejs/plugin-vue`, file-based structure (`app/` source root, `app/main.ts` entry, `index.html` shell), and the unplugin DX set (vue-router/layouts/auto-import/components) scoped to actual need
-- [ ] Port the stdout parser + merge logic from `app/lib/import.mjs` into the Vue app, keeping its unit tests green
-- [ ] Preserve the pure-JSON data contract and the in-browser save path (File System Access API) under SSG
-- [ ] Produce a static build (`vp build` / vite-ssg) that deploys with no server, keeping `make serve` / `vp dev` / `vp test`
-- [ ] Keep the existing CI green (UI-validation + data-validation) against the migrated app
+[none — milestone v1.0 complete]
 
 ### Out of Scope
 
@@ -94,4 +90,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-06 after initialization*
+*Last updated: 2026-06-06 after Phase 07 — milestone v1.0 complete*

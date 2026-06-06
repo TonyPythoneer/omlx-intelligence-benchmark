@@ -52,9 +52,9 @@ Migration to Vue 3 + Vite+ (vite-ssg) at **feature parity** with the current `ap
 
 ### Parity & CI
 
-- [ ] **PAR-01**: The existing Playwright UI-validation (`outputs/ui-validation/final_script.py`) passes against the migrated app (selectors/flows updated as needed)
-- [ ] **PAR-02**: The existing data-JSON validation CI stays green
-- [ ] **PAR-03**: Feature parity is verified against the current `index.html` — no behavioral regressions
+- [x] **PAR-01**: The existing Playwright UI-validation (`outputs/ui-validation/final_script.py`) passes against the migrated app (selectors/flows updated as needed)
+- [x] **PAR-02**: The existing data-JSON validation CI stays green
+- [x] **PAR-03**: Feature parity is verified against the current `index.html` — no behavioral regressions
 
 ## v2 Requirements
 
@@ -106,9 +106,9 @@ Deferred to a future milestone. Tracked, not in this roadmap.
 | LAB-03 | 6 | Complete |
 | LAB-04 | 6 | Complete |
 | LAB-05 | 6 | Complete |
-| PAR-01 | 7 | Pending |
-| PAR-02 | 7 | Pending |
-| PAR-03 | 7 | Pending |
+| PAR-01 | 7 | Complete |
+| PAR-02 | 7 | Complete |
+| PAR-03 | 7 | Complete |
 
 **Coverage:**
 

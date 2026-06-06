@@ -17,7 +17,7 @@
 - [x] **Phase 4: Filters** - Model search, tier, metrics, params, and deprecated filters (completed 2026-06-06)
 - [x] **Phase 5: Import Flow** - Local-only benchmark import modal with parser (planned 2026-06-06) (completed 2026-06-06)
 - [x] **Phase 6: Labeling & Export** - Inline editing and File System Access save (completed 2026-06-06)
-- [ ] **Phase 7: Parity, CI & Swap** - Full Playwright regression, data-validation, atomic swap to the Vue app
+- [x] **Phase 7: Parity, CI & Swap** - Full Playwright regression, data-validation, atomic swap to the Vue app (completed 2026-06-06)
 
 ---
 
@@ -193,11 +193,11 @@
 3. No behavioral regressions vs. current `app/index.html`; all filters, import/export, labeling, and table features work identically
 4. **Atomic swap:** the Vue SPA build replaces the legacy `app/index.html` as the served/deployed app; deploy (`cd-static.yml`) stays serverless; `make serve` / `vp dev` / `vp test` still work
 
-**Plans:** 3 plans in 2 waves
+**Plans:** 3/3 plans complete
 
-- [ ] 07-01-PLAN.md — Playwright regression test (Wave 1)
-- [ ] 07-02-PLAN.md — Data validation CI verification (Wave 1)
-- [ ] 07-03-PLAN.md — Build & deploy Vue SPA (Wave 2)
+- [x] 07-01-PLAN.md — Playwright regression test (Wave 1)
+- [x] 07-02-PLAN.md — Data validation CI verification (Wave 1)
+- [x] 07-03-PLAN.md — Build & deploy Vue SPA (Wave 2)
 
 **UI hint:** yes
 
@@ -213,7 +213,7 @@
 | 4. Filters | 2/2 | Complete    | 2026-06-06 |
 | 5. Import Flow | 2/2 | Complete    | 2026-06-06 |
 | 6. Labeling & Export | 2/2 | Complete    | 2026-06-06 |
-| 7. Parity, CI & Swap | 3/3 | Planned     | 2026-06-06 |
+| 7. Parity, CI & Swap | 3/3 | Complete    | 2026-06-06 |
 
 ---
 
