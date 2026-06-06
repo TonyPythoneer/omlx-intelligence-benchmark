@@ -117,6 +117,7 @@ const {
   isDirty,
   labelEdits,
   validationErrors,
+  hasValidationErrors,
   toggleLabelingMode,
   updateLabelEdit,
   commitLabelEdits,
@@ -133,9 +134,9 @@ const isLocalhost = computed<boolean>(() => {
   return hostname === 'localhost' || hostname === '127.0.0.1';
 });
 
-// Export button visibility: appears when isDirty or isLabelingMode
+// Export button visibility: appears when isDirty or isLabelingMode, but only when no validation errors
 const showExportButton = computed<boolean>(() => {
-  return isDirty.value || isLabelingMode.value;
+  return (isDirty.value || isLabelingMode.value) && !hasValidationErrors.value;
 });
 
 // useFilters now works with mutableEntries instead of entries
