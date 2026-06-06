@@ -11,6 +11,19 @@ export function useBenchmarkData(device: Ref<string | null>) {
   const error = ref<string | null>(null);
 
   /**
+   * Normalize entries to ensure all have a valid tiers object
+   */
+  function normalizeEntries(data: Entry[]): Entry[] {
+    return data.map((entry) => {
+      // If entry.tiers is missing or falsy, use entry.labelling?.tiers or default to all false
+      if (!entry.tiers) {
+        entry.tiers = entry.labelling?.tiers ?? { opus: false, sonnet: false, haiku: false };
+      }
+      return entry;
+    });
+  }
+
+  /**
    * Fetch benchmark data for a specific device
    */
   async function fetchData(deviceKey: string) {
@@ -33,7 +46,8 @@ export function useBenchmarkData(device: Ref<string | null>) {
       if (!Array.isArray(data)) {
         throw new Error('Data is not an array');
       }
-      entries.value = data as Entry[];
+      // Normalize entries to ensure tiers field exists on all entries
+      entries.value = normalizeEntries(data as Entry[]);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Unknown error loading data';
       error.value = errorMessage;
