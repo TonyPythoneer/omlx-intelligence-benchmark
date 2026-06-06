@@ -188,12 +188,17 @@
 
 **Success Criteria** (what must be TRUE):
 
-1. The full 9-point Playwright suite (`outputs/ui-validation/final_script.py`) passes as a final regression — per-phase selectors already validated in Phases 3–6
+1. The full 11-point Playwright suite (`outputs/ui-validation/final_script.py`) passes as a final regression — all CPs (CP1–CP11) validated
 2. Data-validation CI workflow stays green on data/ and lib/ changes
 3. No behavioral regressions vs. current `app/index.html`; all filters, import/export, labeling, and table features work identically
 4. **Atomic swap:** the Vue SPA build replaces the legacy `app/index.html` as the served/deployed app; deploy (`cd-static.yml`) stays serverless; `make serve` / `vp dev` / `vp test` still work
 
-**Plans:** TBD
+**Plans:** 3 plans in 2 waves
+
+- [ ] 07-01-PLAN.md — Playwright regression test (Wave 1)
+- [ ] 07-02-PLAN.md — Data validation CI verification (Wave 1)
+- [ ] 07-03-PLAN.md — Build & deploy Vue SPA (Wave 2)
+
 **UI hint:** yes
 
 ---
@@ -208,7 +213,7 @@
 | 4. Filters | 2/2 | Complete    | 2026-06-06 |
 | 5. Import Flow | 2/2 | Complete    | 2026-06-06 |
 | 6. Labeling & Export | 2/2 | Complete    | 2026-06-06 |
-| 7. Parity, CI & Swap | 0/3 | Not started | — |
+| 7. Parity, CI & Swap | 3/3 | Planned     | 2026-06-06 |
 
 ---
 
@@ -219,3 +224,4 @@
 *Phase 4 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
 *Phase 5 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
 *Phase 6 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*
+*Phase 7 plans finalized: 2026-06-06 (3 plans in 2 execution waves)*
