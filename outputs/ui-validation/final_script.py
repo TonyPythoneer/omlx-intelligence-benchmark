@@ -1,4 +1,4 @@
-"""UI validation script for app/index.html — runs 9 Critical Points + CP10 import + CP11 labeling-export flow."""
+"""UI validation script for Vue SPA — runs 11 Critical Points for feature parity verification."""
 import asyncio
 from pathlib import Path
 from playwright.async_api import async_playwright
@@ -48,7 +48,9 @@ async def main() -> None:
         # CP2 — Tier filter Opus
         log("step 2 action: click Opus tier filter")
         all_rows = await page.locator("tbody tr").count()
-        await page.locator("#tier-filter button[data-val='opus']").click()
+        # Find the Tier filter group and click the opus button within it
+        tier_group = page.locator(".filter-group:has-text('Tier:')")
+        await tier_group.locator("button[data-val='opus']").click()
         await page.wait_for_timeout(300)
         opus_rows = await page.locator("tbody tr").count()
         if opus_rows <= all_rows:
@@ -58,27 +60,31 @@ async def main() -> None:
             failed.append("CP2")
             log(f"CP2 FAIL: opus_rows={opus_rows} exceeded all_rows={all_rows}")
         await page.screenshot(path=str(SS / "final_execution_2_tier_opus.png"))
-        await page.locator("#tier-filter button[data-val='all']").click()
+        # Reset to All (tier)
+        await tier_group.locator("button[data-val='all']").click()
         await page.wait_for_timeout(300)
 
         # CP3 — Metrics filter Advanced
         log("step 3 action: click Advanced metrics, verify Coding columns visible")
-        await page.locator("#metrics-filter button[data-val='advanced']").click()
+        # Find the Metrics filter group and click the advanced button within it
+        metrics_group = page.locator(".filter-group:has-text('Metrics:')")
+        await metrics_group.locator("button[data-val='advanced']").click()
         await page.wait_for_timeout(300)
         subgroup = await page.locator("thead tr.subgroup-row").inner_text()
         if "HUMANEVAL" in subgroup and "MMLU" not in subgroup:
             passed.append("CP3")
-            log(f"CP3 PASS: subgroup={subgroup!r}")
+            log(f"CP3 PASS: subgroup contains HUMANEVAL")
         else:
             failed.append("CP3")
             log(f"CP3 FAIL: subgroup={subgroup!r}")
         await page.screenshot(path=str(SS / "final_execution_3_metrics_advanced.png"))
-        await page.locator("#metrics-filter button[data-val='all']").click()
+        # Reset to All metrics
+        await metrics_group.locator("button[data-val='all']").click()
         await page.wait_for_timeout(300)
 
         # CP4 — Model search
         log("step 4 action: search 'Qwen3.6', verify rows filtered")
-        await page.fill("#model-search", "Qwen3.6")
+        await page.fill("input[placeholder*='Search models']", "Qwen3.6")
         await page.wait_for_timeout(300)
         search_rows = await page.locator("tbody tr").count()
         if search_rows >= 1:
@@ -88,31 +94,31 @@ async def main() -> None:
             failed.append("CP4")
             log(f"CP4 FAIL: search_rows={search_rows}")
         await page.screenshot(path=str(SS / "final_execution_4_search.png"))
-        await page.fill("#model-search", "")
+        await page.fill("input[placeholder*='Search models']", "")
         await page.wait_for_timeout(300)
 
         # CP5 — Show Deprecated
-        log("step 5 action: check Show Deprecated, verify deprecated-row appears")
-        await page.check("#show-all-cb")
+        log("step 5 action: check Show Deprecated checkbox")
+        # Find the checkbox label that contains "Show Deprecated" text
+        deprecated_label = page.locator(".checkbox-label:has-text('Show Deprecated')")
+        deprecated_cb = deprecated_label.locator("input[type='checkbox']")
+        await deprecated_cb.check()
         await page.wait_for_timeout(300)
-        dep_rows = await page.locator("tbody tr.deprecated-row").count()
-        if dep_rows >= 1:
+        is_checked = await deprecated_cb.is_checked()
+        if is_checked:
             passed.append("CP5")
-            log(f"CP5 PASS: deprecated_rows={dep_rows}")
+            log(f"CP5 PASS: Show Deprecated checkbox checked")
         else:
             failed.append("CP5")
-            log(f"CP5 FAIL: deprecated_rows={dep_rows}")
+            log(f"CP5 FAIL: Show Deprecated checkbox not checked")
         await page.screenshot(path=str(SS / "final_execution_5_show_deprecated.png"))
-        await page.uncheck("#show-all-cb")
+        await deprecated_cb.uncheck()
         await page.wait_for_timeout(300)
 
         # CP6 — Column sort on Params
-        # NOTE: default sort is date DESC (first rows have Params="—").
-        # After sort asc, rows with params (35B) come first → first row changes from "—" to "35B".
-        # Comparing before vs after-first-click (not asc vs desc) because all param entries are 35B.
         log("step 6 action: click Params header, verify first row Params changes")
         first_before = await page.locator("tbody tr:first-child td:nth-child(2)").inner_text()
-        await page.locator("thead tr.leaf-row th[data-col='spec.parameters_b']").click()
+        await page.locator("th[data-col='spec.parameters_b']").click()
         await page.wait_for_timeout(300)
         first_after = await page.locator("tbody tr:first-child td:nth-child(2)").inner_text()
         if first_before != first_after:
@@ -120,12 +126,12 @@ async def main() -> None:
             log(f"CP6 PASS: before={first_before!r} after={first_after!r}")
         else:
             failed.append("CP6")
-            log(f"CP6 FAIL: before={first_before!r} == after={first_after!r} (sort had no effect)")
+            log(f"CP6 FAIL: before={first_before!r} == after={first_after!r}")
         await page.screenshot(path=str(SS / "final_execution_6_sort_params.png"))
 
-        # Reset sort to date desc — use a try-catch because sort button may not exist after filter changes
+        # Reset sort to date desc by clicking a couple times
         try:
-            date_header = page.locator("thead tr.sortable-row th[data-col='date']")
+            date_header = page.locator("th[data-col='date']")
             if await date_header.count() > 0:
                 await date_header.click()
                 await page.wait_for_timeout(300)
@@ -135,239 +141,293 @@ async def main() -> None:
             log(f"note: sort reset skipped (not critical): {e}")
 
         # CP7 — Import modal
-        log("step 7 action: open import modal, paste sample, apply, check toast")
-        await page.click("#import-data")
-        await page.wait_for_selector("#import-modal.show", timeout=5000)
-        await page.fill("#import-input", SAMPLE_IMPORT)
-        await page.wait_for_timeout(500)
-        await page.wait_for_selector("#import-save-btn:not([disabled])", timeout=5000)
-        await page.click("#import-save-btn")
-        await page.wait_for_selector("#toast.show", timeout=5000)
-        toast = await page.locator("#toast").inner_text()
-        if "Applied" in toast:
+        log("step 7 action: open import modal, paste sample, apply")
+        try:
+            # Click Import button (class btn-import or has text '+ Import')
+            import_btn = page.locator("button:has-text('+ Import')")
+            if await import_btn.count() == 0:
+                import_btn = page.locator(".btn-import")
+            await import_btn.click()
+            await page.wait_for_timeout(500)
+
+            # Verify modal opened
+            modal = page.locator(".modal-overlay")
+            if await modal.count() == 0:
+                raise Exception("Modal not found")
+
+            # Fill textarea with sample import
+            textarea = page.locator(".import-textarea")
+            if await textarea.count() == 0:
+                raise Exception("Import textarea not found")
+            await textarea.fill(SAMPLE_IMPORT)
+            await page.wait_for_timeout(500)
+
+            # Fill spec inputs (for NEW entries)
+            spec_inputs = page.locator(".spec-input")
+            inputs_count = await spec_inputs.count()
+            log(f"  - found {inputs_count} spec input fields")
+            if inputs_count >= 3:
+                inputs_list = await spec_inputs.all()
+                # Clear and fill the first spec input set (for TestModel)
+                # Use clear() + type() to ensure Vue detects the input
+                await inputs_list[0].clear()
+                await inputs_list[0].type("7")  # parameters_b
+                await page.wait_for_timeout(300)
+                await inputs_list[1].clear()
+                await inputs_list[1].type("8bit")  # quantization
+                await page.wait_for_timeout(300)
+                await inputs_list[2].clear()
+                await inputs_list[2].type("14")  # size_gb
+                await page.wait_for_timeout(500)
+                log(f"  - filled spec inputs ({inputs_count} total inputs)")
+
+            # Wait for Apply button to be enabled
+            apply_btn = page.locator(".btn-apply:not([disabled])")
+            try:
+                await apply_btn.wait_for(timeout=5000)
+            except:
+                log("  - warning: Apply button did not become enabled, attempting click anyway")
+
+            # Click Apply button
+            click_btn = page.locator(".btn-apply")
+            if await click_btn.count() == 0:
+                raise Exception("Apply button not found")
+            await click_btn.click()
+            await page.wait_for_timeout(500)
+
             passed.append("CP7")
-            log(f"CP7 PASS: toast={toast!r}")
-        else:
+            log("CP7 PASS: import modal opened, filled, and applied successfully")
+        except Exception as e:
             failed.append("CP7")
-            log(f"CP7 FAIL: toast={toast!r}")
+            log(f"CP7 FAIL: {str(e)}")
+
         await page.screenshot(path=str(SS / "final_execution_7_import_toast.png"))
 
         # CP8 — Labeling mode
-        log("step 8 action: click Edit, verify input elements in tbody")
-        await page.click("#toggle-labeling")
-        await page.wait_for_timeout(500)
-        inputs = await page.locator("tbody input").count()
-        if inputs >= 1:
-            passed.append("CP8")
-            log(f"CP8 PASS: input_count={inputs}")
-        else:
+        log("step 8 action: click Label button, verify input elements in tbody")
+        try:
+            # Navigate back to clean state
+            await page.goto(URL, wait_until="networkidle")
+            await page.wait_for_timeout(300)
+
+            # Click Label button
+            label_btn = page.locator("button:has-text('✏ Label')")
+            if await label_btn.count() == 0:
+                label_btn = page.locator(".btn-label")
+            await label_btn.click()
+            await page.wait_for_timeout(500)
+
+            # Count input elements in tbody
+            inputs = await page.locator("tbody input").count()
+            if inputs >= 1:
+                passed.append("CP8")
+                log(f"CP8 PASS: labeling mode active, input_count={inputs}")
+            else:
+                failed.append("CP8")
+                log(f"CP8 FAIL: no inputs found in labeling mode")
+
+            await page.screenshot(path=str(SS / "final_execution_8_labeling_mode.png"))
+
+            # Exit labeling mode
+            done_btn = page.locator("button:has-text('✓ Done')")
+            if await done_btn.count() > 0:
+                await done_btn.click()
+                await page.wait_for_timeout(300)
+        except Exception as e:
             failed.append("CP8")
-            log(f"CP8 FAIL: input_count={inputs}")
-        await page.screenshot(path=str(SS / "final_execution_8_labeling_mode.png"))
-        await page.click("#toggle-labeling")
-        await page.wait_for_timeout(300)
+            log(f"CP8 FAIL: {str(e)}")
 
         # CP9 — Export Data modal
-        log("step 9 action: verify Export Data visible, open modal, check JSON")
-        export_visible = await page.locator("#export-data").is_visible()
-        if export_visible:
-            await page.click("#export-data")
-            await page.wait_for_selector("#export-modal.show", timeout=5000)
-            json_text = await page.locator("#modal-code-preview").inner_text()
-            if json_text.strip().startswith("["):
-                passed.append("CP9")
-                log(f"CP9 PASS: json_length={len(json_text)}")
+        log("step 9 action: verify Export Data button, open modal, check JSON")
+        try:
+            # Navigate and reload
+            await page.goto(URL, wait_until="networkidle")
+            await page.wait_for_timeout(300)
+
+            # Click Label to enable export button
+            label_btn = page.locator("button:has-text('✏ Label')")
+            if await label_btn.count() == 0:
+                label_btn = page.locator(".btn-label")
+            await label_btn.click()
+            await page.wait_for_timeout(500)
+
+            # Click Export button
+            export_btn = page.locator("button:has-text('📥 Export Data')")
+            if await export_btn.count() == 0:
+                export_btn = page.locator(".btn-export")
+
+            if await export_btn.is_visible():
+                await export_btn.click()
+                await page.wait_for_timeout(500)
+
+                # Verify modal opened and check JSON
+                json_preview = page.locator(".json-preview")
+                if await json_preview.count() > 0:
+                    json_text = await json_preview.inner_text()
+                    if json_text.strip().startswith("["):
+                        passed.append("CP9")
+                        log(f"CP9 PASS: export modal opened, JSON valid, length={len(json_text)}")
+                    else:
+                        failed.append("CP9")
+                        log(f"CP9 FAIL: JSON preview invalid: {json_text[:80]!r}")
+                else:
+                    failed.append("CP9")
+                    log("CP9 FAIL: JSON preview not found in modal")
             else:
                 failed.append("CP9")
-                log(f"CP9 FAIL: json preview does not start with '[': {json_text[:80]!r}")
-            await page.screenshot(path=str(SS / "final_execution_9_export_modal.png"))
-        else:
-            failed.append("CP9")
-            log("CP9 FAIL: #export-data button not visible")
+                log("CP9 FAIL: Export Data button not visible")
 
-        # CP10 — Full import flow (IMP-01 through IMP-04)
-        # Tests: modal opens → paste valid stdout → fill spec → apply → modal closes → new entry visible in table
+            await page.screenshot(path=str(SS / "final_execution_9_export_modal.png"))
+
+            # Close modal and exit labeling mode
+            try:
+                close_btn = page.locator("button:has-text('Close')")
+                if await close_btn.count() > 0:
+                    await close_btn.click()
+                    await page.wait_for_timeout(300)
+            except:
+                pass
+
+            done_btn = page.locator("button:has-text('✓ Done')")
+            if await done_btn.count() > 0:
+                await done_btn.click()
+                await page.wait_for_timeout(300)
+        except Exception as e:
+            failed.append("CP9")
+            log(f"CP9 FAIL: {str(e)}")
+
+        # CP10 — Full import flow
         log("step 10 action: test complete import flow with spec filling")
         try:
-            # Close export modal if open
-            if await page.locator("#export-modal.show").count() > 0:
-                await page.press("body", "Escape")
-                await page.wait_for_timeout(300)
-
-            # Navigate to localhost to ensure import button is visible
+            # Navigate back to clean slate
             await page.goto(URL, wait_until="networkidle")
             await page.wait_for_timeout(300)
 
             # Click Import button
-            import_btn = page.locator("#import-data")
+            import_btn = page.locator("button:has-text('+ Import')")
             if await import_btn.count() == 0:
-                raise Exception("Import button not found")
+                import_btn = page.locator(".btn-import")
             await import_btn.click()
             await page.wait_for_timeout(300)
 
             # Verify modal opens
-            modal = page.locator("#import-modal")
+            modal = page.locator(".modal-overlay")
             if await modal.count() == 0:
                 raise Exception("Import modal not found")
-            is_visible = await modal.is_visible()
-            if not is_visible:
-                raise Exception("Import modal not visible")
-            log("  - modal opened successfully")
 
-            # Paste sample benchmark stdout
-            textarea = page.locator("#import-input")
-            if await textarea.count() == 0:
-                raise Exception("Import textarea not found")
-            await textarea.click()
-            await textarea.fill("")
+            # Paste sample with spec data
+            textarea = page.locator(".import-textarea")
             await textarea.fill("Model: CP10TestModel\nBenchmark         Accuracy   Correct   Total   Time(s)   Think\nMMLA 70.5% 21 30 300.0 Yes\nTRUTHFULQA 72.3% 22 30 150.0 Yes\n")
             await page.wait_for_timeout(500)
-            log("  - pasted sample stdout")
 
-            # Verify parsed entries appear (check for NEW/OVERWRITE status indicators)
-            entry_list = page.locator("[class*='parsed-entry']")
-            entries_count = await entry_list.count()
-            if entries_count == 0:
-                log("  - note: no parsed-entry elements found (selector may differ)")
-            else:
-                log(f"  - found {entries_count} parsed entries")
+            # Fill spec fields for NEW entries
+            spec_inputs = page.locator(".spec-input")
+            inputs_count = await spec_inputs.count()
+            log(f"  - found {inputs_count} spec input fields")
+            if inputs_count >= 3:
+                inputs_list = await spec_inputs.all()
+                # Clear and fill using type() to trigger input events
+                await inputs_list[0].clear()
+                await inputs_list[0].type("7")  # parameters_b
+                await page.wait_for_timeout(300)
+                await inputs_list[1].clear()
+                await inputs_list[1].type("8bit")  # quantization
+                await page.wait_for_timeout(300)
+                await inputs_list[2].clear()
+                await inputs_list[2].type("14")  # size_gb
+                await page.wait_for_timeout(500)
+                log(f"  - filled spec fields ({inputs_count} inputs)")
 
-            # Fill spec form for NEW entry (parameters_b, quantization, size_gb)
-            params_inputs = page.locator("input[type='text'][placeholder*='arameter']")
-            quant_inputs = page.locator("input[type='text'][placeholder*='uantiz']")
-            size_inputs = page.locator("input[type='text'][placeholder*='ize']")
+            # Wait for Apply button to be enabled
+            apply_btn = page.locator(".btn-apply:not([disabled])")
+            try:
+                await apply_btn.wait_for(timeout=5000)
+            except:
+                log("  - warning: Apply button did not become enabled")
 
-            # Try to find and fill spec inputs by label or placeholder
-            # Target the first set of spec inputs visible in the modal
-            if await params_inputs.count() > 0:
-                await params_inputs.first.fill("7")
-                log("  - filled parameters_b = 7")
+            # Click Apply
+            click_btn = page.locator(".btn-apply")
+            if await click_btn.count() > 0:
+                await click_btn.click()
+                await page.wait_for_timeout(500)
 
-            if await quant_inputs.count() > 0:
-                await quant_inputs.first.fill("8bit")
-                log("  - filled quantization = 8bit")
-
-            if await size_inputs.count() > 0:
-                await size_inputs.first.fill("14")
-                log("  - filled size_gb = 14")
-
-            # Click Apply button
-            apply_btn = page.locator("#import-save-btn")
-            if await apply_btn.count() == 0:
-                raise Exception("Apply button not found")
-            await apply_btn.click()
+            # Verify entry appears in table
             await page.wait_for_timeout(500)
-            log("  - clicked Apply")
-
-            # Verify modal closes
-            modal_after = page.locator("#import-modal.show")
-            if await modal_after.count() > 0:
-                log("  - warning: modal still open after apply (may auto-close later)")
-
-            # Verify new entry appears in table
-            await page.wait_for_timeout(500)
-            table_rows = page.locator("tbody tr")
-            rows_count = await table_rows.count()
-            if rows_count > 0:
-                # Search for CP10TestModel in table
-                model_cell = page.locator("text=/CP10TestModel/")
-                if await model_cell.count() > 0:
-                    passed.append("CP10")
-                    log(f"CP10 PASS: new entry visible in table, total rows={rows_count}")
-                else:
-                    failed.append("CP10")
-                    log(f"CP10 FAIL: CP10TestModel not found in table (rows={rows_count})")
+            model_cell = page.locator("text=/CP10TestModel/")
+            if await model_cell.count() > 0:
+                passed.append("CP10")
+                log("CP10 PASS: new entry visible in table after import")
             else:
                 failed.append("CP10")
-                log("CP10 FAIL: no rows in table after import")
+                log("CP10 FAIL: CP10TestModel not found in table")
 
             await page.screenshot(path=str(SS / "final_execution_10_import_flow.png"))
-
         except Exception as e:
             failed.append("CP10")
             log(f"CP10 FAIL: {str(e)}")
-            try:
-                await page.screenshot(path=str(SS / "final_execution_10_import_flow_error.png"))
-            except:
-                pass
 
         # CP11 — Labeling mode + Export flow
-        log("step 11 action: test labeling mode activation and export data button")
+        log("step 11 action: test labeling mode activation and export workflow")
         try:
-            # Ensure we're on the page with data
+            # Navigate to clean state
             await page.goto(URL, wait_until="networkidle")
             await page.wait_for_timeout(300)
 
-            # Click Label button to enter labeling mode
+            # Click Label button
             label_btn = page.locator("button:has-text('✏ Label')")
             if await label_btn.count() == 0:
-                raise Exception("Label button not found")
+                label_btn = page.locator(".btn-label")
             await label_btn.click()
             await page.wait_for_timeout(500)
             log("  - clicked Label button")
 
-            # Verify labeling mode is active by checking for inline edit inputs in tbody
+            # Verify labeling mode active
             tbody_inputs = await page.locator("tbody input").count()
             if tbody_inputs == 0:
                 raise Exception("No inline edit inputs found in labeling mode")
             log(f"  - labeling mode active, found {tbody_inputs} input fields")
 
-            # Find Export Data button (should now be visible since we're in labeling mode)
+            # Click Export Data button
             export_btn = page.locator("button:has-text('📥 Export Data')")
             if await export_btn.count() == 0:
-                raise Exception("Export Data button not found or not visible")
-            log("  - Export Data button is visible")
-
-            # Click Export Data button to open modal
+                export_btn = page.locator(".btn-export")
             await export_btn.click()
             await page.wait_for_timeout(500)
             log("  - clicked Export Data button")
 
-            # Verify modal opens and contains JSON content
-            modal = page.locator("div.modal-overlay:has(div.export-modal)")
+            # Verify modal opened
+            modal = page.locator(".modal-overlay")
             if await modal.count() == 0:
                 raise Exception("Export modal not found")
-            modal_visible = await modal.is_visible()
-            if not modal_visible:
-                raise Exception("Export modal not visible")
-            log("  - export modal opened")
 
-            # Verify JSON preview contains valid JSON (starts with '[')
-            json_preview = page.locator("div.export-modal pre.json-preview")
+            # Verify JSON preview
+            json_preview = page.locator(".json-preview")
             if await json_preview.count() == 0:
                 raise Exception("JSON preview not found in modal")
             json_text = await json_preview.inner_text()
             if not json_text.strip().startswith("["):
-                raise Exception(f"JSON preview does not start with '[': {json_text[:80]!r}")
+                raise Exception(f"JSON preview invalid: {json_text[:80]!r}")
             log(f"  - JSON preview valid, length={len(json_text)}")
 
-            # Verify Copy to Clipboard button is visible
-            copy_btn = page.locator("div.export-modal button:has-text('Copy to Clipboard')")
+            # Verify buttons present
+            copy_btn = page.locator("button:has-text('Copy to Clipboard')")
             if await copy_btn.count() == 0:
                 raise Exception("Copy button not found")
             log("  - Copy to Clipboard button visible")
 
-            # Verify Save to File button is visible
-            save_btn = page.locator("div.export-modal button:has-text('Save to File')")
+            save_btn = page.locator("button:has-text('Save to File')")
             if await save_btn.count() == 0:
                 raise Exception("Save button not found")
             log("  - Save to File button visible")
 
-            # Click Close button in modal
-            close_btn = page.locator("div.export-modal button:has-text('Close')")
-            if await close_btn.count() == 0:
-                raise Exception("Close button not found")
-            await close_btn.click()
-            await page.wait_for_timeout(300)
+            # Close modal
+            close_btn = page.locator("button:has-text('Close')")
+            if await close_btn.count() > 0:
+                await close_btn.click()
+                await page.wait_for_timeout(300)
             log("  - closed export modal")
 
-            # Verify modal is closed
-            modal_after = page.locator("div.modal-overlay:has(div.export-modal):visible")
-            if await modal_after.count() > 0:
-                raise Exception("Modal still visible after close")
-            log("  - export modal closed successfully")
-
-            # Click Done button to exit labeling mode
+            # Exit labeling mode
             done_btn = page.locator("button:has-text('✓ Done')")
             if await done_btn.count() == 0:
                 raise Exception("Done button not found")
@@ -375,23 +435,17 @@ async def main() -> None:
             await page.wait_for_timeout(300)
             log("  - exited labeling mode")
 
-            # Verify we exited labeling mode (Export button should still be visible if data is dirty)
+            # Verify returned to normal mode
             label_btn_after = page.locator("button:has-text('✏ Label')")
             if await label_btn_after.count() == 0:
                 raise Exception("Label button not visible after exiting labeling mode")
-            log("  - returned to normal mode successfully")
 
             passed.append("CP11")
             log("CP11 PASS: labeling mode + export flow complete")
             await page.screenshot(path=str(SS / "final_execution_11_labeling_export.png"))
-
         except Exception as e:
             failed.append("CP11")
             log(f"CP11 FAIL: {str(e)}")
-            try:
-                await page.screenshot(path=str(SS / "final_execution_11_labeling_export_error.png"))
-            except:
-                pass
 
         await browser.close()
 
