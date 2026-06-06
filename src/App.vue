@@ -1,11 +1,18 @@
 <template>
   <div id="app-root">
     <h1>oMLX Intelligence Benchmark</h1>
-    <div v-if="isLoading" class="loading-state">Loading settings...</div>
-    <div v-else-if="error" class="error-state">Error: {{ error }}</div>
+    <div v-if="settingsLoading" class="loading-state">Loading settings...</div>
+    <div v-else-if="settingsError" class="error-state">Error: {{ settingsError }}</div>
     <div v-else>
-      <!-- DeviceSelector will go here; selectedDevice will be bound to it -->
-      <BenchmarkTable />
+      <div class="device-section">
+        <label>Device:</label>
+        <DeviceSelector :devices="devices" v-model:modelValue="selectedDevice" />
+      </div>
+
+      <div v-if="dataLoading" class="loading-state">Loading data...</div>
+      <div v-if="dataError" class="error-state">Data error: {{ dataError }}</div>
+
+      <BenchmarkTable :entries="entries" />
     </div>
   </div>
 </template>
@@ -13,10 +20,13 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import BenchmarkTable from './components/BenchmarkTable.vue';
+import DeviceSelector from './components/DeviceSelector.vue';
 import { useSettings } from './composables/useSettings';
+import { useBenchmarkData } from './composables/useBenchmarkData';
 
-const { settings, defaultDevice, isLoading, error } = useSettings();
+const { defaultDevice, devices, isLoading: settingsLoading, error: settingsError } = useSettings();
 const selectedDevice = ref<string | null>(null);
+const { entries, isLoading: dataLoading, error: dataError } = useBenchmarkData(selectedDevice);
 
 watch(defaultDevice, (device) => {
   if (device) {
@@ -68,5 +78,17 @@ p {
   padding: 12px 16px;
   border-radius: 4px;
   margin-top: 8px;
+}
+
+.device-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.device-section label {
+  font-weight: 600;
+  color: #1e293b;
 }
 </style>

@@ -17,7 +17,10 @@
       </tr>
     </thead>
     <tbody>
-      <tr>
+      <tr v-if="entries.length === 0">
+        <td colspan="12">No entries loaded</td>
+      </tr>
+      <tr v-for="entry in entries" :key="entry.model">
         <td>{{ entry.model }}</td>
         <td>{{ entry.date }}</td>
         <td>{{ entry.spec.parameters_b }}</td>
@@ -38,49 +41,9 @@
 <script setup lang="ts">
 import { type Entry } from '../types/benchmark';
 
-// Hardcoded entry from m1-max-64GB-32c.json (first entry)
-const entry: Entry = {
-  model: 'Qwen3.6-35B-A3B-TurboQuant-MLX-4bit',
-  date: '2026-05-25',
-  spec: {
-    parameters_b: 35,
-    quantization: '4bit',
-    size_gb: 18.19,
-  },
-  deprecated: false,
-  tiers: {
-    opus: true,
-    sonnet: false,
-    haiku: false,
-  },
-  scores: {
-    MMLU: {
-      accuracy: 83.3,
-      samples: 30,
-      time_s: 849.6,
-    },
-    TRUTHFULQA: {
-      accuracy: 90,
-      samples: 30,
-      time_s: 408.2,
-    },
-    HUMANEVAL: {
-      accuracy: 93.3,
-      samples: 30,
-      time_s: 1094.9,
-    },
-    MBPP: {
-      accuracy: 90,
-      samples: 30,
-      time_s: 1239,
-    },
-    LIVECODEBENCH: {
-      accuracy: 60,
-      samples: 30,
-      time_s: 5583.1,
-    },
-  },
-};
+defineProps<{
+  entries: Entry[];
+}>();
 </script>
 
 <style scoped>
