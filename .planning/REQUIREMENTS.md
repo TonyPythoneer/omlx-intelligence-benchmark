@@ -37,10 +37,10 @@ Migration to Vue 3 + Vite+ (vite-ssg) at **feature parity** with the current `ap
 
 ### Import (local only)
 
-- [ ] **IMP-01**: `+ Import` opens the import modal and is hidden when not on localhost/127.0.0.1 (hostname guard)
-- [ ] **IMP-02**: Pasting benchmark stdout runs the ported `import.mjs` parser and produces a NEW / OVERWRITE entry list
-- [ ] **IMP-03**: Apply merges entries into in-memory state; a duplicate model overwrites **scores only** (spec / abilities / tiers / deprecated preserved)
-- [ ] **IMP-04**: NEW entries collect required spec fields (params / quant / size) before Apply
+- [x] **IMP-01**: `+ Import` opens the import modal and is hidden when not on localhost/127.0.0.1 (hostname guard)
+- [x] **IMP-02**: Pasting benchmark stdout runs the ported `import.mjs` parser and produces a NEW / OVERWRITE entry list
+- [x] **IMP-03**: Apply merges entries into in-memory state; a duplicate model overwrites **scores only** (spec / abilities / tiers / deprecated preserved)
+- [x] **IMP-04**: NEW entries collect required spec fields (params / quant / size) before Apply
 
 ### Labeling & Export
 
@@ -97,10 +97,10 @@ Deferred to a future milestone. Tracked, not in this roadmap.
 | FLT-03 | 4 | Complete |
 | FLT-04 | 4 | Complete |
 | FLT-05 | 4 | Complete |
-| IMP-01 | 5 | Pending |
-| IMP-02 | 5 | Pending |
-| IMP-03 | 5 | Pending |
-| IMP-04 | 5 | Pending |
+| IMP-01 | 5 | Complete |
+| IMP-02 | 5 | Complete |
+| IMP-03 | 5 | Complete |
+| IMP-04 | 5 | Complete |
 | LAB-01 | 6 | Pending |
 | LAB-02 | 6 | Pending |
 | LAB-03 | 6 | Pending |
