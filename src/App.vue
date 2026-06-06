@@ -12,7 +12,16 @@
       <div v-if="dataLoading" class="loading-state">Loading data...</div>
       <div v-if="dataError" class="error-state">Data error: {{ dataError }}</div>
 
-      <BenchmarkTable :entries="entries" />
+      <FilterBar
+        :modelSearch="modelSearch"
+        @update:modelSearch="modelSearch = $event"
+        :tierFilter="tierFilter"
+        @update:tierFilter="tierFilter = $event"
+        :metricsFilter="metricsFilter"
+        @update:metricsFilter="metricsFilter = $event"
+      />
+
+      <BenchmarkTable :entries="filteredEntries" :visibleBenchmarks="visibleBenchmarks" />
     </div>
   </div>
 </template>
@@ -20,13 +29,23 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import BenchmarkTable from './components/BenchmarkTable.vue';
+import FilterBar from './components/FilterBar.vue';
 import DeviceSelector from './components/DeviceSelector.vue';
 import { useSettings } from './composables/useSettings';
 import { useBenchmarkData } from './composables/useBenchmarkData';
+import { useFilters } from './composables/useFilters';
 
-const { defaultDevice, devices, isLoading: settingsLoading, error: settingsError } = useSettings();
+const { settings, defaultDevice, devices, isLoading: settingsLoading, error: settingsError } = useSettings();
 const selectedDevice = ref<string | null>(null);
 const { entries, isLoading: dataLoading, error: dataError } = useBenchmarkData(selectedDevice);
+
+const {
+  filteredEntries,
+  visibleBenchmarks,
+  modelSearch,
+  tierFilter,
+  metricsFilter
+} = useFilters(entries, settings);
 
 watch(defaultDevice, (device) => {
   if (device) {

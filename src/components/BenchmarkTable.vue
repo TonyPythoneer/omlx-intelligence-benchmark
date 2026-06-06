@@ -5,7 +5,7 @@
       <tr class="group-row">
         <th>Model</th>
         <th colspan="3" class="group-start">Spec</th>
-        <th :colspan="ALL_BENCHMARKS.length * 2" class="group-start">Score</th>
+        <th :colspan="visibleBenchmarksInOrder.length * 2" class="group-start">Score</th>
       </tr>
       <!-- Row 2: Subgroup headers (benchmark names) -->
       <tr class="group-row subgroup-row">
@@ -13,7 +13,7 @@
         <th class="group-start"></th>
         <th></th>
         <th></th>
-        <th v-for="benchmark in ALL_BENCHMARKS" :key="benchmark" :colspan="2" class="group-start">{{ benchmark }}</th>
+        <th v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark" :colspan="2" class="group-start">{{ benchmark }}</th>
       </tr>
       <!-- Row 3: Leaf headers (sortable) -->
       <tr class="leaf-row">
@@ -34,7 +34,7 @@
           :class="{ 'sort-asc': sortIndicator('spec.size_gb') === 'asc', 'sort-desc': sortIndicator('spec.size_gb') === 'desc' }"
           @click="onSort('spec.size_gb')"
         >Size</th>
-        <template v-for="benchmark in ALL_BENCHMARKS" :key="benchmark">
+        <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
           <th
             :data-col="`scores.${benchmark}.accuracy`"
             class="group-start"
@@ -51,7 +51,7 @@
     </thead>
     <tbody>
       <tr v-if="entries.length === 0">
-        <td :colspan="4 + ALL_BENCHMARKS.length * 2">No entries loaded</td>
+        <td :colspan="4 + visibleBenchmarksInOrder.length * 2">No entries loaded</td>
       </tr>
       <tr v-for="entry in sortedEntries" :key="entry.model">
         <td class="model-name">
@@ -64,7 +64,7 @@
         <td>{{ entry.spec.parameters_b }}</td>
         <td>{{ entry.spec.quantization }}</td>
         <td>{{ entry.spec.size_gb }}</td>
-        <template v-for="benchmark in ALL_BENCHMARKS" :key="benchmark">
+        <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
           <td>
             <span v-if="entry.scores[benchmark]?.accuracy" :class="scoreColorClass(entry.scores[benchmark].accuracy)">
               {{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%
@@ -82,12 +82,22 @@
 import { computed, ref, type Ref } from 'vue';
 import { type Entry } from '../types/benchmark';
 
-defineProps<{
+// Get visible benchmarks prop with default fallback
+const props = defineProps<{
   entries: Entry[];
+  visibleBenchmarks?: string[];
 }>();
 
 // All benchmark keys in display order
 const ALL_BENCHMARKS = ['MMLU', 'TRUTHFULQA', 'HUMANEVAL', 'MBPP', 'LIVECODEBENCH'];
+
+/**
+ * Computed property that returns only visible benchmarks in order
+ */
+const visibleBenchmarksInOrder = computed(() => {
+  const visible = props.visibleBenchmarks ?? ALL_BENCHMARKS;
+  return ALL_BENCHMARKS.filter(b => visible.includes(b));
+});
 
 // Sorting state
 const sortCol: Ref<string> = ref('date');
