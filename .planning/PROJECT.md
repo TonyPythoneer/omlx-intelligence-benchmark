@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A static, serverless benchmark comparison site for oMLX / MLX model results. Today it is a single 1581-line vanilla-JS `app/index.html` (viewer + in-browser data editor). This milestone migrates it into a component-based **Vue 3 + Vite+ (`vp`) static site generated with vite-ssg**, following the `jen-lab` project's tooling conventions — while preserving the serverless, in-browser data-import/label/export model and the pure-JSON data contract.
+A static, serverless benchmark comparison site for oMLX / MLX model results. Today it is a single 1581-line vanilla-JS `app/index.html` (viewer + in-browser data editor). This milestone migrates it into a component-based **Vue 3 + Vite+ (`vp`) static site** — built as a client-rendered SPA via `vp build` (vite-ssg deferred per architect review; see Key Decisions), borrowing the `jen-lab` toolchain family — while preserving the serverless, in-browser data-import/label/export model and the pure-JSON data contract.
 
 ## Core Value
 
@@ -55,7 +55,7 @@ Browse and compare MLX benchmark results in a fast, fully static page — and im
 
 ## Constraints
 
-- **Tech stack**: Vue 3 + Vite+ (`@voidzero-dev/vite-plus-core`, `vp`) + vite-ssg — mirror jen-lab's tooling — Why: stay inside the user's established ecosystem and the existing `vp` wiring.
+- **Tech stack**: Vue 3 + Vite+ (`@voidzero-dev/vite-plus-core`, `vp`), static **SPA** build (vite-ssg deferred) — Why: single-page scope; SPA is simpler, stays fully serverless, and avoids build-time execution of browser-only code; runs on the existing `vp` wiring.
 - **Serverless**: the built site must be fully static; no runtime server — Why: core product property and deploy model (`cd-static.yml`).
 - **Data contract**: `app/data/*.json` stay pure JSON arrays; import "overwrite scores only on duplicate" rule preserved — Why: CI + downstream tooling depend on it.
 - **Browser-only APIs**: File System Access (`showSaveFilePicker`), clipboard, hostname guard must run client-side and be SSG-safe (no SSR access) — Why: the import/label/export flow is the differentiator.
@@ -65,11 +65,16 @@ Browse and compare MLX benchmark results in a fast, fully static page — and im
 ## Key Decisions
 
 | Decision | Rationale | Outcome |
-| Plain Vue 3 + vite-ssg, **not** Nuxt | User said "vue and vite plus"; preserve lightweight serverless ethos; avoid SSR runtime | — Pending (opus architect to confirm) |
-| Follow jen-lab `vite.config.ts` plugin set, scoped to need | Proven, working reference in the user's own ecosystem | — Pending |
-| Preserve JSON data format + port `import.mjs` logic as-is | CI, `apply-import.mjs`, and device files depend on it | — Pending |
-| Migrate at strict feature parity first; defer new features to v2 | De-risk the rewrite; keep a verifiable target | — Pending |
-| Supersede the "do not run `vp build`" rule for the new app | The vite-ssg app needs a real static build; output stays serverless | — Pending |
+| **Plain Vue 3 + Vite+ SPA** (static `vp build`), **not** Nuxt, **vite-ssg deferred** | One data-heavy page; SPA is simpler, still fully serverless static, and avoids SSG build-time execution of `window`/`location` (kills 2 critical risks) | ✓ Locked (architect review) |
+| **No SSR/prerender of browser-only code** — File System Access / clipboard / hostname guard run client-side only | SPA renders in the browser; a `useClientOnly`-style guard pattern is established in Phase 1 | ✓ Locked |
+| **State via Composition API composables** (no Pinia) | Single-page scope; lightweight and type-safe; Pinia boilerplate unwarranted | ✓ Locked |
+| **TypeScript data-model types in Phase 1** (`types/benchmark.ts`) | Phases 3–6 build on a typed schema; prevents late refactor | ✓ Locked |
+| **Styling: scoped SFC `<style>`, 1:1 CSS port** (Tailwind → v2) | Faithful parity migration; preserve current design exactly | ✓ Locked |
+| **Migration isolated on `feat/vue-vite-static-site`; main's `app/index.html` untouched until parity** | `vite.config root:'app'` collides with the live app; atomic swap at Phase 7 | ✓ Locked |
+| **Phase 1 build/render spike before Phases 2–7 execute** | Validate `vp build` static output + end-to-end render early (keystone assumption) | ✓ Locked |
+| Preserve JSON data format + port `import.mjs` logic as-is | CI, `apply-import.mjs`, and device files depend on it | ✓ Locked |
+| Strict feature parity first; new features → v2 | De-risk the rewrite; keep a verifiable target | ✓ Locked |
+| Supersede the "do not run `vp build`" rule for the new app | The migrated SPA legitimately needs a static build; output stays serverless | ✓ Locked |
 
 ## Evolution
 
