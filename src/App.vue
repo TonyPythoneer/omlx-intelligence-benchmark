@@ -1,12 +1,12 @@
 <template>
   <div id="app-root">
     <h1>oMLX Intelligence Benchmark</h1>
-    <p>Loading...</p>
+    <BenchmarkTable />
   </div>
 </template>
 
 <script setup lang="ts">
-// Root component shell
+import BenchmarkTable from './components/BenchmarkTable.vue';
 </script>
 
 <style scoped>
