@@ -68,7 +68,10 @@
 2. `app/settings.json` (defaultDevice, parametersBreakpoints, devices) loads; device selector works
 3. Pure-JSON data contract is preserved; no schema changes to existing `app/data/*.json`; `vp build` output carries the JSON through unprocessed
 
-**Plans:** TBD
+**Plans:** 2 plans in 2 waves
+- [ ] 02-01-PLAN.md — Vite config + useSettings composable (Wave 1)
+- [ ] 02-02-PLAN.md — useBenchmarkData + DeviceSelector + table wiring (Wave 2)
+
 **UI hint:** yes
 
 ---
@@ -174,7 +177,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Scaffold & Bootstrap (+ spike) | 3/3 | In planning | — |
-| 2. Data Loading & Settings | 0/2 | Not started | — |
+| 2. Data Loading & Settings | 2/2 | Planned | — |
 | 3. Table Core | 0/3 | Not started | — |
 | 4. Filters | 0/4 | Not started | — |
 | 5. Import Flow | 0/3 | Not started | — |
@@ -185,3 +188,4 @@
 
 *Roadmap created: 2026-06-06 · revised 2026-06-06 per opus architect review (see `.planning/REVIEW-ARCHITECT.md`)*
 *Phase 1 plans finalized: 2026-06-06 (3 plans in 2 execution waves)*
+*Phase 2 plans finalized: 2026-06-06 (2 plans in 2 execution waves)*

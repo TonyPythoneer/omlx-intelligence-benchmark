@@ -1,8 +1,8 @@
 # STATE: oMLX Intelligence Benchmark — Vue 3 + Vite+ Migration
 
 **Milestone:** Vue 3 + Vite+ Static Site Migration at Feature Parity
-**Current Phase:** 1 (Scaffold & Bootstrap + spike)
-**Status:** Phase 1 planned (3 plans, checker-verified, blocker fixed); ready to execute
+**Current Phase:** 1 (Scaffold & Bootstrap + spike) — Phase 2 planning complete
+**Status:** Phase 1 planned and ready to execute; Phase 2 planned (2 plans, verified)
 **Last Updated:** 2026-06-06
 
 ---
@@ -28,9 +28,9 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 ## Current Position
 
 **Phase:** 1 — Scaffold & Bootstrap (+ keystone spike)
-**Plan:** 01-01 / 01-02 / 01-03 (3 plans, 2 waves) — verified, ready
-**Status:** Planned & verified — awaiting execution
-**Progress:** 0 / 28 requirements delivered
+**Plan:** 01-01 / 01-02 / 01-03 (3 plans, 2 waves) — verified, ready to execute
+**Phase 2 Status:** 02-01 / 02-02 (2 plans, 2 waves) — planned, ready for Wave 1 after Phase 1 completes
+**Overall Progress:** 0 / 28 requirements delivered
 
 ```
 [                                              ]  0%
@@ -48,7 +48,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 | 4 | Filters: search, tier, metrics, params | 5 |
 | 5 | Import modal with parser/merge | 4 |
 | 6 | Labeling & File System Access export | 5 |
-| 7 | Playwright + data-validation parity + atomic swap | 3 |
+| 7 | Parity, CI & Swap | 3 |
 
 **Total:** 28 v1 requirements, 7 phases
 
@@ -85,9 +85,19 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 - Export: File System Access API (`showSaveFilePicker`) client-side; Safari falls back to download.
 - Migration safety: new files alongside the legacy app on the branch; atomic swap of `app/index.html` only at Phase 7.
 
+### Phase 2 Planning Notes (2026-06-06)
+- **Data serving:** `publicDir: '../public'` with symlinks to app/data and app/settings.json (ensures dev works, files copied to dist on build, pure-JSON contract preserved)
+- **useSettings composable:** Fetches /settings.json, returns reactive { settings, defaultDevice, parametersBreakpoints, devices, isLoading, error }
+- **useBenchmarkData composable:** Watches selectedDevice ref, fetches /data/{device}.json reactively, returns { entries: Entry[], isLoading, error }
+- **DeviceSelector component:** Dropdown bound to selectedDevice via v-model, populated from settings.devices
+- **BenchmarkTable update:** Now accepts entries prop, renders v-for loop instead of hardcoded entry
+- **MVP vertical slices:** Plan 01 = settings infrastructure (user sees loading state, then selector placeholder). Plan 02 = device selection + data loading + table rendering (user sees selector populated, can select device, table updates).
+
 ### Todos
 - [x] Plan Phase 1: Scaffold + spike → 3 plans (01-01 scaffold/shell · 01-02 types+tests · 01-03 minimal render + `vp build` spike), checker-verified
-- [ ] Plan Phase 2: Data Loading & Settings (client-side JSON/settings load, contract preserved)
+- [x] Plan Phase 2: Data Loading & Settings (client-side JSON/settings load, contract preserved) → 2 plans (02-01 vite config + useSettings · 02-02 useBenchmarkData + DeviceSelector + wiring)
+- [ ] Execute Phase 1 (Wave 1: 01-01; Wave 2: 01-02 ∥ 01-03)
+- [ ] Execute Phase 2 (Wave 1: 02-01; Wave 2: 02-02) — requires Phase 1 complete
 - [ ] Plan Phase 3: Table Core (three-tier render, sort, color-code, row actions) + table Playwright CPs
 - [ ] Plan Phase 4: Filters (search, tier, metrics, params, deprecated) + filter Playwright CPs
 - [ ] Plan Phase 5: Import Flow (modal, parser, merge, validation) + import Playwright CP
@@ -95,7 +105,7 @@ Migrate the 1581-line vanilla-JS `app/index.html` to a component-based **Vue 3 +
 - [ ] Plan Phase 7: Parity, CI & Swap (full Playwright regression, data validation, atomic swap, no regressions)
 
 ### Blockers
-None blocking planning. **Watch:** the Phase 1 spike must confirm `vp build` emits a usable static SPA before Phases 2–7 execute (keystone assumption).
+None blocking Phase 1 execution. **Watch:** the Phase 1 spike must confirm `vp build` emits a usable static SPA before Phases 2–7 execute (keystone assumption).
 
 ---
 
@@ -104,9 +114,11 @@ None blocking planning. **Watch:** the Phase 1 spike must confirm `vp build` emi
 **Session Start:** 2026-06-06
 **Roadmap Created:** 2026-06-06
 **Architect Review:** 2026-06-06 — verdict REVISE BEFORE EXECUTION; recommendations incorporated
+**Phase 1 Planning:** 2026-06-06 — 3 plans created, checker-verified
+**Phase 2 Planning:** 2026-06-06 — 2 plans created, requirement IDs mapped (DATA-01, DATA-02, DATA-03)
 **Last Phase Completed:** —
-**Next Action:** `/gsd-execute-phase 1` (execute 3 plans — Wave 1: 01-01; Wave 2: 01-02 ∥ 01-03; note 01-03 ends in a human-verify build checkpoint)
+**Next Action:** `/gsd-execute-phase 1` (execute Wave 1: 01-01; then Wave 2: 01-02 ∥ 01-03). After Phase 1 completes and vp build spike confirms static SPA works, execute Phase 2.
 
 ---
 
-*State initialized: 2026-06-06 · revised after architect review 2026-06-06*
+*State initialized: 2026-06-06 · revised after architect review 2026-06-06 · Phase 2 planning complete 2026-06-06*
