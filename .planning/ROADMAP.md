@@ -16,7 +16,7 @@
 - [x] **Phase 3: Table Core** - Three-tier benchmark table with sorting and row actions (completed 2026-06-06)
 - [x] **Phase 4: Filters** - Model search, tier, metrics, params, and deprecated filters (completed 2026-06-06)
 - [x] **Phase 5: Import Flow** - Local-only benchmark import modal with parser (planned 2026-06-06) (completed 2026-06-06)
-- [ ] **Phase 6: Labeling & Export** - Inline editing and File System Access save
+- [x] **Phase 6: Labeling & Export** - Inline editing and File System Access save (completed 2026-06-06)
 - [ ] **Phase 7: Parity, CI & Swap** - Full Playwright regression, data-validation, atomic swap to the Vue app
 
 ---
@@ -170,7 +170,7 @@
 5. Export Data button surfaces whenever data is dirty (after Apply or labeling edit) or labeling mode is on
 6. **CI (incremental):** Playwright labeling + export checkpoints pass against the new DOM
 
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 - [x] 06-01-PLAN.md — Labeling state + inline editors (Wave 1)
 - [x] 06-02-PLAN.md — Export modal + file save (Wave 2)
@@ -207,7 +207,7 @@
 | 3. Table Core | 2/2 | Complete   | 2026-06-06 |
 | 4. Filters | 2/2 | Complete    | 2026-06-06 |
 | 5. Import Flow | 2/2 | Complete    | 2026-06-06 |
-| 6. Labeling & Export | 1/2 | In Progress|  |
+| 6. Labeling & Export | 2/2 | Complete   | 2026-06-06 |
 | 7. Parity, CI & Swap | 0/3 | Not started | — |
 
 ---
