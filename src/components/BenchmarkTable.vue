@@ -7,7 +7,11 @@
           <tr class="border-b border-border">
             <th class="px-4 py-3 text-left font-semibold text-foreground">Model</th>
             <th colspan="3" class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30">Spec</th>
-            <th :colspan="visibleBenchmarksInOrder.length * 2" class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30">Score</th>
+            <th v-if="!isLabelingMode" :colspan="visibleBenchmarksInOrder.length * 2" class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30">Score</th>
+            <template v-else>
+              <th class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30">Deprecated</th>
+              <th colspan="3" class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30">Tiers</th>
+            </template>
           </tr>
           <!-- Row 2: Subgroup headers -->
           <tr class="border-b border-border">
@@ -15,12 +19,20 @@
             <th class="px-4 py-2 border-l-2 border-primary/30"></th>
             <th class="px-4 py-2"></th>
             <th class="px-4 py-2"></th>
-            <th
-              v-for="benchmark in visibleBenchmarksInOrder"
-              :key="benchmark"
-              colspan="2"
-              class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2 border-primary/20"
-            >{{ benchmark }}</th>
+            <template v-if="!isLabelingMode">
+              <th
+                v-for="benchmark in visibleBenchmarksInOrder"
+                :key="benchmark"
+                colspan="2"
+                class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2 border-primary/20"
+              >{{ benchmark }}</th>
+            </template>
+            <template v-else>
+              <th class="px-4 py-2 h-8 border-l-2 border-primary/20"></th>
+              <th class="px-4 py-2 h-8 border-l-2 border-primary/20"></th>
+              <th class="px-4 py-2 h-8 border-l-2 border-primary/20"></th>
+              <th class="px-4 py-2 h-8 border-l-2 border-primary/20"></th>
+            </template>
           </tr>
           <!-- Row 3: Leaf headers (sortable) -->
           <tr class="border-b-2 border-border">
@@ -38,23 +50,31 @@
               {{ col.label }}
               <span v-if="sortCol === col.key" class="ml-0.5">{{ sortDir === 1 ? '↑' : '↓' }}</span>
             </th>
-            <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
-              <th
-                class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2 border-primary/20"
-                :class="sortCol === `scores.${benchmark}.accuracy` ? 'text-primary bg-primary/5' : 'text-muted-foreground'"
-                @click="onSort(`scores.${benchmark}.accuracy`)"
-              >🎯<span v-if="sortCol === `scores.${benchmark}.accuracy`" class="ml-0.5">{{ sortDir === 1 ? '↑' : '↓' }}</span></th>
-              <th
-                class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5"
-                :class="sortCol === `scores.${benchmark}.time_s` ? 'text-primary bg-primary/5' : 'text-muted-foreground'"
-                @click="onSort(`scores.${benchmark}.time_s`)"
-              >⏲<span v-if="sortCol === `scores.${benchmark}.time_s`" class="ml-0.5">{{ sortDir === 1 ? '↑' : '↓' }}</span></th>
+            <template v-if="!isLabelingMode">
+              <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
+                <th
+                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2 border-primary/20"
+                  :class="sortCol === `scores.${benchmark}.accuracy` ? 'text-primary bg-primary/5' : 'text-muted-foreground'"
+                  @click="onSort(`scores.${benchmark}.accuracy`)"
+                >🎯<span v-if="sortCol === `scores.${benchmark}.accuracy`" class="ml-0.5">{{ sortDir === 1 ? '↑' : '↓' }}</span></th>
+                <th
+                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5"
+                  :class="sortCol === `scores.${benchmark}.time_s` ? 'text-primary bg-primary/5' : 'text-muted-foreground'"
+                  @click="onSort(`scores.${benchmark}.time_s`)"
+                >⏲<span v-if="sortCol === `scores.${benchmark}.time_s`" class="ml-0.5">{{ sortDir === 1 ? '↑' : '↓' }}</span></th>
+              </template>
+            </template>
+            <template v-else>
+              <th class="px-3 py-2.5 text-xs font-semibold text-muted-foreground text-center cursor-default whitespace-nowrap border-l-2 border-primary/20">Deprecated</th>
+              <th class="px-3 py-2.5 text-xs font-semibold text-violet-700 text-center cursor-default whitespace-nowrap border-l-2 border-primary/20">Opus</th>
+              <th class="px-3 py-2.5 text-xs font-semibold text-blue-700 text-center cursor-default whitespace-nowrap border-l-2 border-primary/20">Sonnet</th>
+              <th class="px-3 py-2.5 text-xs font-semibold text-emerald-700 text-center cursor-default whitespace-nowrap border-l-2 border-primary/20">Haiku</th>
             </template>
           </tr>
         </thead>
         <tbody class="divide-y divide-border">
           <tr v-if="entries.length === 0">
-            <td :colspan="4 + visibleBenchmarksInOrder.length * 2" class="px-4 py-8 text-center text-muted-foreground text-sm">No entries loaded</td>
+            <td :colspan="isLabelingMode ? 8 : 4 + visibleBenchmarksInOrder.length * 2" class="px-4 py-8 text-center text-muted-foreground text-sm">No entries loaded</td>
           </tr>
           <template v-for="entry in sortedEntries" :key="entry.model">
             <!-- Normal row -->
@@ -82,85 +102,81 @@
               </template>
             </tr>
 
-            <!-- Labeling mode row -->
-            <tr v-if="isLabelingMode" class="bg-sky-50/50 border-t-2 border-sky-300">
-              <td class="px-4 py-3 font-medium text-foreground text-xs">{{ entry.model }}</td>
-              <td :colspan="3 + visibleBenchmarksInOrder.length * 2" class="px-4 py-3">
-                <div class="grid grid-cols-4 gap-5">
-                  <!-- Spec -->
-                  <div class="flex flex-col gap-2">
-                    <span class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Spec</span>
-                    <div class="flex flex-col gap-1.5">
-                      <div>
-                        <p class="text-xs text-muted-foreground mb-0.5">Parameters (B)</p>
-                        <input
-                          type="number"
-                          :value="labelEdits?.[entry.model]?.parameters_b ?? ''"
-                          @input="emit('update:labelEdit', entry.model, 'parameters_b', ($event.target as HTMLInputElement).value)"
-                          class="h-7 w-full rounded border px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                          :class="validationErrors?.[entry.model]?.parameters_b ? 'border-destructive bg-destructive/5' : 'border-input bg-background'"
-                        />
-                        <p v-if="validationErrors?.[entry.model]?.parameters_b" class="text-xs text-destructive mt-0.5">{{ validationErrors[entry.model].parameters_b.join(', ') }}</p>
-                      </div>
-                      <div>
-                        <p class="text-xs text-muted-foreground mb-0.5">Quantization</p>
-                        <input
-                          type="text"
-                          :value="labelEdits?.[entry.model]?.quantization ?? ''"
-                          @input="emit('update:labelEdit', entry.model, 'quantization', ($event.target as HTMLInputElement).value)"
-                          class="h-7 w-full rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
-                      </div>
-                      <div>
-                        <p class="text-xs text-muted-foreground mb-0.5">Size (GB)</p>
-                        <input
-                          type="number"
-                          :value="labelEdits?.[entry.model]?.size_gb ?? ''"
-                          @input="emit('update:labelEdit', entry.model, 'size_gb', ($event.target as HTMLInputElement).value)"
-                          class="h-7 w-full rounded border px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                          :class="validationErrors?.[entry.model]?.size_gb ? 'border-destructive bg-destructive/5' : 'border-input bg-background'"
-                        />
-                        <p v-if="validationErrors?.[entry.model]?.size_gb" class="text-xs text-destructive mt-0.5">{{ validationErrors[entry.model].size_gb.join(', ') }}</p>
-                      </div>
-                    </div>
-                  </div>
-                  <!-- Abilities -->
-                  <div class="flex flex-col gap-2">
-                    <span class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Abilities</span>
-                    <label class="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                      <input type="checkbox" :checked="labelEdits?.[entry.model]?.thinking ?? false" @change="emit('update:labelEdit', entry.model, 'thinking', ($event.target as HTMLInputElement).checked)" class="accent-primary" />
-                      Thinking
-                    </label>
-                    <label class="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                      <input type="checkbox" :checked="labelEdits?.[entry.model]?.mtp ?? false" @change="emit('update:labelEdit', entry.model, 'mtp', ($event.target as HTMLInputElement).checked)" class="accent-primary" />
-                      MTP
-                    </label>
-                  </div>
-                  <!-- Other -->
-                  <div class="flex flex-col gap-2">
-                    <span class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Other</span>
-                    <label class="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                      <input type="checkbox" :checked="labelEdits?.[entry.model]?.deprecated ?? false" @change="emit('update:labelEdit', entry.model, 'deprecated', ($event.target as HTMLInputElement).checked)" class="accent-primary" />
-                      Deprecated
-                    </label>
-                  </div>
-                  <!-- Tiers -->
-                  <div class="flex flex-col gap-2">
-                    <span class="text-xs font-bold text-muted-foreground uppercase tracking-wider">Tiers</span>
-                    <label class="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                      <input type="checkbox" :checked="labelEdits?.[entry.model]?.tier_opus ?? false" @change="emit('update:labelEdit', entry.model, 'tier_opus', ($event.target as HTMLInputElement).checked)" class="accent-primary" />
-                      <span class="text-violet-700 font-medium">Opus</span>
-                    </label>
-                    <label class="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                      <input type="checkbox" :checked="labelEdits?.[entry.model]?.tier_sonnet ?? false" @change="emit('update:labelEdit', entry.model, 'tier_sonnet', ($event.target as HTMLInputElement).checked)" class="accent-primary" />
-                      <span class="text-blue-700 font-medium">Sonnet</span>
-                    </label>
-                    <label class="flex items-center gap-1.5 text-xs text-foreground cursor-pointer">
-                      <input type="checkbox" :checked="labelEdits?.[entry.model]?.tier_haiku ?? false" @change="emit('update:labelEdit', entry.model, 'tier_haiku', ($event.target as HTMLInputElement).checked)" class="accent-primary" />
-                      <span class="text-emerald-700 font-medium">Haiku</span>
-                    </label>
-                  </div>
+            <!-- Labeling mode row: inline per-column editors (swaps Score group for Deprecated + Tiers) -->
+            <tr v-if="isLabelingMode" class="hover:bg-muted/30 transition-colors">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-1.5">
+                  <button @click="copyModelName(entry.model)" class="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-base leading-none" title="Copy model name">📋</button>
+                  <button @click="searchHuggingFace(entry.model)" class="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-base leading-none" title="Search on HuggingFace">🤗</button>
+                  <span class="text-foreground font-medium text-xs break-all">{{ entry.model }}</span>
                 </div>
+              </td>
+              <!-- Params -->
+              <td class="px-3 py-2 whitespace-nowrap border-l-2 border-primary/20">
+                <input
+                  type="number"
+                  :value="labelEdits?.[entry.model]?.parameters_b ?? ''"
+                  @input="emit('update:labelEdit', entry.model, 'parameters_b', ($event.target as HTMLInputElement).value)"
+                  class="h-7 w-20 rounded border px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                  :class="validationErrors?.[entry.model]?.parameters_b ? 'border-destructive bg-destructive/5' : 'border-input bg-background'"
+                />
+                <p v-if="validationErrors?.[entry.model]?.parameters_b" class="text-xs text-destructive mt-0.5">{{ validationErrors[entry.model].parameters_b.join(', ') }}</p>
+              </td>
+              <!-- Quant -->
+              <td class="px-3 py-2 whitespace-nowrap">
+                <input
+                  type="text"
+                  :value="labelEdits?.[entry.model]?.quantization ?? ''"
+                  @input="emit('update:labelEdit', entry.model, 'quantization', ($event.target as HTMLInputElement).value)"
+                  class="h-7 w-24 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                />
+              </td>
+              <!-- Size -->
+              <td class="px-3 py-2 whitespace-nowrap">
+                <input
+                  type="number"
+                  :value="labelEdits?.[entry.model]?.size_gb ?? ''"
+                  @input="emit('update:labelEdit', entry.model, 'size_gb', ($event.target as HTMLInputElement).value)"
+                  class="h-7 w-20 rounded border px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+                  :class="validationErrors?.[entry.model]?.size_gb ? 'border-destructive bg-destructive/5' : 'border-input bg-background'"
+                />
+                <p v-if="validationErrors?.[entry.model]?.size_gb" class="text-xs text-destructive mt-0.5">{{ validationErrors[entry.model].size_gb.join(', ') }}</p>
+              </td>
+              <!-- Deprecated -->
+              <td class="px-3 py-2 text-center border-l-2 border-primary/20">
+                <input
+                  type="checkbox"
+                  :checked="labelEdits?.[entry.model]?.deprecated ?? false"
+                  @change="emit('update:labelEdit', entry.model, 'deprecated', ($event.target as HTMLInputElement).checked)"
+                  class="accent-primary h-4 w-4 align-middle"
+                />
+              </td>
+              <!-- Opus -->
+              <td class="px-3 py-2 text-center border-l-2 border-primary/20">
+                <input
+                  type="checkbox"
+                  :checked="labelEdits?.[entry.model]?.tier_opus ?? false"
+                  @change="emit('update:labelEdit', entry.model, 'tier_opus', ($event.target as HTMLInputElement).checked)"
+                  class="accent-violet-600 h-4 w-4 align-middle"
+                />
+              </td>
+              <!-- Sonnet -->
+              <td class="px-3 py-2 text-center border-l-2 border-primary/20">
+                <input
+                  type="checkbox"
+                  :checked="labelEdits?.[entry.model]?.tier_sonnet ?? false"
+                  @change="emit('update:labelEdit', entry.model, 'tier_sonnet', ($event.target as HTMLInputElement).checked)"
+                  class="accent-blue-600 h-4 w-4 align-middle"
+                />
+              </td>
+              <!-- Haiku -->
+              <td class="px-3 py-2 text-center border-l-2 border-primary/20">
+                <input
+                  type="checkbox"
+                  :checked="labelEdits?.[entry.model]?.tier_haiku ?? false"
+                  @change="emit('update:labelEdit', entry.model, 'tier_haiku', ($event.target as HTMLInputElement).checked)"
+                  class="accent-emerald-600 h-4 w-4 align-middle"
+                />
               </td>
             </tr>
           </template>
