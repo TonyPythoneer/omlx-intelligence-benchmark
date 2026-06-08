@@ -25,8 +25,8 @@
 - [x] **Phase 7: Parity, CI & Swap** - Full Playwright regression, data-validation, atomic swap to the Vue app
 
 <!-- v1.1 (active) -->
-- [ ] **Phase 8: Slider & Convention** - reka-ui-backed dual-thumb PARAMS slider fixes the visible bug; reka-ui-for-interactive convention documented
-- [ ] **Phase 9: Labeling Realignment** - edit mode returns to the original column-aligned inline editors (Score columns swapped for Deprecated + Tiers); Abilities editor removed; `abilities` stripped on export
+- [x] **Phase 8: Slider & Convention** - reka-ui-backed dual-thumb PARAMS slider fixes the visible bug; reka-ui-for-interactive convention documented
+- [x] **Phase 9: Labeling Realignment** - edit mode returns to the original column-aligned inline editors (Score columns swapped for Deprecated + Tiers); Abilities editor removed; `abilities` stripped on export
 - [ ] **Phase 10: UI Primitives (Dialog + Select)** - `dialog` and `select` migrated to reka-ui headless primitives, styling + consumer APIs preserved
 
 ---
@@ -159,8 +159,8 @@
 | 5. Import Flow | v1.0 | 2/2 | Complete | 2026-06-06 |
 | 6. Labeling & Export | v1.0 | 2/2 | Complete | 2026-06-06 |
 | 7. Parity, CI & Swap | v1.0 | 3/3 | Complete | 2026-06-06 |
-| 8. Slider & Convention | v1.1 | 0/1 | Awaiting verify | - |
-| 9. Labeling Realignment | v1.1 | 0/1 | Planned | - |
+| 8. Slider & Convention | v1.1 | 1/1 | Complete | 2026-06-08 |
+| 9. Labeling Realignment | v1.1 | 1/1 | Complete | 2026-06-08 |
 | 10. UI Primitives (Dialog + Select) | v1.1 | 0/2 | Not started | - |
 
 ---

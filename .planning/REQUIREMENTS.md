@@ -11,11 +11,11 @@
 
 ### Slider (the visible bug — P0)
 
-- [ ] **SLIDER-01**: A reusable `ui/slider.vue` exists, built on reka-ui `SliderRoot` / `SliderTrack` / `SliderRange` / `SliderThumb`, supporting a two-thumb range value (`v-model` as `[min, max]`), with `min` / `max` / `step` props.
-- [ ] **SLIDER-02**: `ui/slider.vue` renders a visible track, a filled range between the two thumbs, and two draggable thumbs (no native `input[type=range]` / `::-webkit-*` hacks).
-- [ ] **SLIDER-03**: The PARAMS filter in `FilterBar.vue` uses `ui/slider.vue` instead of the two overlapping native range inputs; the `0B…Inf` breakpoint labels and the existing `update:paramsMinIdx` / `update:paramsMaxIdx` emit contract are preserved.
-- [ ] **SLIDER-04**: PARAMS filtering behaviour is unchanged — dragging either thumb filters rows by the same index→breakpoint mapping; min cannot cross above max; keyboard arrows move the focused thumb (reka-ui a11y, gained for free).
-- [ ] **SLIDER-05**: The slider matches the existing visual design (primary-coloured fill/thumbs, border track) via cva/`cn()` styling on the reka-ui parts — no regression versus the intended v1.0 look.
+- [x] **SLIDER-01**: A reusable `ui/slider.vue` exists, built on reka-ui `SliderRoot` / `SliderTrack` / `SliderRange` / `SliderThumb`, supporting a two-thumb range value (`v-model` as `[min, max]`), with `min` / `max` / `step` props.
+- [x] **SLIDER-02**: `ui/slider.vue` renders a visible track, a filled range between the two thumbs, and two draggable thumbs (no native `input[type=range]` / `::-webkit-*` hacks).
+- [x] **SLIDER-03**: The PARAMS filter in `FilterBar.vue` uses `ui/slider.vue` instead of the two overlapping native range inputs; the `0B…Inf` breakpoint labels and the existing `update:paramsMinIdx` / `update:paramsMaxIdx` emit contract are preserved.
+- [x] **SLIDER-04**: PARAMS filtering behaviour is unchanged — dragging either thumb filters rows by the same index→breakpoint mapping; min cannot cross above max; keyboard arrows move the focused thumb (reka-ui a11y, gained for free).
+- [x] **SLIDER-05**: The slider matches the existing visual design (primary-coloured fill/thumbs, border track) via cva/`cn()` styling on the reka-ui parts — no regression versus the intended v1.0 look.
 
 ### UI Primitives (best-practice alignment — P1)
 
@@ -25,14 +25,14 @@
 
 ### Labeling (realign to original design — user request)
 
-- [ ] **LABEL-01**: In labeling mode, `BenchmarkTable.vue` swaps the Score column group for the original layout — `Model | Spec(Params/Quant/Size) | Deprecated | Tiers(Opus/Sonnet/Haiku)` — with edit controls rendered **inline inside those locked-width columns**, not a full-width `colspan` stacked panel (matches `app/index.html:1242-1324`).
-- [ ] **LABEL-02**: The Abilities (Thinking/MTP) editor is removed from labeling mode, and `useLabeling.ts` no longer carries `thinking`/`mtp` edit state — Abilities is never a field the user is asked to fill.
-- [ ] **LABEL-03**: Export strips `abilities` from every entry before producing the JSON (matching the original `getExportData` → `({ abilities, ...rest }) => rest`); all other fields (spec/tiers/deprecated/scores/date) preserved.
+- [x] **LABEL-01**: In labeling mode, `BenchmarkTable.vue` swaps the Score column group for the original layout — `Model | Spec(Params/Quant/Size) | Deprecated | Tiers(Opus/Sonnet/Haiku)` — with edit controls rendered **inline inside those locked-width columns**, not a full-width `colspan` stacked panel (matches `app/index.html:1242-1324`).
+- [x] **LABEL-02**: The Abilities (Thinking/MTP) editor is removed from labeling mode, and `useLabeling.ts` no longer carries `thinking`/`mtp` edit state — Abilities is never a field the user is asked to fill.
+- [x] **LABEL-03**: Export strips `abilities` from every entry before producing the JSON (matching the original `getExportData` → `({ abilities, ...rest }) => rest`); all other fields (spec/tiers/deprecated/scores/date) preserved.
 
 ### Conventions (P2)
 
-- [ ] **CONV-01**: The convention "reka-ui headless primitives for interactive widgets; plain cva-styled elements for leaf components (input/textarea/label/card)" is documented in `CLAUDE.md` so future components follow it.
-- [ ] **CONV-02**: cva + `VariantProps` + `cn()` remain the styling contract for every `ui/` component (no `App*` shim pattern, no manual variant maps introduced).
+- [x] **CONV-01**: The convention "reka-ui headless primitives for interactive widgets; plain cva-styled elements for leaf components (input/textarea/label/card)" is documented in `CLAUDE.md` so future components follow it.
+- [x] **CONV-02**: cva + `VariantProps` + `cn()` remain the styling contract for every `ui/` component (no `App*` shim pattern, no manual variant maps introduced).
 
 ## Definition of Done
 
@@ -62,19 +62,19 @@ Tracked, not in this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SLIDER-01 | Phase 8 | Pending |
-| SLIDER-02 | Phase 8 | Pending |
-| SLIDER-03 | Phase 8 | Pending |
-| SLIDER-04 | Phase 8 | Pending |
-| SLIDER-05 | Phase 8 | Pending |
-| LABEL-01 | Phase 9 | Pending |
-| LABEL-02 | Phase 9 | Pending |
-| LABEL-03 | Phase 9 | Pending |
+| SLIDER-01 | Phase 8 | Done |
+| SLIDER-02 | Phase 8 | Done |
+| SLIDER-03 | Phase 8 | Done |
+| SLIDER-04 | Phase 8 | Done |
+| SLIDER-05 | Phase 8 | Done |
+| LABEL-01 | Phase 9 | Done |
+| LABEL-02 | Phase 9 | Done |
+| LABEL-03 | Phase 9 | Done |
 | UIPRIM-01 | Phase 10 | Pending |
 | UIPRIM-02 | Phase 10 | Pending |
 | UIPRIM-03 | Phase 10 | Pending |
-| CONV-01 | Phase 8 | Pending |
-| CONV-02 | Phase 8 | Pending |
+| CONV-01 | Phase 8 | Done |
+| CONV-02 | Phase 8 | Done |
 
 **Coverage:**
 - v1.1 requirements: 13 total
