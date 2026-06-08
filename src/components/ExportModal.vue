@@ -31,7 +31,7 @@ const props = withDefaults(defineProps<Props>(), { isOpen: false, entries: () =>
 defineEmits<{ close: [] }>();
 
 const copySuccess = ref(false);
-const jsonText = computed(() => JSON.stringify(props.entries, null, 2));
+const jsonText = computed(() => JSON.stringify(props.entries.map(({ abilities, ...rest }) => rest), null, 2));
 
 async function copyToClipboard() {
   try {
