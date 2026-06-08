@@ -78,6 +78,14 @@ app/data/device.json.template  — empty template for new devices
 
 - **`app/settings.json`** — `defaultDevice`, `parametersBreakpoints` (Params slider tick array), and `devices` (key → family/variant/memory/gpus metadata).
 
+## UI component conventions
+
+For the Vue SPA (`src/components/ui/`):
+
+- **Interactive widgets** (slider, dialog, select, …) are built on **reka-ui headless primitives** — never hand-rolled. `ui/slider.vue` (a reka-ui `SliderRoot`/`SliderTrack`/`SliderRange`/`SliderThumb` dual-thumb range) is the first instance and sets the precedent; Phase 09 follows it for dialog/select. Headless primitives give us keyboard a11y and ARIA for free and avoid WebKit-specific styling hacks (the old `::-webkit-slider-*` range inputs were the anti-pattern this convention replaces).
+- **Leaf components** (input/textarea/label/card/badge/button) stay **plain `cva`-styled elements** — no headless primitive needed, no a11y benefit, and that is also standard shadcn-vue.
+- The styling contract for every `ui/` component is **`cva` + `VariantProps` + `cn()` (from `@/lib/utils`)** — explicitly **no `App*` shim** and **no manual variant maps**.
+
 ## Usage
 
 ```bash
