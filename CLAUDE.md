@@ -82,7 +82,8 @@ app/data/device.json.template  — empty template for new devices
 
 For the Vue SPA (`src/components/ui/`):
 
-- **Interactive widgets** (slider, dialog, select, …) are built on **reka-ui headless primitives** — never hand-rolled. `ui/slider.vue` (a reka-ui `SliderRoot`/`SliderTrack`/`SliderRange`/`SliderThumb` dual-thumb range) is the first instance and sets the precedent; Phase 09 follows it for dialog/select. Headless primitives give us keyboard a11y and ARIA for free and avoid WebKit-specific styling hacks (the old `::-webkit-slider-*` range inputs were the anti-pattern this convention replaces).
+- **Custom interactive widgets** (slider, dialog, …) are built on **reka-ui headless primitives** — never hand-rolled from divs. `ui/slider.vue` (reka-ui `Slider*` dual-thumb range) and `ui/dialog.vue` (reka-ui `Dialog*`: focus-trap, Escape-to-close, scroll-lock, ARIA) are the instances. Headless primitives give keyboard a11y and ARIA for free and avoid hacks like the old `::-webkit-slider-*` range inputs (the anti-pattern this convention replaces).
+- **Native HTML controls are acceptable, and preferred where they suffice.** `ui/select.vue` intentionally wraps a native `<select>` — a native control is already fully accessible (keyboard, type-ahead, screen-reader, native mobile picker) and is *using the platform*, not hand-rolling. The reka-ui rule targets CUSTOM widgets you'd otherwise build from divs; it does **not** mean replacing robust native `<select>`/`<input>` with custom listboxes for their own sake.
 - **Leaf components** (input/textarea/label/card/badge/button) stay **plain `cva`-styled elements** — no headless primitive needed, no a11y benefit, and that is also standard shadcn-vue.
 - The styling contract for every `ui/` component is **`cva` + `VariantProps` + `cn()` (from `@/lib/utils`)** — explicitly **no `App*` shim** and **no manual variant maps**.
 
