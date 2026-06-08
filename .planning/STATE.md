@@ -2,22 +2,22 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: reka-ui Best-Practice Alignment
-status: in_progress
-last_updated: "2026-06-08T09:20:00.000Z"
+status: completed
+last_updated: "2026-06-08T09:45:00.000Z"
 last_activity: 2026-06-08
 progress:
   total_phases: 3
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
-  percent: 67
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
+  percent: 100
 ---
 
 # STATE: oMLX Intelligence Benchmark — v1.1 reka-ui Best-Practice Alignment
 
 **Milestone:** v1.1 — reka-ui Best-Practice Alignment
-**Current Phase:** 10 — UI Primitives (Dialog + Select) — next
-**Status:** Phases 8 (slider) + 9 (labeling realignment) complete & self-verified; Phase 10 pending plan
+**Current Phase:** — (milestone complete)
+**Status:** ✅ v1.1 complete & self-verified — Phase 8 (slider), 9 (labeling realignment + D-09-1 pre-population fix), 10 (dialog→reka-ui, select kept native). 13/13 requirements done.
 **Last Updated:** 2026-06-08
 
 ---
