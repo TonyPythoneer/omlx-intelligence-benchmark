@@ -1,59 +1,55 @@
-name: ci-ui-validation
+name: 🧪 UI Validation
 
 on:
   push:
+    branches: [main]
     paths:
-      - 'src/**'
-      - 'public/data/**'
-      - 'index.html'
-      - 'vite.config.ts'
+      - "src/**"
+      - "public/data/**"
+      - "index.html"
+      - "vite.config.ts"
+      - ".github/workflows/ci-ui-validation.yml"
   pull_request:
     paths:
-      - 'src/**'
-      - 'public/data/**'
-      - 'index.html'
-      - 'vite.config.ts'
+      - "src/**"
+      - "public/data/**"
+      - "index.html"
+      - "vite.config.ts"
+      - ".github/workflows/ci-ui-validation.yml"
 
 jobs:
   ui-validation:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: pnpm/action-setup@v4
         with:
-          node-version: '24'
+          version: 11.4.0
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v3
+      - uses: actions/setup-node@v4
         with:
-          version: 11
+          node-version: 24
+          cache: pnpm
 
-      - name: Install Node dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: "3.12"
 
       - name: Install Playwright
         run: pip install playwright && playwright install firefox --with-deps
 
-      - name: Build static site
-        run: pnpm build
+      - run: pnpm build
 
-      - name: Serve built dist/ on port 8080
+      - name: Serve dist/ on port 8080
         run: python3 -m http.server 8080 --directory dist &
 
       - name: Wait for port 8080
         run: npx wait-on http://localhost:8080/ --timeout 60000
 
-      - name: Run UI validation
-        run: python3 outputs/ui-validation/final_script.py
+      - run: python3 outputs/ui-validation/final_script.py
 
       - name: Upload failure artifacts
         if: failure()
