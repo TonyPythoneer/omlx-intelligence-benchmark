@@ -43,7 +43,7 @@ export function useSettings() {
       isLoading.value = true;
       error.value = null;
 
-      const response = await fetch("/settings.json");
+      const response = await fetch(`${import.meta.env.BASE_URL}settings.json`);
       if (!response.ok) {
         throw new Error(`Failed to fetch settings: ${response.status} ${response.statusText}`);
       }

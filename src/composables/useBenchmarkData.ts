@@ -36,7 +36,7 @@ export function useBenchmarkData(device: Ref<string | null>) {
       isLoading.value = true;
       error.value = null;
 
-      const response = await fetch(`/data/${deviceKey}.json`);
+      const response = await fetch(`${import.meta.env.BASE_URL}data/${deviceKey}.json`);
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
       }

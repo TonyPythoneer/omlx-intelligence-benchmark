@@ -1,8 +1,11 @@
+import { env } from "node:process";
 import { defineConfig } from "vite-plus";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  // GitHub Pages serves at /omlx-intelligence-benchmark/; dev server uses root.
+  base: env.GITHUB_ACTIONS === "true" ? "/omlx-intelligence-benchmark/" : "/",
   staged: {
     "*": "vp check --fix",
   },
