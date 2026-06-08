@@ -9,7 +9,7 @@
 ## Milestones
 
 - ✅ **v1.0 — Vue 3 + Vite+ Migration** — Phases 1–7 (shipped 2026-06-06, 28/28 reqs)
-- 🚧 **v1.1 — reka-ui Best-Practice Alignment** — Phases 8–10 (in progress, 13/13 reqs mapped)
+- ✅ **v1.1 — reka-ui Best-Practice Alignment** — Phases 8–10 (complete 2026-06-08, 13/13 reqs)
 
 ---
 
@@ -27,11 +27,11 @@
 <!-- v1.1 (active) -->
 - [x] **Phase 8: Slider & Convention** - reka-ui-backed dual-thumb PARAMS slider fixes the visible bug; reka-ui-for-interactive convention documented
 - [x] **Phase 9: Labeling Realignment** - edit mode returns to the original column-aligned inline editors (Score columns swapped for Deprecated + Tiers); Abilities editor removed; `abilities` stripped on export
-- [ ] **Phase 10: UI Primitives (Dialog + Select)** - `dialog` and `select` migrated to reka-ui headless primitives, styling + consumer APIs preserved
+- [x] **Phase 10: UI Primitives (Dialog + Select)** - `dialog` migrated to reka-ui `Dialog*` (focus-trap/Escape/scroll-lock/aria); native `<select>` deliberately retained (documented); consumer APIs preserved
 
 ---
 
-## 🚧 v1.1 — reka-ui Best-Practice Alignment (In Progress)
+## ✅ v1.1 — reka-ui Best-Practice Alignment (Complete 2026-06-08)
 
 **Milestone Goal:** Adopt the genuine Vue 3 / reka-ui best practice the project is missing — use headless reka-ui primitives for interactive widgets instead of hand-rolling them — starting by fixing the visibly broken PARAMS range slider. Keep the already-canonical `cva` + `cn()` + `VariantProps` conventions; add no heavyweight tooling.
 
@@ -48,7 +48,7 @@
   4. The `0B…Inf` breakpoint labels still flank the slider and the existing `update:paramsMinIdx` / `update:paramsMaxIdx` emit contract is preserved, so `App.vue` filtering is wired identically.
   5. `CLAUDE.md` documents the convention — reka-ui headless primitives for interactive widgets; plain `cva`-styled elements for leaf components (input/textarea/label/card) — and `cva` + `VariantProps` + `cn()` remains the styling contract with no `App*` shim or manual variant maps introduced.
 **Plans:** 1 plan
-- [ ] 08-01-PLAN.md — Build reka-ui `ui/slider.vue`, rewire FilterBar PARAMS (emit contract preserved), document convention
+- [x] 08-01-PLAN.md — Build reka-ui `ui/slider.vue`, rewire FilterBar PARAMS (emit contract preserved), document convention
 **UI hint:** yes
 
 ### Phase 9: Labeling Realignment
@@ -61,7 +61,7 @@
   3. Export strips `abilities` from every entry (matching original `getExportData` → `({ abilities, ...rest }) => rest`), so exported JSON carries no `abilities` key; all other fields (spec/tiers/deprecated/scores/date) are preserved.
   4. Existing Vitest suite green (adjust `useLabeling` tests for the removed Abilities fields); existing Playwright UI-validation checkpoints show zero new failures vs baseline.
 **Plans:** 1 plan
-- [ ] 09-01-PLAN.md — restore column-aligned inline labeling editors (swap Score→Deprecated+Tiers), remove Abilities editor, strip `abilities` on export
+- [x] 09-01-PLAN.md — restore column-aligned inline labeling editors (swap Score→Deprecated+Tiers), remove Abilities editor, strip `abilities` on export
 **UI hint:** yes
 
 ### Phase 10: UI Primitives (Dialog + Select)
@@ -70,9 +70,10 @@
 **Requirements:** UIPRIM-01, UIPRIM-02, UIPRIM-03
 **Success Criteria** (what must be TRUE):
   1. `ui/dialog.vue` is backed by reka-ui `Dialog*` primitives (overlay, focus-trap, `Escape`-to-close, `aria` wiring) while keeping its current `cva` styling and its public slot/prop API (`open` / `title` / `class` props, `close` emit, default + `footer` slots) — so `ImportModal` and `ExportModal` open, close, and render identically.
-  2. `ui/select.vue` is backed by reka-ui `Select*` primitives (keyboard navigation, `aria`, typeahead) while keeping its current styling and the `modelValue` / `update:modelValue` contract used by `DeviceSelector`, which still selects a device identically.
+  2. `ui/select.vue` is intentionally KEPT as a native `<select>` wrapper (a native control is already accessible + mobile-friendly; using the platform is not hand-rolling). `DeviceSelector` selects a device identically; convention amended in CLAUDE.md. (UIPRIM-02 revised — flagged to user.)
   3. All four consumers (`ImportModal`, `ExportModal`, `DeviceSelector`, `FilterBar`) function unchanged after migration, verified by the existing Playwright UI-validation checkpoints staying green and the existing Vitest suite staying green, with no data / feature / JSON-contract change.
-**Plans:** TBD (2 anticipated — migrate `dialog` + verify ImportModal/ExportModal; migrate `select` + verify DeviceSelector)
+**Plans:** 1 plan
+- [x] 10-01-PLAN.md — migrate dialog to reka-ui; retain native select; clarify convention
 **UI hint:** yes
 
 **Planning note (Phase 10):** `select.vue` currently accepts native `<option>` slot children (see `DeviceSelector.vue`). reka-ui `Select` uses `SelectItem` items rather than native `<option>`, so the consumer-facing item-rendering API must be reconciled during plan-phase — preserve `DeviceSelector`'s `devices` / `modelValue` props and `update:modelValue` emit contract while migrating its internal markup to the reka-ui item API. This is the one consumer-API nuance to resolve when planning UIPRIM-02 / UIPRIM-03.
@@ -161,7 +162,7 @@
 | 7. Parity, CI & Swap | v1.0 | 3/3 | Complete | 2026-06-06 |
 | 8. Slider & Convention | v1.1 | 1/1 | Complete | 2026-06-08 |
 | 9. Labeling Realignment | v1.1 | 1/1 | Complete | 2026-06-08 |
-| 10. UI Primitives (Dialog + Select) | v1.1 | 0/2 | Not started | - |
+| 10. UI Primitives (Dialog + Select) | v1.1 | 1/1 | Complete | 2026-06-08 |
 
 ---
 

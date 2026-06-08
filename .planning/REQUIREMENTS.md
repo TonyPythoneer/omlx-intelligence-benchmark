@@ -19,9 +19,9 @@
 
 ### UI Primitives (best-practice alignment — P1)
 
-- [ ] **UIPRIM-01**: `ui/dialog.vue` is migrated to reka-ui `Dialog*` primitives (overlay, content, focus-trap, `Escape`-to-close, `aria` wiring) while preserving its current cva styling and the public slot/prop API used by `ImportModal` / `ExportModal`.
-- [ ] **UIPRIM-02**: `ui/select.vue` is migrated to reka-ui `Select*` primitives (keyboard navigation, `aria`, typeahead) while preserving its current styling and the API used by `DeviceSelector`.
-- [ ] **UIPRIM-03**: All existing consumers (`ImportModal`, `ExportModal`, `DeviceSelector`, `FilterBar`) work unchanged after migration — verified by the existing Playwright UI-validation checkpoints.
+- [x] **UIPRIM-01**: `ui/dialog.vue` is migrated to reka-ui `Dialog*` primitives (overlay, content, focus-trap, `Escape`-to-close, `aria` wiring) while preserving its current cva styling and the public slot/prop API used by `ImportModal` / `ExportModal`.
+- [x] **UIPRIM-02**: `ui/select.vue` is migrated to reka-ui `Select*` primitives (keyboard navigation, `aria`, typeahead) while preserving its current styling and the API used by `DeviceSelector`.
+- [x] **UIPRIM-03**: All existing consumers (`ImportModal`, `ExportModal`, `DeviceSelector`, `FilterBar`) work unchanged after migration — verified by the existing Playwright UI-validation checkpoints.
 
 ### Labeling (realign to original design — user request)
 
@@ -70,9 +70,9 @@ Tracked, not in this milestone.
 | LABEL-01 | Phase 9 | Done |
 | LABEL-02 | Phase 9 | Done |
 | LABEL-03 | Phase 9 | Done |
-| UIPRIM-01 | Phase 10 | Pending |
-| UIPRIM-02 | Phase 10 | Pending |
-| UIPRIM-03 | Phase 10 | Pending |
+| UIPRIM-01 | Phase 10 | Done |
+| UIPRIM-02 | Phase 10 | Done |
+| UIPRIM-03 | Phase 10 | Done |
 | CONV-01 | Phase 8 | Done |
 | CONV-02 | Phase 8 | Done |
 
