@@ -60,7 +60,8 @@
   2. The Abilities (Thinking/MTP) editor is removed from labeling mode, and `useLabeling.ts` no longer carries `thinking`/`mtp` edit state — Abilities is never a field the user fills.
   3. Export strips `abilities` from every entry (matching original `getExportData` → `({ abilities, ...rest }) => rest`), so exported JSON carries no `abilities` key; all other fields (spec/tiers/deprecated/scores/date) are preserved.
   4. Existing Vitest suite green (adjust `useLabeling` tests for the removed Abilities fields); existing Playwright UI-validation checkpoints show zero new failures vs baseline.
-**Plans:** TBD (1 anticipated)
+**Plans:** 1 plan
+- [ ] 09-01-PLAN.md — restore column-aligned inline labeling editors (swap Score→Deprecated+Tiers), remove Abilities editor, strip `abilities` on export
 **UI hint:** yes
 
 ### Phase 10: UI Primitives (Dialog + Select)
@@ -159,7 +160,7 @@
 | 6. Labeling & Export | v1.0 | 2/2 | Complete | 2026-06-06 |
 | 7. Parity, CI & Swap | v1.0 | 3/3 | Complete | 2026-06-06 |
 | 8. Slider & Convention | v1.1 | 0/1 | Awaiting verify | - |
-| 9. Labeling Realignment | v1.1 | 0/? | Not started | - |
+| 9. Labeling Realignment | v1.1 | 0/1 | Planned | - |
 | 10. UI Primitives (Dialog + Select) | v1.1 | 0/2 | Not started | - |
 
 ---
