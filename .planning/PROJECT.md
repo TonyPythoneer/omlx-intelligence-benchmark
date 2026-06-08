@@ -1,0 +1,110 @@
+# oMLX Intelligence Benchmark — Vue + Vite+ Static Site
+
+## What This Is
+
+A static, serverless benchmark comparison site for oMLX / MLX model results. It is a component-based **Vue 3 + Vite+ (`vp`) static SPA** — migrated from a single 1581-line vanilla-JS `app/index.html` in v1.0. Built via `vp build`, deployed from `dist/` to GitHub Pages. The in-browser data-import/label/export model and the pure-JSON data contract are preserved. **Milestone v1.0 complete (all 7 phases).**
+
+## Core Value
+
+Browse and compare MLX benchmark results in a fast, fully static page — and import, label, and export that data entirely in the browser, with no server ever required.
+
+## Current Milestone: v1.1 — reka-ui Best-Practice Alignment
+
+**Goal:** Adopt the genuine Vue 3 / Vite / reka-ui best practice the project is currently missing — use headless **reka-ui** primitives for interactive widgets instead of hand-rolling them — starting by fixing the visibly broken PARAMS range slider.
+
+**Key insight (from auditing both codebases):** `reka-ui` is already a dependency but **entirely unused**; every `ui/` component is hand-rolled and the PARAMS slider (inline native `input[type=range]` hack in `FilterBar.vue`) renders broken (two disconnected empty circles, no track/fill). This project's `cva` + `cn()` + `VariantProps` conventions are *already* canonical shadcn-vue — jen-lab's `App*` pattern is a Nuxt-UI-compat shim, NOT a better practice to copy. So the milestone keeps the cva conventions and adopts only the reka-ui-headless-primitive practice.
+
+**Target features:**
+- Replace the hand-rolled PARAMS dual-handle slider with a reka-ui `Slider`-backed `ui/slider.vue` (`SliderRoot`/`SliderTrack`/`SliderRange`/`SliderThumb`, two-thumb range, visible track + fill, keyboard + aria for free) — **the visible bug, P0**
+- Migrate the hand-rolled interactive `ui/` components that genuinely benefit from a11y primitives (`dialog` → reka-ui `Dialog`, `select` → reka-ui `Select`) to headless reka-ui, preserving current cva styling
+- Establish + document the convention: **reka-ui for interactive widgets, plain styled elements for leaf components** (input/textarea/label/card stay as-is — that is also standard shadcn-vue)
+
+**Out of milestone scope:** Storybook, Velite, unplugin auto-imports, `App*` renaming, leaf-component rewrites, any data/feature change.
+
+## Requirements
+
+### Validated
+
+<!-- All original parity requirements + migration requirements shipped. -->
+
+- ✓ Three-tier benchmark table (category group → benchmark sub-group → Acc/Time leaf) with score color-coding — Phase 1/3
+- ✓ Filters: model substring search, Tier, Metrics, Params dual-handle range slider, Show Deprecated — Phase 4
+- ✓ Default sort by `date DESC`; sortable columns; Model column non-sortable — Phase 3
+- ✓ Per-row 📋 copy-model-name and 🤗 open-HuggingFace-search actions — Phase 3
+- ✓ Import modal: paste benchmark stdout → JS parser → NEW/OVERWRITE list → in-memory merge (overwrite scores only on duplicate) — Phase 5
+- ✓ Labeling mode: inline edit of spec/abilities/deprecated/tiers with validation gating Export — Phase 6
+- ✓ Export Data: full JSON via clipboard or File System Access API (Safari fallback) — Phase 6
+- ✓ Pure-JSON data files per device + settings.json (defaultDevice, parametersBreakpoints, devices) — Phase 1/2
+- ✓ Hostname guard: `+ Import` hidden when not on localhost/127.0.0.1 — Phase 5
+- ✓ Vite+ dev/test wiring (`vp dev` / `vp test`, `make serve` on :8080) — Phase 1
+- ✓ CI: UI-validation (Playwright `final_script.py`) + data-JSON validation — Phase 7
+- ✓ Vue 3 SFC component-based architecture with Composition API composables — Phase 1–6
+- ✓ Static `vp build` producing `dist/` deployed to GitHub Pages via `cd-static.yml` — Phase 7
+- ✓ 35 Vitest tests (parser + composables) green; 11/11 Playwright CPs green — Phase 5/6/7
+
+### Active
+
+<!-- Milestone v1.1 — see REQUIREMENTS.md for REQ-IDs -->
+
+- ○ PARAMS dual-handle slider rebuilt on reka-ui `Slider` (`ui/slider.vue`), visible track + range fill, replaces native-input hack — v1.1
+- ○ Interactive `ui/` components (`dialog`, `select`) migrated to reka-ui headless primitives, cva styling preserved — v1.1
+- ○ "reka-ui for interactive, plain styled for leaf" convention established + documented — v1.1
+
+### Out of Scope
+
+- **Nuxt** — user specified "vue and vite plus"; avoid Nuxt's heavier SSR/runtime. Borrow jen-lab's *tooling* (Vite+, plugins, conventions), not its Nuxt core — keep this a lightweight SSG.
+- **Any backend / server / database** — the site is serverless by design; all data lives in JSON files and browser memory.
+- **Changing the JSON data format** — downstream tooling (`scripts/apply-import.mjs`, CI data-validation) and the device files depend on it.
+- **New benchmark features beyond parity** — this is a migration, not a feature expansion. New capabilities defer to v2.
+- **Replacing the File System Access save model** — keep the user-confirmed Save-As write path; do not add server-side persistence.
+
+## Context
+
+- The repo is **already wired to Vite+** (`@voidzero-dev/vite-plus-core`, `vp dev`/`vp test`) but the app itself is vanilla `app/index.html` — no Vue, no build step today.
+- **Reference project:** `/Users/tonyyang/git/personal/jen-lab` — a Vue 3 site whose core is Nuxt 4 + Nuxt UI + Nuxt Content, but which also carries a full **vite-ssg** `vite.config.ts` (unplugin-vue-router on `app/pages`, vite-plugin-vue-layouts, unplugin-auto-import, unplugin-vue-components, velite, Tailwind v4, unplugin-fonts; entry `index.html → /app/main.ts`). That vite-ssg config is the concrete template for "Vue + Vite+ static site."
+- Data lives in `app/data/*.json` (e.g. `m1-max-64GB-32c.json`) + `app/data/device.json.template`; settings in `app/settings.json`. The parser/merge logic lives in `app/lib/import.mjs` with `import.test.mjs` tests.
+- CI workflows depend on app HTML/JS changes (`ci-ui-validation.yml`) and data/lib changes (`validate-data.yml`), plus `cd-static.yml`, `auto-data-import.yml`, `post-merge-notify.yml`.
+- Known constraints from `CLAUDE.md`: keep `app/index.html` serverless; **do not run `vp build`** historically because the site was serverless-by-hand — that rule will be *superseded* for the migrated app, which legitimately needs a vite-ssg build step producing static output.
+
+## Constraints
+
+- **Tech stack**: Vue 3 + Vite+ (`@voidzero-dev/vite-plus-core`, `vp`), static **SPA** build (vite-ssg deferred) — Why: single-page scope; SPA is simpler, stays fully serverless, and avoids build-time execution of browser-only code; runs on the existing `vp` wiring.
+- **Serverless**: the built site must be fully static; no runtime server — Why: core product property and deploy model (`cd-static.yml`).
+- **Data contract**: `app/data/*.json` stay pure JSON arrays; import "overwrite scores only on duplicate" rule preserved — Why: CI + downstream tooling depend on it.
+- **Browser-only APIs**: File System Access (`showSaveFilePicker`), clipboard, hostname guard must run client-side and be SSG-safe (no SSR access) — Why: the import/label/export flow is the differentiator.
+- **Compatibility**: keep `make serve`, `vp dev`, `vp test`; existing CI (UI-validation, data-validation) must keep passing — Why: don't break the dev loop or release gates.
+- **Runtime**: Node `>=24` (existing `engines`) — Why: matches Vite+/pnpm catalog setup.
+
+## Key Decisions
+
+| Decision | Rationale | Outcome |
+| **Plain Vue 3 + Vite+ SPA** (static `vp build`), **not** Nuxt, **vite-ssg deferred** | One data-heavy page; SPA is simpler, still fully serverless static, and avoids SSG build-time execution of `window`/`location` (kills 2 critical risks) | ✓ Locked (architect review) |
+| **No SSR/prerender of browser-only code** — File System Access / clipboard / hostname guard run client-side only | SPA renders in the browser; a `useClientOnly`-style guard pattern is established in Phase 1 | ✓ Locked |
+| **State via Composition API composables** (no Pinia) | Single-page scope; lightweight and type-safe; Pinia boilerplate unwarranted | ✓ Locked |
+| **TypeScript data-model types in Phase 1** (`types/benchmark.ts`) | Phases 3–6 build on a typed schema; prevents late refactor | ✓ Locked |
+| **Styling: scoped SFC `<style>`, 1:1 CSS port** (Tailwind → v2) | Faithful parity migration; preserve current design exactly | ✓ Locked |
+| **Migration isolated on `feat/vue-vite-static-site`; main's `app/index.html` untouched until parity** | `vite.config root:'app'` collides with the live app; atomic swap at Phase 7 | ✓ Locked |
+| **Phase 1 build/render spike before Phases 2–7 execute** | Validate `vp build` static output + end-to-end render early (keystone assumption) | ✓ Locked |
+| Preserve JSON data format + port `import.mjs` logic as-is | CI, `apply-import.mjs`, and device files depend on it | ✓ Locked |
+| Strict feature parity first; new features → v2 | De-risk the rewrite; keep a verifiable target | ✓ Locked |
+| Supersede the "do not run `vp build`" rule for the new app | The migrated SPA legitimately needs a static build; output stays serverless | ✓ Locked |
+
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd-transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd-complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+---
+*Last updated: 2026-06-08 — milestone v1.1 started (reka-ui best-practice alignment)*

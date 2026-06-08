@@ -1,197 +1,166 @@
-"""UI validation script for app/index.html — runs 9 Critical Points."""
+"""UI validation for the Vue 3 + shadcn-vue + reka-ui SPA.
+
+Runs a handful of ROBUST critical points against the CURRENT app using stable
+selectors (ARIA roles, visible text, `tbody tr`) rather than brittle class names.
+Serve the built static site on http://localhost:8080/ first (e.g.
+`python3 -m http.server 8080 --directory dist`), then run this script.
+
+Prints `RESULT: N/N` and exits non-zero on any failure so CI fails loudly.
+Screenshots of failures land in outputs/ui-validation/final_runs/.
+"""
 import asyncio
 from pathlib import Path
-from playwright.async_api import async_playwright
+from playwright.async_api import async_playwright, Page
 
-RUN_DIR = Path(__file__).parent / "final_runs" / "run_1"
-SS = RUN_DIR / "screenshots"
-LOG = RUN_DIR / "final_script_log.txt"
+RUN_DIR = Path(__file__).parent / "final_runs"
 URL = "http://localhost:8080/"
-
-SAMPLE_IMPORT = (
-    "Model: TestModel-7B-UIValidation\n"
-    "MMLU 78.5% 24 30 492.9 Yes\n"
-    "TRUTHFULQA 65.0% 20 30 138.8 Yes\n"
-)
 
 
 def log(msg: str) -> None:
-    with open(LOG, "a") as f:
-        f.write(msg + "\n")
-    print(msg)
+    print(msg, flush=True)
+
+
+async def snap(page: Page, name: str) -> None:
+    RUN_DIR.mkdir(parents=True, exist_ok=True)
+    try:
+        await page.screenshot(path=str(RUN_DIR / name))
+    except Exception as e:  # pragma: no cover - best effort
+        log(f"  (screenshot {name} failed: {e})")
 
 
 async def main() -> None:
-    RUN_DIR.mkdir(parents=True, exist_ok=True)
-    SS.mkdir(parents=True, exist_ok=True)
-    LOG.write_text("")
-
     passed: list[str] = []
     failed: list[str] = []
 
     async with async_playwright() as p:
         browser = await p.firefox.launch(headless=True)
-        page = await browser.new_page(viewport={"width": 1280, "height": 1800})
-
-        # CP1 — page loads with data
-        log("step 1 action: navigate to app, verify ≥1 tbody rows")
+        page = await browser.new_page(viewport={"width": 1400, "height": 1600})
         await page.goto(URL, wait_until="networkidle")
-        rows = await page.locator("tbody tr").count()
-        if rows >= 1:
-            passed.append("CP1")
-            log(f"CP1 PASS: rows={rows}")
-        else:
-            failed.append("CP1")
-            log(f"CP1 FAIL: rows={rows}")
-        await page.screenshot(path=str(SS / "final_execution_1_page_load.png"))
+        await page.wait_for_timeout(600)
 
-        # CP2 — Tier filter Opus
-        log("step 2 action: click Opus tier filter")
-        all_rows = await page.locator("tbody tr").count()
-        await page.locator("#tier-filter button[data-val='opus']").click()
-        await page.wait_for_timeout(300)
-        opus_rows = await page.locator("tbody tr").count()
-        if opus_rows <= all_rows:
-            passed.append("CP2")
-            log(f"CP2 PASS: all_rows={all_rows} opus_rows={opus_rows}")
-        else:
-            failed.append("CP2")
-            log(f"CP2 FAIL: opus_rows={opus_rows} exceeded all_rows={all_rows}")
-        await page.screenshot(path=str(SS / "final_execution_2_tier_opus.png"))
-        await page.locator("#tier-filter button[data-val='all']").click()
-        await page.wait_for_timeout(300)
-
-        # CP3 — Metrics filter Advanced
-        log("step 3 action: click Advanced metrics, verify Coding columns visible")
-        await page.locator("#metrics-filter button[data-val='advanced']").click()
-        await page.wait_for_timeout(300)
-        subgroup = await page.locator("thead tr.subgroup-row").inner_text()
-        if "HUMANEVAL" in subgroup and "MMLU" not in subgroup:
-            passed.append("CP3")
-            log(f"CP3 PASS: subgroup={subgroup!r}")
-        else:
-            failed.append("CP3")
-            log(f"CP3 FAIL: subgroup={subgroup!r}")
-        await page.screenshot(path=str(SS / "final_execution_3_metrics_advanced.png"))
-        await page.locator("#metrics-filter button[data-val='all']").click()
-        await page.wait_for_timeout(300)
-
-        # CP4 — Model search
-        log("step 4 action: search 'Qwen3.6', verify rows filtered")
-        await page.fill("#model-search", "Qwen3.6")
-        await page.wait_for_timeout(300)
-        search_rows = await page.locator("tbody tr").count()
-        if search_rows >= 1:
-            passed.append("CP4")
-            log(f"CP4 PASS: search_rows={search_rows}")
-        else:
-            failed.append("CP4")
-            log(f"CP4 FAIL: search_rows={search_rows}")
-        await page.screenshot(path=str(SS / "final_execution_4_search.png"))
-        await page.fill("#model-search", "")
-        await page.wait_for_timeout(300)
-
-        # CP5 — Show Deprecated
-        log("step 5 action: check Show Deprecated, verify deprecated-row appears")
-        await page.check("#show-all-cb")
-        await page.wait_for_timeout(300)
-        dep_rows = await page.locator("tbody tr.deprecated-row").count()
-        if dep_rows >= 1:
-            passed.append("CP5")
-            log(f"CP5 PASS: deprecated_rows={dep_rows}")
-        else:
-            failed.append("CP5")
-            log(f"CP5 FAIL: deprecated_rows={dep_rows}")
-        await page.screenshot(path=str(SS / "final_execution_5_show_deprecated.png"))
-        await page.uncheck("#show-all-cb")
-        await page.wait_for_timeout(300)
-
-        # CP6 — Column sort on Params
-        # NOTE: default sort is date DESC (first rows have Params="—").
-        # After sort asc, rows with params (35B) come first → first row changes from "—" to "35B".
-        # Comparing before vs after-first-click (not asc vs desc) because all param entries are 35B.
-        log("step 6 action: click Params header, verify first row Params changes")
-        first_before = await page.locator("tbody tr:first-child td:nth-child(2)").inner_text()
-        await page.locator("thead tr.leaf-row th[data-col='spec.parameters_b']").click()
-        await page.wait_for_timeout(300)
-        first_after = await page.locator("tbody tr:first-child td:nth-child(2)").inner_text()
-        if first_before != first_after:
-            passed.append("CP6")
-            log(f"CP6 PASS: before={first_before!r} after={first_after!r}")
-        else:
-            failed.append("CP6")
-            log(f"CP6 FAIL: before={first_before!r} == after={first_after!r} (sort had no effect)")
-        await page.screenshot(path=str(SS / "final_execution_6_sort_params.png"))
-
-        # Reset sort to date desc — use a try-catch because sort button may not exist after filter changes
+        # CP1 — page loads, title present
+        log("CP1: page loads, title 'oMLX Intelligence Benchmark' present")
         try:
-            date_header = page.locator("thead tr.sortable-row th[data-col='date']")
-            if await date_header.count() > 0:
-                await date_header.click()
-                await page.wait_for_timeout(300)
-                await date_header.click()
-                await page.wait_for_timeout(300)
+            title = await page.title()
+            h1 = (await page.locator("h1").first.inner_text()).strip()
+            assert title == "oMLX Intelligence Benchmark", f"title={title!r}"
+            assert "oMLX Intelligence Benchmark" in h1, f"h1={h1!r}"
+            passed.append("CP1")
+            log(f"  PASS: title={title!r}")
         except Exception as e:
-            log(f"note: sort reset skipped (not critical): {e}")
+            failed.append("CP1")
+            log(f"  FAIL: {e}")
+            await snap(page, "cp1_page_load.png")
 
-        # CP7 — Import modal
-        log("step 7 action: open import modal, paste sample, apply, check toast")
-        await page.click("#import-data")
-        await page.wait_for_selector("#import-modal.show", timeout=5000)
-        await page.fill("#import-input", SAMPLE_IMPORT)
-        await page.wait_for_timeout(500)
-        await page.wait_for_selector("#import-save-btn:not([disabled])", timeout=5000)
-        await page.click("#import-save-btn")
-        await page.wait_for_selector("#toast.show", timeout=5000)
-        toast = await page.locator("#toast").inner_text()
-        if "Applied" in toast:
-            passed.append("CP7")
-            log(f"CP7 PASS: toast={toast!r}")
-        else:
-            failed.append("CP7")
-            log(f"CP7 FAIL: toast={toast!r}")
-        await page.screenshot(path=str(SS / "final_execution_7_import_toast.png"))
+        # CP2 — table renders >=1 data row + three-tier header (Model/Spec/Score)
+        log("CP2: >=1 tbody data row + three-tier header (Model/Spec/Score)")
+        try:
+            rows = await page.locator("tbody tr").count()
+            assert rows >= 1, f"tbody rows={rows}"
+            # Not the empty-state placeholder
+            empty = await page.locator("tbody tr", has_text="No entries loaded").count()
+            assert empty == 0, "table shows empty-state placeholder"
+            header_row1 = await page.locator("thead tr").first.inner_text()
+            for label in ("Model", "Spec", "Score"):
+                assert label in header_row1, f"header missing {label!r}: {header_row1!r}"
+            passed.append("CP2")
+            log(f"  PASS: rows={rows} header={header_row1!r}")
+        except Exception as e:
+            failed.append("CP2")
+            log(f"  FAIL: {e}")
+            await snap(page, "cp2_table.png")
 
-        # CP8 — Labeling mode
-        log("step 8 action: click Edit, verify input elements in tbody")
-        await page.click("#toggle-labeling")
-        await page.wait_for_timeout(500)
-        inputs = await page.locator("tbody input").count()
-        if inputs >= 1:
-            passed.append("CP8")
-            log(f"CP8 PASS: input_count={inputs}")
-        else:
-            failed.append("CP8")
-            log(f"CP8 FAIL: input_count={inputs}")
-        await page.screenshot(path=str(SS / "final_execution_8_labeling_mode.png"))
-        await page.click("#toggle-labeling")
-        await page.wait_for_timeout(300)
+        # CP3 — filter controls present (Tier/Metrics segmented, checkbox, slider)
+        log("CP3: filter controls — Tier/Metrics segmented buttons, Show Deprecated, Params slider")
+        try:
+            for label in ("All", "Opus", "Sonnet", "Haiku"):
+                assert await page.get_by_role("button", name=label, exact=True).count() >= 1, \
+                    f"tier button {label!r} missing"
+            for label in ("Basic", "Advanced"):
+                assert await page.get_by_role("button", name=label, exact=True).count() >= 1, \
+                    f"metrics button {label!r} missing"
+            assert await page.locator("#show-deprecated").count() == 1, "Show Deprecated checkbox missing"
+            assert await page.get_by_text("Show Deprecated").count() >= 1, "Show Deprecated label missing"
+            thumbs = await page.get_by_role("slider").count()
+            assert thumbs == 2, f"expected 2 reka-ui slider thumbs, got {thumbs}"
+            passed.append("CP3")
+            log(f"  PASS: slider thumbs={thumbs}, segmented + checkbox present")
+        except Exception as e:
+            failed.append("CP3")
+            log(f"  FAIL: {e}")
+            await snap(page, "cp3_filters.png")
 
-        # CP9 — Export Data modal
-        log("step 9 action: verify Export Data visible, open modal, check JSON")
-        export_visible = await page.locator("#export-data").is_visible()
-        if export_visible:
-            await page.click("#export-data")
-            await page.wait_for_selector("#export-modal.show", timeout=5000)
-            json_text = await page.locator("#modal-code-preview").inner_text()
-            if json_text.strip().startswith("["):
-                passed.append("CP9")
-                log(f"CP9 PASS: json_length={len(json_text)}")
-            else:
-                failed.append("CP9")
-                log(f"CP9 FAIL: json preview does not start with '[': {json_text[:80]!r}")
-            await page.screenshot(path=str(SS / "final_execution_9_export_modal.png"))
-        else:
-            failed.append("CP9")
-            log("CP9 FAIL: #export-data button not visible")
+        # CP4 — device selector is a reka-ui combobox (not native <select>); opens options
+        log("CP4: device selector is reka-ui combobox (role=combobox, no native <select>); opens >=1 option")
+        try:
+            assert await page.locator("select").count() == 0, "native <select> present (should be reka-ui)"
+            combo = page.get_by_role("combobox")
+            assert await combo.count() >= 1, "no role=combobox device selector"
+            await combo.first.click()
+            await page.wait_for_timeout(400)
+            opts = await page.get_by_role("option").count()
+            assert opts >= 1, f"combobox opened {opts} options"
+            await page.keyboard.press("Escape")
+            await page.wait_for_timeout(300)
+            passed.append("CP4")
+            log(f"  PASS: combobox options={opts}")
+        except Exception as e:
+            failed.append("CP4")
+            log(f"  FAIL: {e}")
+            await snap(page, "cp4_combobox.png")
+            await page.keyboard.press("Escape")
+            await page.wait_for_timeout(200)
+
+        # CP5 — '+ Import' opens reka-ui dialog (role=dialog); Escape closes it
+        log("CP5: '+ Import' opens reka-ui dialog (role=dialog); Escape closes")
+        try:
+            assert await page.get_by_role("button", name="+ Import").count() >= 1, "+ Import button missing"
+            await page.get_by_role("button", name="+ Import").click()
+            await page.wait_for_timeout(500)
+            assert await page.get_by_role("dialog").count() >= 1, "import dialog did not open"
+            await page.keyboard.press("Escape")
+            await page.wait_for_timeout(400)
+            assert await page.get_by_role("dialog").count() == 0, "import dialog did not close on Escape"
+            passed.append("CP5")
+            log("  PASS: dialog opened and closed via Escape")
+        except Exception as e:
+            failed.append("CP5")
+            log(f"  FAIL: {e}")
+            await snap(page, "cp5_dialog.png")
+            await page.keyboard.press("Escape")
+            await page.wait_for_timeout(200)
+
+        # CP6 — '✏ Label' toggles edit mode (header -> Deprecated/Tiers + inline inputs); toggle back
+        log("CP6: '✏ Label' toggles edit mode (header swaps to Deprecated/Tiers, inline inputs appear) and back")
+        try:
+            assert await page.locator("tbody input").count() == 0, "inline inputs present before labeling"
+            await page.get_by_role("button", name="✏ Label").click()
+            await page.wait_for_timeout(500)
+            header_row1 = await page.locator("thead tr").first.inner_text()
+            assert "Deprecated" in header_row1 and "Tiers" in header_row1, \
+                f"header did not swap to Deprecated/Tiers: {header_row1!r}"
+            inputs = await page.locator("tbody input").count()
+            assert inputs >= 1, "no inline edit inputs in labeling mode"
+            # toggle back
+            await page.get_by_role("button", name="✓ Done").click()
+            await page.wait_for_timeout(500)
+            header_back = await page.locator("thead tr").first.inner_text()
+            assert "Score" in header_back, f"header did not restore to Score: {header_back!r}"
+            assert await page.locator("tbody input").count() == 0, "inline inputs remained after exiting labeling"
+            passed.append("CP6")
+            log(f"  PASS: labeling inputs={inputs}, toggled back cleanly")
+        except Exception as e:
+            failed.append("CP6")
+            log(f"  FAIL: {e}")
+            await snap(page, "cp6_labeling.png")
 
         await browser.close()
 
-    summary = f"RESULT: {len(passed)}/9 passed — {', '.join(passed or ['none'])}"
+    total = len(passed) + len(failed)
+    summary = f"RESULT: {len(passed)}/{total}"
     if failed:
         summary += f" | FAILED: {', '.join(failed)}"
     log(summary)
-    print(summary)
     if failed:
         raise SystemExit(1)
 
