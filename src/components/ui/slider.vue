@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { SliderRoot, SliderTrack, SliderRange, SliderThumb } from 'reka-ui';
-import { cn } from '@/lib/utils';
+import { SliderRoot, SliderTrack, SliderRange, SliderThumb } from "reka-ui";
+import { cn } from "@/lib/utils";
 
 interface Props {
   modelValue: number[];
@@ -19,7 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-  'update:modelValue': [value: number[]];
+  "update:modelValue": [value: number[]];
 }>();
 </script>
 

@@ -1,16 +1,14 @@
 {
   "name": "omlx-intelligence-benchmark",
   "version": "1.0.0",
-  "type": "module",
   "private": true,
-  "engines": {
-    "node": ">=24"
-  },
+  "type": "module",
   "scripts": {
     "dev": "vp dev",
     "test": "vp test",
-    "build": "vp build",
-    "preview": "vp preview"
+    "build": "tsc && vp build",
+    "preview": "vp preview",
+    "prepare": "vp config"
   },
   "dependencies": {
     "@vueuse/core": "^11.0.0",
@@ -31,6 +29,9 @@
     "vite-plus": "catalog:",
     "vitest": "catalog:",
     "vue-tsc": "^2.0.0"
+  },
+  "engines": {
+    "node": ">=24"
   },
   "packageManager": "pnpm@11.4.0"
 }

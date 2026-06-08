@@ -8,13 +8,13 @@
 </template>
 
 <script setup lang="ts">
-import { type DeviceMeta } from '../composables/useSettings';
-import UiSelect from './ui/select.vue';
+import { type DeviceMeta } from "../composables/useSettings";
+import UiSelect from "./ui/select.vue";
 
 defineProps<{
   devices: Record<string, DeviceMeta>;
   modelValue: string;
 }>();
 
-defineEmits<{ 'update:modelValue': [value: string] }>();
+defineEmits<{ "update:modelValue": [value: string] }>();
 </script>

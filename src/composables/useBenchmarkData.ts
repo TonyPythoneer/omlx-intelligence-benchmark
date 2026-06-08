@@ -1,5 +1,5 @@
-import { ref, watch, Ref } from 'vue';
-import { type Entry } from '../types/benchmark';
+import { ref, watch, type Ref } from "vue";
+import { type Entry } from "../types/benchmark";
 
 /**
  * useBenchmarkData composable - Fetch and manage benchmark data for a selected device
@@ -44,33 +44,33 @@ export function useBenchmarkData(device: Ref<string | null>) {
       const data = await response.json();
       // Validate response is an array
       if (!Array.isArray(data)) {
-        throw new Error('Data is not an array');
+        throw new Error("Data is not an array");
       }
       // Normalize entries to ensure tiers field exists on all entries
       entries.value = normalizeEntries(data as Entry[]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error loading data';
+      const errorMessage = err instanceof Error ? err.message : "Unknown error loading data";
       error.value = errorMessage;
       entries.value = [];
-      console.error('Error loading benchmark data:', errorMessage);
+      console.error("Error loading benchmark data:", errorMessage);
     } finally {
       isLoading.value = false;
     }
   }
 
   // Guard against SSR context
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     watch(
       device,
       (newDevice) => {
         if (newDevice) {
-          fetchData(newDevice);
+          void fetchData(newDevice);
         } else {
           entries.value = [];
           error.value = null;
         }
       },
-      { immediate: true }
+      { immediate: true },
     );
   }
 

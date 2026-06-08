@@ -1,21 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { ref } from 'vue';
-import { useImport } from './useImport';
-import type { Entry } from '../types/benchmark';
+import { describe, it, expect, beforeEach } from "vite-plus/test";
+import { ref } from "vue";
+import { useImport } from "./useImport";
+import type { Entry } from "../types/benchmark";
 
 /**
  * Test suite for useImport composable - merge behavior verification
  * Tests the core import logic: NEW entries, OVERWRITE entries, mixed cases, state clearing
  */
-describe('useImport', () => {
+describe("useImport", () => {
   let composable: ReturnType<typeof useImport>;
 
   beforeEach(() => {
     composable = useImport();
   });
 
-  describe('merge NEW entries', () => {
-    it('creates Entry with filled spec when model is not in current entries', () => {
+  describe("merge NEW entries", () => {
+    it("creates Entry with filled spec when model is not in current entries", () => {
       // Setup: empty current entries
       const currentEntries = ref<Entry[]>([]);
 
@@ -26,10 +26,10 @@ MMLU                 80.0%        24      30     492.9     Yes
 TRUTHFULQA           75.0%        15      20     138.8     Yes`;
 
       // Fill spec form for NEW entry
-      composable.specForms.value['gpt-oss-20b-test'] = {
-        parameters_b: '20',
-        quantization: '8bit',
-        size_gb: '40',
+      composable.specForms.value["gpt-oss-20b-test"] = {
+        parameters_b: "20",
+        quantization: "8bit",
+        size_gb: "40",
       };
 
       // Call applyImport
@@ -38,9 +38,9 @@ TRUTHFULQA           75.0%        15      20     138.8     Yes`;
       // Assertions
       expect(currentEntries.value).toHaveLength(1);
       const entry = currentEntries.value[0];
-      expect(entry.model).toBe('gpt-oss-20b-test');
+      expect(entry.model).toBe("gpt-oss-20b-test");
       expect(entry.spec.parameters_b).toBe(20);
-      expect(entry.spec.quantization).toBe('8bit');
+      expect(entry.spec.quantization).toBe("8bit");
       expect(entry.spec.size_gb).toBe(40);
       expect(entry.abilities?.thinking).toBe(false);
       expect(entry.abilities?.mtp).toBe(false);
@@ -61,15 +61,15 @@ TRUTHFULQA           75.0%        15      20     138.8     Yes`;
     });
   });
 
-  describe('merge OVERWRITE entries', () => {
-    it('preserves spec/tiers/abilities/deprecated on score-only update', () => {
+  describe("merge OVERWRITE entries", () => {
+    it("preserves spec/tiers/abilities/deprecated on score-only update", () => {
       // Setup: existing entry with spec, tiers, abilities
       const existingEntry: Entry = {
-        model: 'existing-model',
-        date: '2026-05-25',
+        model: "existing-model",
+        date: "2026-05-25",
         spec: {
           parameters_b: 35,
-          quantization: '4bit',
+          quantization: "4bit",
           size_gb: 18,
         },
         deprecated: true,
@@ -104,12 +104,12 @@ TRUTHFULQA           48.0%        14      30     80.0      Yes`;
       // Assertions
       expect(currentEntries.value).toHaveLength(1);
       const entry = currentEntries.value[0];
-      expect(entry.model).toBe('existing-model');
+      expect(entry.model).toBe("existing-model");
 
       // Preserved fields
-      expect(entry.date).toBe('2026-05-25');
+      expect(entry.date).toBe("2026-05-25");
       expect(entry.spec.parameters_b).toBe(35);
-      expect(entry.spec.quantization).toBe('4bit');
+      expect(entry.spec.quantization).toBe("4bit");
       expect(entry.spec.size_gb).toBe(18);
       expect(entry.deprecated).toBe(true);
       expect(entry.tiers.opus).toBe(true);
@@ -132,15 +132,15 @@ TRUTHFULQA           48.0%        14      30     80.0      Yes`;
     });
   });
 
-  describe('merge mixed NEW and OVERWRITE', () => {
-    it('handles batch of NEW + OVERWRITE in one apply', () => {
+  describe("merge mixed NEW and OVERWRITE", () => {
+    it("handles batch of NEW + OVERWRITE in one apply", () => {
       // Setup: one existing entry
       const existingEntry: Entry = {
-        model: 'model-a',
-        date: '2026-05-25',
+        model: "model-a",
+        date: "2026-05-25",
         spec: {
           parameters_b: 7,
-          quantization: '8bit',
+          quantization: "8bit",
           size_gb: 14,
         },
         deprecated: false,
@@ -172,10 +172,10 @@ Benchmark         Accuracy   Correct   Total   Time(s)   Think
 MMLU                 60.0%        18      30     150.0     Yes`;
 
       // Fill spec form only for NEW entry (model-b)
-      composable.specForms.value['model-b'] = {
-        parameters_b: '13',
-        quantization: '4bit',
-        size_gb: '26',
+      composable.specForms.value["model-b"] = {
+        parameters_b: "13",
+        quantization: "4bit",
+        size_gb: "26",
       };
 
       // Apply
@@ -185,32 +185,32 @@ MMLU                 60.0%        18      30     150.0     Yes`;
       expect(currentEntries.value).toHaveLength(2);
 
       // model-a should be OVERWRITE (scores updated)
-      const modelA = currentEntries.value.find((e) => e.model === 'model-a');
+      const modelA = currentEntries.value.find((e) => e.model === "model-a");
       expect(modelA).toBeDefined();
-      expect(modelA!.date).toBe('2026-05-25'); // preserved
+      expect(modelA!.date).toBe("2026-05-25"); // preserved
       expect(modelA!.spec.parameters_b).toBe(7); // preserved
       expect(modelA!.scores.MMLU.accuracy).toBe(50.0); // updated
 
       // model-b should be NEW (full entry created)
-      const modelB = currentEntries.value.find((e) => e.model === 'model-b');
+      const modelB = currentEntries.value.find((e) => e.model === "model-b");
       expect(modelB).toBeDefined();
       expect(modelB!.spec.parameters_b).toBe(13); // from form
-      expect(modelB!.spec.quantization).toBe('4bit'); // from form
+      expect(modelB!.spec.quantization).toBe("4bit"); // from form
       expect(modelB!.spec.size_gb).toBe(26); // from form
       expect(modelB!.deprecated).toBe(false); // default for NEW
       expect(modelB!.scores.MMLU.accuracy).toBe(60.0); // parsed
     });
   });
 
-  describe('merge empty list', () => {
-    it('does nothing when no entries parsed', () => {
+  describe("merge empty list", () => {
+    it("does nothing when no entries parsed", () => {
       const currentEntries = ref<Entry[]>([
         {
-          model: 'original',
-          date: '2026-05-25',
+          model: "original",
+          date: "2026-05-25",
           spec: {
             parameters_b: 7,
-            quantization: '4bit',
+            quantization: "4bit",
             size_gb: 14,
           },
           deprecated: false,
@@ -234,19 +234,19 @@ MMLU                 60.0%        18      30     150.0     Yes`;
       ]);
 
       // Empty import text
-      composable.importText.value = '';
+      composable.importText.value = "";
 
       // Apply
       composable.applyImport(currentEntries);
 
       // Should not change current entries
       expect(currentEntries.value).toHaveLength(1);
-      expect(currentEntries.value[0].model).toBe('original');
+      expect(currentEntries.value[0].model).toBe("original");
     });
   });
 
-  describe('modal state clearing', () => {
-    it('clears modal state after apply', () => {
+  describe("modal state clearing", () => {
+    it("clears modal state after apply", () => {
       const currentEntries = ref<Entry[]>([]);
 
       // Setup modal state
@@ -255,10 +255,10 @@ MMLU                 60.0%        18      30     150.0     Yes`;
 Benchmark         Accuracy   Correct   Total   Time(s)   Think
 MMLU                 50.0%        15      30     200.0     No`;
 
-      composable.specForms.value['test-model'] = {
-        parameters_b: '7',
-        quantization: '8bit',
-        size_gb: '14',
+      composable.specForms.value["test-model"] = {
+        parameters_b: "7",
+        quantization: "8bit",
+        size_gb: "14",
       };
 
       // Apply
@@ -266,20 +266,20 @@ MMLU                 50.0%        15      30     200.0     No`;
 
       // Modal state should be cleared
       expect(composable.isModalOpen.value).toBe(false);
-      expect(composable.importText.value).toBe('');
+      expect(composable.importText.value).toBe("");
       expect(composable.specForms.value).toEqual({});
     });
   });
 
-  describe('parsed entries enrichment', () => {
-    it('enriches parsed entries with NEW/OVERWRITE status correctly', () => {
+  describe("parsed entries enrichment", () => {
+    it("enriches parsed entries with NEW/OVERWRITE status correctly", () => {
       const currentEntries: Entry[] = [
         {
-          model: 'existing',
-          date: '2026-05-25',
+          model: "existing",
+          date: "2026-05-25",
           spec: {
             parameters_b: 7,
-            quantization: '4bit',
+            quantization: "4bit",
             size_gb: 14,
           },
           deprecated: false,
@@ -304,7 +304,7 @@ MMLU                 50.0%        15      30     200.0     No`;
 
       const rawResults = [
         {
-          model: 'existing',
+          model: "existing",
           scores: {
             MMLU: {
               accuracy: 50.0,
@@ -314,7 +314,7 @@ MMLU                 50.0%        15      30     200.0     No`;
           },
         },
         {
-          model: 'new-model',
+          model: "new-model",
           scores: {
             MMLU: {
               accuracy: 60.0,
@@ -328,14 +328,14 @@ MMLU                 50.0%        15      30     200.0     No`;
       const enriched = composable.enrichParsedEntries(rawResults, currentEntries);
 
       expect(enriched).toHaveLength(2);
-      expect(enriched[0].status).toBe('OVERWRITE');
-      expect(enriched[0].model).toBe('existing');
-      expect(enriched[1].status).toBe('NEW');
-      expect(enriched[1].model).toBe('new-model');
+      expect(enriched[0].status).toBe("OVERWRITE");
+      expect(enriched[0].model).toBe("existing");
+      expect(enriched[1].status).toBe("NEW");
+      expect(enriched[1].model).toBe("new-model");
 
       // Check that spec form was initialized for NEW entry
-      expect(composable.specForms.value['new-model']).toBeDefined();
-      expect(composable.specForms.value['existing']).toBeUndefined(); // OVERWRITE doesn't need form
+      expect(composable.specForms.value["new-model"]).toBeDefined();
+      expect(composable.specForms.value["existing"]).toBeUndefined(); // OVERWRITE doesn't need form
     });
   });
 });

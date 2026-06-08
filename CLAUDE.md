@@ -1,3 +1,20 @@
+<!--VITE PLUS START-->
+
+# Using Vite+, the Unified Toolchain for the Web
+
+This project is using Vite+, a unified toolchain built on top of Vite, Rolldown, Vitest, tsdown, Oxlint, Oxfmt, and Vite Task. Vite+ wraps runtime management, package management, and frontend tooling in a single global CLI called `vp`. Vite+ is distinct from Vite, and it invokes Vite through `vp dev` and `vp build`. Run `vp help` to print a list of commands and `vp <command> --help` for information about a specific command.
+
+Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
+
+## Review Checklist
+
+- [ ] Run `vp install` after pulling remote changes and before getting started.
+- [ ] Run `vp check` and `vp test` to format, lint, type check and test changes.
+- [ ] Check if there are `vite.config.ts` tasks or `package.json` scripts necessary for validation, run via `vp run <script>`.
+- [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
+
+<!--VITE PLUS END-->
+
 # CLAUDE.md — oMLX Intelligence Benchmark
 
 ## Project overview
@@ -49,6 +66,7 @@ app/data/device.json.template  — empty template for new devices
 ```
 
 **Data format** — each file is a pure JSON array of entry objects:
+
 ```json
 [
   {
@@ -83,7 +101,7 @@ app/data/device.json.template  — empty template for new devices
 For the Vue SPA (`src/components/ui/`):
 
 - **Custom interactive widgets** (slider, dialog, …) are built on **reka-ui headless primitives** — never hand-rolled from divs. `ui/slider.vue` (reka-ui `Slider*` dual-thumb range) and `ui/dialog.vue` (reka-ui `Dialog*`: focus-trap, Escape-to-close, scroll-lock, ARIA) are the instances. Headless primitives give keyboard a11y and ARIA for free and avoid hacks like the old `::-webkit-slider-*` range inputs (the anti-pattern this convention replaces).
-- **Native HTML controls are acceptable, and preferred where they suffice.** `ui/select.vue` intentionally wraps a native `<select>` — a native control is already fully accessible (keyboard, type-ahead, screen-reader, native mobile picker) and is *using the platform*, not hand-rolling. The reka-ui rule targets CUSTOM widgets you'd otherwise build from divs; it does **not** mean replacing robust native `<select>`/`<input>` with custom listboxes for their own sake.
+- **Native HTML controls are acceptable, and preferred where they suffice.** `ui/select.vue` intentionally wraps a native `<select>` — a native control is already fully accessible (keyboard, type-ahead, screen-reader, native mobile picker) and is _using the platform_, not hand-rolling. The reka-ui rule targets CUSTOM widgets you'd otherwise build from divs; it does **not** mean replacing robust native `<select>`/`<input>` with custom listboxes for their own sake.
 - **Leaf components** (input/textarea/label/card/badge/button) stay **plain `cva`-styled elements** — no headless primitive needed, no a11y benefit, and that is also standard shadcn-vue.
 - The styling contract for every `ui/` component is **`cva` + `VariantProps` + `cn()` (from `@/lib/utils`)** — explicitly **no `App*` shim** and **no manual variant maps**.
 
@@ -94,6 +112,7 @@ make serve   # http://localhost:8080
 ```
 
 **Importing benchmark results** (local only):
+
 1. Open the page in Chrome/Edge at `http://localhost:8080/app/`.
 2. Click `+ Import`, paste benchmark runner stdout, fill spec fields for NEW entries.
 3. Click Save → native Save As dialog → navigate to `app/data/`, overwrite the device file.

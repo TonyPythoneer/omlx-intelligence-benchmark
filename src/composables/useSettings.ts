@@ -1,4 +1,4 @@
-import { ref, computed, onMounted, Ref } from 'vue';
+import { ref, computed, onMounted, type Ref } from "vue";
 
 /**
  * Device metadata structure
@@ -34,7 +34,7 @@ export function useSettings() {
 
   onMounted(async () => {
     // Guard against SSR context
-    if (typeof window === 'undefined') {
+    if (typeof window === "undefined") {
       isLoading.value = false;
       return;
     }
@@ -43,7 +43,7 @@ export function useSettings() {
       isLoading.value = true;
       error.value = null;
 
-      const response = await fetch('/settings.json');
+      const response = await fetch("/settings.json");
       if (!response.ok) {
         throw new Error(`Failed to fetch settings: ${response.status} ${response.statusText}`);
       }
@@ -51,9 +51,9 @@ export function useSettings() {
       const data = await response.json();
       settings.value = data as Settings;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Unknown error loading settings';
+      const errorMessage = err instanceof Error ? err.message : "Unknown error loading settings";
       error.value = errorMessage;
-      console.error('Error loading settings:', errorMessage);
+      console.error("Error loading settings:", errorMessage);
       settings.value = null;
     } finally {
       isLoading.value = false;

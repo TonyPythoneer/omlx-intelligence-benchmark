@@ -12,34 +12,37 @@
  * @returns {Array<{model: string, scores: Object}>} Detected entries with scores
  */
 export function parseImportInput(text) {
-  const results = []
-  const blocks = text.split(/(?=^Model:)/m)
-  const scoreRe = /^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)/gm
+  const results = [];
+  const blocks = text.split(/(?=^Model:)/m);
+  const scoreRe = /^(\w+)\s+([\d.]+)%\s+\d+\s+(\d+)\s+([\d.]+)\s+(\w+)/gm;
 
   for (const block of blocks) {
-    const trimmed = block.trim()
-    if (!trimmed.startsWith('Model:')) continue
+    const trimmed = block.trim();
+    if (!trimmed.startsWith("Model:")) continue;
 
-    const modelName = trimmed.split('\n')[0].replace(/^Model:/, '').trim()
-    const scores = {}
-    scoreRe.lastIndex = 0
+    const modelName = trimmed
+      .split("\n")[0]
+      .replace(/^Model:/, "")
+      .trim();
+    const scores = {};
+    scoreRe.lastIndex = 0;
 
-    let m
+    let m;
     while ((m = scoreRe.exec(block)) !== null) {
-      const [, bench, accuracy, samples, time_s] = m
+      const [, bench, accuracy, samples, time_s] = m;
       scores[bench] = {
         accuracy: parseFloat(accuracy),
         samples: parseInt(samples, 10),
         time_s: parseFloat(time_s),
-      }
+      };
     }
 
     if (Object.keys(scores).length > 0) {
-      results.push({ model: modelName, scores })
+      results.push({ model: modelName, scores });
     }
   }
 
-  return results
+  return results;
 }
 
 /**
@@ -53,26 +56,26 @@ export function parseImportInput(text) {
  * @returns {Array} Merged data array
  */
 export function mergeImport(currentData, detected, today) {
-  const nextData = currentData.map(e => ({ ...e }))
-  const byModel = new Map(nextData.map((e, i) => [e.model, i]))
+  const nextData = currentData.map((e) => ({ ...e }));
+  const byModel = new Map(nextData.map((e, i) => [e.model, i]));
 
   for (const d of detected) {
     if (byModel.has(d.model)) {
       // OVERWRITE: only update scores
-      const idx = byModel.get(d.model)
-      nextData[idx] = { ...nextData[idx], scores: d.scores }
+      const idx = byModel.get(d.model);
+      nextData[idx] = { ...nextData[idx], scores: d.scores };
     } else {
       // NEW: push with template defaults
       nextData.push({
         model: d.model,
         date: today,
-        spec: { parameters_b: null, quantization: '', size_gb: null },
+        spec: { parameters_b: null, quantization: "", size_gb: null },
         deprecated: false,
         starred: false,
         scores: d.scores,
-      })
+      });
     }
   }
 
-  return nextData
+  return nextData;
 }

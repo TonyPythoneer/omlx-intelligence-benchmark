@@ -1,5 +1,5 @@
-import { ref, computed, type Ref } from 'vue';
-import type { Entry } from '../types/benchmark';
+import { ref, computed, type Ref } from "vue";
+import type { Entry } from "../types/benchmark";
 
 /**
  * Label edit shape: per-model edits that can be made to entries
@@ -26,35 +26,35 @@ export type ValidationErrors = Record<string, Record<string, string[]>>;
 export function validateEditField(field: string, value: any): string[] {
   const errors: string[] = [];
 
-  if (field === 'parameters_b') {
-    if (value !== '' && value !== null && value !== undefined) {
+  if (field === "parameters_b") {
+    if (value !== "" && value !== null && value !== undefined) {
       const num = parseFloat(value);
       if (isNaN(num)) {
-        errors.push('Parameters must be a number');
+        errors.push("Parameters must be a number");
       } else if (num < 0) {
-        errors.push('Parameters must be >= 0');
+        errors.push("Parameters must be >= 0");
       }
     }
   }
 
-  if (field === 'size_gb') {
-    if (value !== '' && value !== null && value !== undefined) {
+  if (field === "size_gb") {
+    if (value !== "" && value !== null && value !== undefined) {
       const num = parseFloat(value);
       if (isNaN(num)) {
-        errors.push('Size must be a number');
+        errors.push("Size must be a number");
       } else if (num < 0) {
-        errors.push('Size must be >= 0');
+        errors.push("Size must be >= 0");
       }
     }
   }
 
   // quantization: any non-empty string is valid, or null
-  if (field === 'quantization') {
+  if (field === "quantization") {
     // all values are valid
   }
 
   // tiers, deprecated: all booleans are valid
-  if (['deprecated', 'tier_opus', 'tier_sonnet', 'tier_haiku'].includes(field)) {
+  if (["deprecated", "tier_opus", "tier_sonnet", "tier_haiku"].includes(field)) {
     // all values are valid
   }
 
@@ -133,7 +133,7 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
     if (hasValidationErrors.value) return;
 
     // Apply edits to mutableEntries
-    entries.value = entries.value.map(entry => {
+    entries.value = entries.value.map((entry) => {
       const edit = labelEdits.value[entry.model];
       if (!edit || Object.keys(edit).length === 0) return entry;
 
@@ -146,13 +146,14 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
 
       // Apply spec edits
       if (edit.parameters_b !== undefined) {
-        updated.spec.parameters_b = edit.parameters_b !== '' ? parseFloat(edit.parameters_b!) : null;
+        updated.spec.parameters_b =
+          edit.parameters_b !== "" ? parseFloat(edit.parameters_b!) : null;
       }
       if (edit.quantization !== undefined) {
         updated.spec.quantization = edit.quantization ?? entry.spec.quantization;
       }
       if (edit.size_gb !== undefined) {
-        updated.spec.size_gb = edit.size_gb !== '' ? parseFloat(edit.size_gb!) : null;
+        updated.spec.size_gb = edit.size_gb !== "" ? parseFloat(edit.size_gb!) : null;
       }
 
       // Apply deprecated edit
@@ -161,10 +162,15 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
       }
 
       // Apply tiers edits
-      if (edit.tier_opus !== undefined || edit.tier_sonnet !== undefined || edit.tier_haiku !== undefined) {
+      if (
+        edit.tier_opus !== undefined ||
+        edit.tier_sonnet !== undefined ||
+        edit.tier_haiku !== undefined
+      ) {
         updated.tiers = {
           opus: edit.tier_opus !== undefined ? edit.tier_opus : (entry.tiers?.opus ?? false),
-          sonnet: edit.tier_sonnet !== undefined ? edit.tier_sonnet : (entry.tiers?.sonnet ?? false),
+          sonnet:
+            edit.tier_sonnet !== undefined ? edit.tier_sonnet : (entry.tiers?.sonnet ?? false),
           haiku: edit.tier_haiku !== undefined ? edit.tier_haiku : (entry.tiers?.haiku ?? false),
         };
       }
@@ -201,16 +207,14 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
       // array (Vue templates auto-unwrap refs, so `toggleLabelingMode(mutableEntries)`
       // in a template passes the array), or fall back to the closure's mutableEntries.
       const resolved: Entry[] =
-        (Array.isArray(entries) ? entries : entries?.value) ??
-        mutableEntries?.value ??
-        [];
+        (Array.isArray(entries) ? entries : entries?.value) ?? mutableEntries?.value ?? [];
       const edits: Record<string, LabelEdit> = {};
 
       for (const entry of resolved) {
         edits[entry.model] = {
-          parameters_b: entry.spec.parameters_b?.toString() ?? '',
-          quantization: entry.spec.quantization ?? '',
-          size_gb: entry.spec.size_gb?.toString() ?? '',
+          parameters_b: entry.spec.parameters_b?.toString() ?? "",
+          quantization: entry.spec.quantization ?? "",
+          size_gb: entry.spec.size_gb?.toString() ?? "",
           deprecated: entry.deprecated ?? false,
           tier_opus: entry.tiers?.opus ?? false,
           tier_sonnet: entry.tiers?.sonnet ?? false,

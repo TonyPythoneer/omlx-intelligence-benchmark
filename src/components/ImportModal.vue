@@ -9,10 +9,15 @@
       />
 
       <!-- Parsed entries -->
-      <div v-if="parsedEntries.length > 0" class="rounded-md border border-border bg-muted/30 max-h-[260px] overflow-y-auto divide-y divide-border">
+      <div
+        v-if="parsedEntries.length > 0"
+        class="rounded-md border border-border bg-muted/30 max-h-[260px] overflow-y-auto divide-y divide-border"
+      >
         <div v-for="(entry, idx) in parsedEntries" :key="`${entry.model}-${idx}`" class="px-3 py-3">
           <div class="flex items-center gap-2 mb-2">
-            <UiBadge :variant="entry.status === 'NEW' ? 'new' : 'overwrite'">{{ entry.status }}</UiBadge>
+            <UiBadge :variant="entry.status === 'NEW' ? 'new' : 'overwrite'">{{
+              entry.status
+            }}</UiBadge>
             <span class="font-mono text-xs text-foreground flex-1 truncate">{{ entry.model }}</span>
           </div>
           <div v-if="entry.status === 'NEW'" class="flex gap-2 flex-wrap">
@@ -55,17 +60,17 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
-import UiDialog from './ui/dialog.vue';
-import UiTextarea from './ui/textarea.vue';
-import UiInput from './ui/input.vue';
-import UiBadge from './ui/badge.vue';
-import UiButton from './ui/button.vue';
+import { ref, watch } from "vue";
+import UiDialog from "./ui/dialog.vue";
+import UiTextarea from "./ui/textarea.vue";
+import UiInput from "./ui/input.vue";
+import UiBadge from "./ui/badge.vue";
+import UiButton from "./ui/button.vue";
 
 interface ParsedResult {
   model: string;
   scores: Record<string, any>;
-  status: 'NEW' | 'OVERWRITE';
+  status: "NEW" | "OVERWRITE";
   specFilled: boolean;
   spec: { parameters_b: number | null; quantization: string; size_gb: number | null };
 }
@@ -80,7 +85,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   isOpen: false,
-  importText: '',
+  importText: "",
   parsedEntries: () => [],
   isApplyEnabled: false,
   specForms: () => ({}),
@@ -89,22 +94,37 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   close: [];
   apply: [];
-  'update:importText': [value: string];
-  'update:specForms': [value: Record<string, any>];
+  "update:importText": [value: string];
+  "update:specForms": [value: Record<string, any>];
 }>();
 
 const importTextLocal = ref(props.importText);
-watch(() => props.importText, v => { importTextLocal.value = v; });
-watch(importTextLocal, v => { emit('update:importText', v); });
+watch(
+  () => props.importText,
+  (v) => {
+    importTextLocal.value = v;
+  },
+);
+watch(importTextLocal, (v) => {
+  emit("update:importText", v);
+});
 
-function updateSpecForm(model: string, field: 'parameters_b' | 'quantization' | 'size_gb', event: Event) {
+function updateSpecForm(
+  model: string,
+  field: "parameters_b" | "quantization" | "size_gb",
+  event: Event,
+) {
   const target = event.target as HTMLInputElement;
-  emit('update:specForms', {
+  emit("update:specForms", {
     ...props.specForms,
     [model]: { ...props.specForms[model], [field]: target.value },
   });
 }
 
-function onClose() { emit('close'); }
-function handleApply() { emit('apply'); }
+function onClose() {
+  emit("close");
+}
+function handleApply() {
+  emit("apply");
+}
 </script>

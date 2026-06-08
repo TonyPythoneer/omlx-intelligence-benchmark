@@ -5,7 +5,7 @@
  */
 
 export function useClientOnly() {
-  const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined';
+  const isBrowser = typeof window !== "undefined" && typeof document !== "undefined";
 
   return {
     isBrowser,

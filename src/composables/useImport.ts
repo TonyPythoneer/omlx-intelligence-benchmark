@@ -1,7 +1,7 @@
-import { ref, computed, Ref } from 'vue';
-import { type Entry, type Scores } from '../types/benchmark';
+import { ref, computed, type Ref } from "vue";
+import { type Entry, type Scores } from "../types/benchmark";
 // @ts-ignore — import.mjs has no types
-import { parseImportInput } from '../lib/import.mjs';
+import { parseImportInput } from "../lib/import.mjs";
 
 /**
  * Parsed entry result with status and spec filling state
@@ -9,7 +9,7 @@ import { parseImportInput } from '../lib/import.mjs';
 interface ParsedResult {
   model: string;
   scores: Scores;
-  status: 'NEW' | 'OVERWRITE';
+  status: "NEW" | "OVERWRITE";
   specFilled: boolean;
   spec: {
     parameters_b: number | null;
@@ -30,19 +30,21 @@ interface ParsedResult {
  */
 export function useImport() {
   const isModalOpen = ref<boolean>(false);
-  const importText = ref<string>('');
+  const importText = ref<string>("");
 
   /**
    * Spec form state: stores user-filled spec values for NEW entries
    * Key: model name, Value: { parameters_b, quantization, size_gb }
    */
-  const specForms = ref<Record<string, { parameters_b: string; quantization: string; size_gb: string }>>({});
+  const specForms = ref<
+    Record<string, { parameters_b: string; quantization: string; size_gb: string }>
+  >({});
 
   /**
    * Helper: Get today's date in YYYY-MM-DD format
    */
   function getTodaysDate(): string {
-    return new Date().toISOString().split('T')[0];
+    return new Date().toISOString().split("T")[0];
   }
 
   /**
@@ -58,7 +60,7 @@ export function useImport() {
     try {
       return parseImportInput(importText.value);
     } catch (err) {
-      console.error('Error parsing import text:', err);
+      console.error("Error parsing import text:", err);
       return [];
     }
   }
@@ -69,25 +71,28 @@ export function useImport() {
    */
   function enrichParsedEntries(
     rawResults: Array<{ model: string; scores: Scores }>,
-    currentEntries: Entry[]
+    currentEntries: Entry[],
   ): ParsedResult[] {
-    const existingModels = new Set(currentEntries.map(e => e.model));
+    const existingModels = new Set(currentEntries.map((e) => e.model));
 
     return rawResults.map((result) => {
-      const status = existingModels.has(result.model) ? 'OVERWRITE' : 'NEW';
+      const status = existingModels.has(result.model) ? "OVERWRITE" : "NEW";
 
       // Initialize spec form for NEW entries if not already present
-      if (status === 'NEW' && !specForms.value[result.model]) {
+      if (status === "NEW" && !specForms.value[result.model]) {
         specForms.value[result.model] = {
-          parameters_b: '',
-          quantization: '',
-          size_gb: '',
+          parameters_b: "",
+          quantization: "",
+          size_gb: "",
         };
       }
 
       // Check if spec is filled (all three fields non-empty)
       const form = specForms.value[result.model];
-      const specFilled = status === 'NEW' ? (form && form.parameters_b !== '' && form.quantization !== '' && form.size_gb !== '') : false;
+      const specFilled =
+        status === "NEW"
+          ? form && form.parameters_b !== "" && form.quantization !== "" && form.size_gb !== ""
+          : false;
 
       return {
         model: result.model,
@@ -96,7 +101,7 @@ export function useImport() {
         specFilled,
         spec: {
           parameters_b: null,
-          quantization: '',
+          quantization: "",
           size_gb: null,
         },
       };
@@ -115,24 +120,25 @@ export function useImport() {
       // Initialize spec form if not present
       if (!specForms.value[result.model]) {
         specForms.value[result.model] = {
-          parameters_b: '',
-          quantization: '',
-          size_gb: '',
+          parameters_b: "",
+          quantization: "",
+          size_gb: "",
         };
       }
 
       // Check if spec is filled
       const form = specForms.value[result.model];
-      const specFilled = form && form.parameters_b !== '' && form.quantization !== '' && form.size_gb !== '';
+      const specFilled =
+        form && form.parameters_b !== "" && form.quantization !== "" && form.size_gb !== "";
 
       return {
         model: result.model,
         scores: result.scores,
-        status: 'NEW' as const,
+        status: "NEW" as const,
         specFilled,
         spec: {
           parameters_b: null,
-          quantization: '',
+          quantization: "",
           size_gb: null,
         },
       };
@@ -151,12 +157,15 @@ export function useImport() {
     }
 
     // All entries must be parsed, and all NEW entries must have specFilled
-    return parsedEntries.value.length > 0 && parsedEntries.value.every(entry => {
-      if (entry.status === 'NEW') {
-        return entry.specFilled;
-      }
-      return true; // OVERWRITE entries don't need spec
-    });
+    return (
+      parsedEntries.value.length > 0 &&
+      parsedEntries.value.every((entry) => {
+        if (entry.status === "NEW") {
+          return entry.specFilled;
+        }
+        return true; // OVERWRITE entries don't need spec
+      })
+    );
   });
 
   /**
@@ -228,7 +237,7 @@ export function useImport() {
    */
   function closeModal(): void {
     isModalOpen.value = false;
-    importText.value = '';
+    importText.value = "";
     specForms.value = {};
   }
 
