@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: reka-ui Best-Practice Alignment
-status: completed
-last_updated: "2026-06-08T09:45:00.000Z"
+milestone: v1.2
+milestone_name: vp-example Foundation Alignment + reka-ui Select
+status: planning
+last_updated: "2026-06-08T07:49:51.881Z"
 last_activity: 2026-06-08
 progress:
-  total_phases: 3
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # STATE: oMLX Intelligence Benchmark — v1.1 reka-ui Best-Practice Alignment
@@ -43,10 +43,10 @@ Phase 08 — reka-ui-backed PARAMS slider (the visible P0 bug) + document the re
 
 ## Current Position
 
-Phase: 08 — Slider & Convention (roadmapped, not yet planned)
+Phase: Not started (defining requirements)
 Plan: —
-Status: Roadmap written; awaiting `/gsd-plan-phase 8`
-Last activity: 2026-06-08 — Milestone v1.1 roadmapped (phases 8–9, 10/10 reqs mapped)
+Status: Defining requirements
+Last activity: 2026-06-08 — Milestone v1.2 started
 
 ## Roadmap Structure
 

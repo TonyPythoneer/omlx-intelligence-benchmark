@@ -10,6 +10,7 @@
 
 - ✅ **v1.0 — Vue 3 + Vite+ Migration** — Phases 1–7 (shipped 2026-06-06, 28/28 reqs)
 - ✅ **v1.1 — reka-ui Best-Practice Alignment** — Phases 8–10 (complete 2026-06-08, 13/13 reqs)
+- 🚧 **v1.2 — vp-example Foundation Alignment + reka-ui Select** — Phases 11–13 (in progress, 13/13 reqs mapped)
 
 ---
 
@@ -28,6 +29,11 @@
 - [x] **Phase 8: Slider & Convention** - reka-ui-backed dual-thumb PARAMS slider fixes the visible bug; reka-ui-for-interactive convention documented
 - [x] **Phase 9: Labeling Realignment** - edit mode returns to the original column-aligned inline editors (Score columns swapped for Deprecated + Tiers); Abilities editor removed; `abilities` stripped on export
 - [x] **Phase 10: UI Primitives (Dialog + Select)** - `dialog` migrated to reka-ui `Dialog*` (focus-trap/Escape/scroll-lock/aria); native `<select>` deliberately retained (documented); consumer APIs preserved
+
+<!-- v1.2 (active) -->
+- [ ] **Phase 11: Toolchain Foundation Alignment** - `vite.config`→`vite-plus` defineConfig + staged/fmt/lint; tsconfig→vp-example options; package scripts; `.vite-hooks`/`.zed`/CLAUDE.md vp block; `vp check` clean (FND-01..05)
+- [ ] **Phase 12: Structure Alignment** - `index.html`→root + `/src/main.ts`; data→real `public/data` + `public/settings.json`; delete legacy `app/` + symlinks; update CI + docs (STR-01..05)
+- [ ] **Phase 13: reka-ui Select** - `ui/select.vue`→reka-ui `Select*`; DeviceSelector→`SelectItem` (API preserved); update convention (SEL-01..03)
 
 ---
 
@@ -163,9 +169,13 @@
 | 8. Slider & Convention | v1.1 | 1/1 | Complete | 2026-06-08 |
 | 9. Labeling Realignment | v1.1 | 1/1 | Complete | 2026-06-08 |
 | 10. UI Primitives (Dialog + Select) | v1.1 | 1/1 | Complete | 2026-06-08 |
+| 11. Toolchain Foundation Alignment | v1.2 | 0/? | Not started | - |
+| 12. Structure Alignment | v1.2 | 0/? | Not started | - |
+| 13. reka-ui Select | v1.2 | 0/? | Not started | - |
 
 ---
 
 *Roadmap created: 2026-06-06 (v1.0) · v1.1 phases added 2026-06-08 (reka-ui best-practice alignment)*
+*v1.2 coverage: 13/13 mapped — FND-01..05 → Phase 11; STR-01..05 → Phase 12; SEL-01..03 → Phase 13. Foundation aligned to `vp project example` (my-vp-app-project). User: full alignment, autonomous.*
 *v1.1 coverage: 13/13 requirements mapped — SLIDER-01..05 + CONV-01/02 → Phase 8; LABEL-01..03 → Phase 9; UIPRIM-01..03 → Phase 10*
 *Phase 9 (Labeling Realignment) added 2026-06-08 — realign edit mode to original `app/index.html` design + drop Abilities (user request).*
