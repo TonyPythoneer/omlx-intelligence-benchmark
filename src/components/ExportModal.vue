@@ -40,7 +40,8 @@ defineEmits<{ close: [] }>();
 const copySuccess = ref(false);
 const jsonText = computed(() =>
   JSON.stringify(
-    props.entries.map(({ abilities, ...rest }) => rest),
+    // strip `abilities` (never user-edited) and the vestigial `labelling` field
+    props.entries.map(({ abilities, labelling, ...rest }) => rest),
     null,
     2,
   ),
