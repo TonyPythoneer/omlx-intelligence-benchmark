@@ -11,11 +11,11 @@
 
 ### Toolchain foundation (FND)
 
-- [ ] **FND-01**: `vite.config.ts` uses `defineConfig` from **`vite-plus`** (not `vite`), with the example's `staged` (`"*": "vp check --fix"`), `fmt: {}`, and `lint` block (`jsPlugins` vite-plus oxlint-plugin, `rules: { "vite-plus/prefer-vite-plus-imports": "error" }`, `options: { typeAware: true, typeCheck: true }`). Vue + Tailwind plugins and the `@` alias are retained (the app is a Vue SPA, the starter is vanilla — keep what the app legitimately needs).
-- [ ] **FND-02**: `tsconfig.json` matches the example's compiler options (target es2023, lib ES2023+DOM, `types: ["vite-plus/client"]` plus the Vue SFC shim, bundler mode, `verbatimModuleSyntax`, `moduleDetection: force`, `erasableSyntaxOnly`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, `noEmit`), adapted minimally for Vue (keep `.vue` module declarations / `jsx: preserve` only if required to compile).
-- [ ] **FND-03**: `package.json` scripts match the example shape: `dev: vp dev`, `build: tsc && vp build`, `preview: vp preview`, `prepare: vp config` (test stays `vp test`).
-- [ ] **FND-04**: Vite+ git hooks (`.vite-hooks/`) and editor config (`.zed/settings.json`) are generated/added as in the example; the `<!--VITE PLUS START/END-->` block is present in `CLAUDE.md`.
-- [ ] **FND-05**: `vp check` passes clean (format + lint + typecheck) after the strict config is active — all `prefer-vite-plus-imports` / typeAware / unused-locals fallout fixed across the existing source.
+- [x] **FND-01**: `vite.config.ts` uses `defineConfig` from **`vite-plus`** (not `vite`), with the example's `staged` (`"*": "vp check --fix"`), `fmt: {}`, and `lint` block (`jsPlugins` vite-plus oxlint-plugin, `rules: { "vite-plus/prefer-vite-plus-imports": "error" }`, `options: { typeAware: true, typeCheck: true }`). Vue + Tailwind plugins and the `@` alias are retained (the app is a Vue SPA, the starter is vanilla — keep what the app legitimately needs).
+- [x] **FND-02**: `tsconfig.json` matches the example's compiler options (target es2023, lib ES2023+DOM, `types: ["vite-plus/client"]` plus the Vue SFC shim, bundler mode, `verbatimModuleSyntax`, `moduleDetection: force`, `erasableSyntaxOnly`, `noUnusedLocals`, `noUnusedParameters`, `noFallthroughCasesInSwitch`, `noEmit`), adapted minimally for Vue (keep `.vue` module declarations / `jsx: preserve` only if required to compile).
+- [x] **FND-03**: `package.json` scripts match the example shape: `dev: vp dev`, `build: tsc && vp build`, `preview: vp preview`, `prepare: vp config` (test stays `vp test`).
+- [x] **FND-04**: Vite+ git hooks (`.vite-hooks/`) and editor config (`.zed/settings.json`) are generated/added as in the example; the `<!--VITE PLUS START/END-->` block is present in `CLAUDE.md`.
+- [x] **FND-05**: `vp check` passes clean (format + lint + typecheck) after the strict config is active — all `prefer-vite-plus-imports` / typeAware / unused-locals fallout fixed across the existing source.
 
 ### Structure alignment (STR)
 
@@ -50,7 +50,7 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01..05 | Phase 11 | Pending |
+| FND-01..05 | Phase 11 | Done |
 | STR-01..05 | Phase 12 | Pending |
 | SEL-01..03 | Phase 13 | Pending |
 
