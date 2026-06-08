@@ -4,8 +4,8 @@ import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  // GitHub Pages serves at /omlx-intelligence-benchmark/; dev server uses root.
-  base: env.GITHUB_ACTIONS === "true" ? "/omlx-intelligence-benchmark/" : "/",
+  // Set GITHUB_PAGES=true only in cd-static.yml; other Actions workflows use root base.
+  base: env.GITHUB_PAGES === "true" ? "/omlx-intelligence-benchmark/" : "/",
   staged: {
     "*": "vp check --fix",
   },

@@ -37,7 +37,7 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: pnpm build
+      - run: GITHUB_PAGES=true pnpm build
 
       - uses: actions/upload-pages-artifact@v3
         with:
