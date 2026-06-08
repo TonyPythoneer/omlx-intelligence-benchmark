@@ -49,28 +49,13 @@
         <UiLabel>Params</UiLabel>
         <div class="flex items-center gap-2 min-w-[200px]">
           <span class="text-xs text-muted-foreground font-medium min-w-[32px] text-center">{{ paramsLabelAt(paramsMinIdxLocal) }}</span>
-          <div class="relative flex-1 h-5 flex items-center">
-            <input
-              id="params-min"
-              type="range"
-              :min="0"
-              :max="parametersBreakpoints.length"
-              step="1"
-              :value="paramsMinIdxLocal"
-              @input="paramsMinIdxLocal = parseInt(($event.target as HTMLInputElement).value, 10)"
-              class="slider-thumb absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:bg-border [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:-mt-1.5"
-            />
-            <input
-              id="params-max"
-              type="range"
-              :min="0"
-              :max="parametersBreakpoints.length"
-              step="1"
-              :value="paramsMaxIdxLocal"
-              @input="paramsMaxIdxLocal = parseInt(($event.target as HTMLInputElement).value, 10)"
-              class="slider-thumb absolute inset-0 w-full h-full appearance-none bg-transparent pointer-events-none [&::-webkit-slider-runnable-track]:h-1 [&::-webkit-slider-runnable-track]:bg-border [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-white [&::-webkit-slider-thumb]:shadow [&::-webkit-slider-thumb]:-mt-1.5"
-            />
-          </div>
+          <UiSlider
+            v-model="paramsRange"
+            :min="0"
+            :max="parametersBreakpoints.length"
+            :step="1"
+            class="flex-1"
+          />
           <span class="text-xs text-muted-foreground font-medium min-w-[32px] text-center">{{ paramsLabelAt(paramsMaxIdxLocal) }}</span>
         </div>
       </div>
@@ -92,10 +77,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { ref, watch, computed } from 'vue';
 import UiCard from './ui/card.vue';
 import UiInput from './ui/input.vue';
 import UiLabel from './ui/label.vue';
+import UiSlider from './ui/slider.vue';
 
 const emit = defineEmits<{
   'update:modelSearch': [value: string];
@@ -131,6 +117,17 @@ const metricsOptions = [
 
 const paramsMinIdxLocal = ref<number>(0);
 const paramsMaxIdxLocal = ref<number>(0);
+
+// Proxy the local refs as a [min, max] array for UiSlider's number[] v-model.
+// Routing updates through the locals keeps the existing swap-guard watcher
+// (below) as the single source of the update:paramsMinIdx/Max emits.
+const paramsRange = computed<number[]>({
+  get: () => [paramsMinIdxLocal.value, paramsMaxIdxLocal.value],
+  set: ([a, b]) => {
+    paramsMinIdxLocal.value = a;
+    paramsMaxIdxLocal.value = b;
+  },
+});
 
 function paramsLabelAt(idx: number): string {
   if (idx >= props.parametersBreakpoints.length) return 'Inf';
