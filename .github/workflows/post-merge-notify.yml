@@ -1,4 +1,4 @@
-name: Post-Merge Notify
+name: 🔔 Post-Merge Notify
 
 on:
   pull_request:

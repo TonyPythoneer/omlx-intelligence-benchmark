@@ -1,8 +1,11 @@
+import { env } from "node:process";
 import { defineConfig } from "vite-plus";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
+  // Set GITHUB_PAGES=true only in cd-static.yml; other Actions workflows use root base.
+  base: env.GITHUB_PAGES === "true" ? "/omlx-intelligence-benchmark/" : "/",
   staged: {
     "*": "vp check --fix",
   },
