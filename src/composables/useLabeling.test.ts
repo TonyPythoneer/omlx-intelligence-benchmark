@@ -38,11 +38,7 @@ describe('useLabeling', () => {
       expect(validateEditField('quantization', '')).toEqual([]);
     });
 
-    it('should accept all boolean values for abilities and tiers', () => {
-      expect(validateEditField('thinking', true)).toEqual([]);
-      expect(validateEditField('thinking', false)).toEqual([]);
-      expect(validateEditField('mtp', true)).toEqual([]);
-      expect(validateEditField('mtp', false)).toEqual([]);
+    it('should accept all boolean values for tiers and deprecated', () => {
       expect(validateEditField('deprecated', true)).toEqual([]);
       expect(validateEditField('deprecated', false)).toEqual([]);
       expect(validateEditField('tier_opus', true)).toEqual([]);
@@ -132,14 +128,13 @@ describe('useLabeling', () => {
       expect(labeling.labelEdits.value['test-model-1'].parameters_b).toBe('35');
       expect(labeling.labelEdits.value['test-model-1'].quantization).toBe('4bit');
       expect(labeling.labelEdits.value['test-model-1'].size_gb).toBe('19.5');
-      expect(labeling.labelEdits.value['test-model-1'].thinking).toBe(true);
       expect(labeling.labelEdits.value['test-model-1'].tier_opus).toBe(true);
-      expect(labeling.labelEdits.value['test-model-2'].thinking).toBe(false);
+      expect(labeling.labelEdits.value['test-model-2'].tier_sonnet).toBe(true);
     });
 
     it('should discard labelEdits when canceling labeling mode', () => {
       labeling.updateLabelEdit('model-1', 'parameters_b', '50');
-      labeling.updateLabelEdit('model-1', 'thinking', true);
+      labeling.updateLabelEdit('model-1', 'deprecated', true);
 
       labeling.cancelLabelEdits();
 
@@ -165,14 +160,12 @@ describe('useLabeling', () => {
       labeling.isLabelingMode.value = true;
       labeling.updateLabelEdit('test-model', 'parameters_b', '35');
       labeling.updateLabelEdit('test-model', 'quantization', '4bit');
-      labeling.updateLabelEdit('test-model', 'thinking', true);
       labeling.updateLabelEdit('test-model', 'tier_opus', true);
 
       labeling.commitLabelEdits(mutableEntries);
 
       expect(mutableEntries.value[0].spec.parameters_b).toBe(35);
       expect(mutableEntries.value[0].spec.quantization).toBe('4bit');
-      expect(mutableEntries.value[0].abilities!.thinking).toBe(true);
       expect(mutableEntries.value[0].tiers!.opus).toBe(true);
       expect(labeling.isLabelingMode.value).toBe(false);
       expect(labeling.labelEdits.value).toEqual({});
@@ -323,7 +316,6 @@ describe('useLabeling', () => {
       expect(Object.keys(labeling.labelEdits.value)).toHaveLength(2);
 
       // Edit first entry
-      labeling.updateLabelEdit('llama-70b', 'thinking', false);
       labeling.updateLabelEdit('llama-70b', 'tier_sonnet', true);
 
       // Edit second entry with one invalid value
@@ -337,7 +329,6 @@ describe('useLabeling', () => {
       labeling.commitLabelEdits(mutableEntries);
 
       // Verify changes
-      expect(mutableEntries.value[0].abilities!.thinking).toBe(false);
       expect(mutableEntries.value[0].tiers!.sonnet).toBe(true);
       expect(mutableEntries.value[1].spec.parameters_b).toBe(100);
       expect(mutableEntries.value[1].deprecated).toBe(true);

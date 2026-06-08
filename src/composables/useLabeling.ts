@@ -8,8 +8,6 @@ export interface LabelEdit {
   parameters_b?: string; // string for input binding
   quantization?: string;
   size_gb?: string; // string for input binding
-  thinking?: boolean;
-  mtp?: boolean;
   deprecated?: boolean;
   tier_opus?: boolean;
   tier_sonnet?: boolean;
@@ -55,8 +53,8 @@ export function validateEditField(field: string, value: any): string[] {
     // all values are valid
   }
 
-  // abilities, tiers, deprecated: all booleans are valid
-  if (['thinking', 'mtp', 'deprecated', 'tier_opus', 'tier_sonnet', 'tier_haiku'].includes(field)) {
+  // tiers, deprecated: all booleans are valid
+  if (['deprecated', 'tier_opus', 'tier_sonnet', 'tier_haiku'].includes(field)) {
     // all values are valid
   }
 
@@ -143,7 +141,6 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
       const updated: Entry = {
         ...entry,
         spec: { ...entry.spec },
-        abilities: { ...(entry.abilities ?? { thinking: false, mtp: false }) },
         tiers: { ...(entry.tiers ?? { opus: false, sonnet: false, haiku: false }) },
       };
 
@@ -156,14 +153,6 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
       }
       if (edit.size_gb !== undefined) {
         updated.spec.size_gb = edit.size_gb !== '' ? parseFloat(edit.size_gb!) : null;
-      }
-
-      // Apply abilities edits
-      if (edit.thinking !== undefined || edit.mtp !== undefined) {
-        updated.abilities = {
-          thinking: edit.thinking !== undefined ? edit.thinking : (entry.abilities?.thinking ?? false),
-          mtp: edit.mtp !== undefined ? edit.mtp : (entry.abilities?.mtp ?? false),
-        };
       }
 
       // Apply deprecated edit
@@ -223,8 +212,6 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
             parameters_b: entry.spec.parameters_b?.toString() ?? '',
             quantization: entry.spec.quantization ?? '',
             size_gb: entry.spec.size_gb?.toString() ?? '',
-            thinking: entry.abilities?.thinking ?? false,
-            mtp: entry.abilities?.mtp ?? false,
             deprecated: entry.deprecated ?? false,
             tier_opus: entry.tiers?.opus ?? false,
             tier_sonnet: entry.tiers?.sonnet ?? false,
