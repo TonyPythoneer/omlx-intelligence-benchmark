@@ -8,6 +8,19 @@ A static, serverless benchmark comparison site for oMLX / MLX model results. It 
 
 Browse and compare MLX benchmark results in a fast, fully static page — and import, label, and export that data entirely in the browser, with no server ever required.
 
+## Current Milestone: v1.1 — reka-ui Best-Practice Alignment
+
+**Goal:** Adopt the genuine Vue 3 / Vite / reka-ui best practice the project is currently missing — use headless **reka-ui** primitives for interactive widgets instead of hand-rolling them — starting by fixing the visibly broken PARAMS range slider.
+
+**Key insight (from auditing both codebases):** `reka-ui` is already a dependency but **entirely unused**; every `ui/` component is hand-rolled and the PARAMS slider (inline native `input[type=range]` hack in `FilterBar.vue`) renders broken (two disconnected empty circles, no track/fill). This project's `cva` + `cn()` + `VariantProps` conventions are *already* canonical shadcn-vue — jen-lab's `App*` pattern is a Nuxt-UI-compat shim, NOT a better practice to copy. So the milestone keeps the cva conventions and adopts only the reka-ui-headless-primitive practice.
+
+**Target features:**
+- Replace the hand-rolled PARAMS dual-handle slider with a reka-ui `Slider`-backed `ui/slider.vue` (`SliderRoot`/`SliderTrack`/`SliderRange`/`SliderThumb`, two-thumb range, visible track + fill, keyboard + aria for free) — **the visible bug, P0**
+- Migrate the hand-rolled interactive `ui/` components that genuinely benefit from a11y primitives (`dialog` → reka-ui `Dialog`, `select` → reka-ui `Select`) to headless reka-ui, preserving current cva styling
+- Establish + document the convention: **reka-ui for interactive widgets, plain styled elements for leaf components** (input/textarea/label/card stay as-is — that is also standard shadcn-vue)
+
+**Out of milestone scope:** Storybook, Velite, unplugin auto-imports, `App*` renaming, leaf-component rewrites, any data/feature change.
+
 ## Requirements
 
 ### Validated
@@ -31,7 +44,11 @@ Browse and compare MLX benchmark results in a fast, fully static page — and im
 
 ### Active
 
-[none — milestone v1.0 complete]
+<!-- Milestone v1.1 — see REQUIREMENTS.md for REQ-IDs -->
+
+- ○ PARAMS dual-handle slider rebuilt on reka-ui `Slider` (`ui/slider.vue`), visible track + range fill, replaces native-input hack — v1.1
+- ○ Interactive `ui/` components (`dialog`, `select`) migrated to reka-ui headless primitives, cva styling preserved — v1.1
+- ○ "reka-ui for interactive, plain styled for leaf" convention established + documented — v1.1
 
 ### Out of Scope
 
@@ -90,4 +107,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-06-06 after Phase 07 — milestone v1.0 complete*
+*Last updated: 2026-06-08 — milestone v1.1 started (reka-ui best-practice alignment)*

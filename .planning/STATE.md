@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
-milestone_name: milestone
-current_phase: 07
-status: completed
-last_updated: "2026-06-06T12:16:24.309Z"
+milestone: v1.1
+milestone_name: reka-ui Best-Practice Alignment
+status: planning
+last_updated: "2026-06-08T04:40:04.776Z"
+last_activity: 2026-06-08
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 16
-  completed_plans: 16
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # STATE: oMLX Intelligence Benchmark — Vue 3 + Vite+ Migration
@@ -43,15 +43,10 @@ Phase 07 — parity-ci-swap
 
 ## Current Position
 
-Phase: 07 (parity-ci-swap) — COMPLETE
-**Milestone v1.0:** COMPLETE — all 7 phases, all 16 plans executed
-**Overall Progress:** 28 / 28 requirements shipped (100%)
-
-```
-[==================================================] 100%
-```
-
----
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-06-08 — Milestone v1.1 started
 
 ## Roadmap Structure
 
