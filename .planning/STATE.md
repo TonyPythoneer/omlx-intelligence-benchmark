@@ -3,22 +3,22 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: reka-ui Best-Practice Alignment
 status: planning
-last_updated: "2026-06-08T04:40:04.776Z"
+last_updated: "2026-06-08T05:10:00.000Z"
 last_activity: 2026-06-08
 progress:
-  total_phases: 0
+  total_phases: 2
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
   percent: 0
 ---
 
-# STATE: oMLX Intelligence Benchmark — Vue 3 + Vite+ Migration
+# STATE: oMLX Intelligence Benchmark — v1.1 reka-ui Best-Practice Alignment
 
-**Milestone:** Vue 3 + Vite+ Static Site Migration at Feature Parity
-**Current Phase:** 07
-**Status:** Milestone complete
-**Last Updated:** 2026-06-06
+**Milestone:** v1.1 — reka-ui Best-Practice Alignment
+**Current Phase:** 08 (roadmapped, not yet planned)
+**Status:** Roadmap complete — ready to plan Phase 8
+**Last Updated:** 2026-06-08
 
 ---
 
@@ -28,39 +28,34 @@ progress:
 Browse and compare MLX benchmark results in a fast, fully static page — and import, label, and export that data entirely in the browser, with no server ever required.
 
 **Current Focus:**
-Phase 07 — parity-ci-swap
+Phase 08 — reka-ui-backed PARAMS slider (the visible P0 bug) + document the reka-ui-for-interactive convention.
 
 **Key Constraints:**
 
 - Serverless / static output only (SPA via `vp build`)
-- Pure-JSON data contract unchanged
-- Browser-only APIs (File System Access, clipboard, hostname guard) run client-side only
-- Port `app/lib/import.mjs` parser logic with unit tests green
-- Existing CI (Playwright UI-validation + data-validation) must pass — validated per-phase
-- Vue 3 + Vite+, no Nuxt, no SSG/prerender
+- No data / feature / JSON-contract change — this is a UI-internals alignment
+- `cva` + `VariantProps` + `cn()` stays the styling contract; no `App*` shim, no manual variant maps
+- reka-ui for interactive widgets only; leaf components (input/textarea/label/card) stay plain styled
+- Existing Vitest suite + existing Playwright UI-validation checkpoints must stay green
+- Node `>=24`; `vp dev` / `vp test`; avoid casual `vp build` per CLAUDE.md except where the migrated app legitimately needs it
 
 ---
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 08 — Slider & Convention (roadmapped, not yet planned)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-06-08 — Milestone v1.1 started
+Status: Roadmap written; awaiting `/gsd-plan-phase 8`
+Last activity: 2026-06-08 — Milestone v1.1 roadmapped (phases 8–9, 10/10 reqs mapped)
 
 ## Roadmap Structure
 
-| Phase | Goal | Req Count |
-|-------|------|-----------|
-| 1 | Vue 3 + Vite+ SPA scaffold + spike + locked decisions | 4 |
-| 2 | Data loading & settings (client-side) | 3 |
-| 3 | Three-tier table with sorting/actions | 4 |
-| 4 | Filters: search, tier, metrics, params | 5 |
-| 5 | Import modal with parser/merge | 4 |
-| 6 | Labeling & File System Access export | 5 |
-| 7 | Parity, CI & Swap | 3 |
+| Phase | Goal | Requirements | Req Count |
+|-------|------|--------------|-----------|
+| 8 | reka-ui dual-thumb PARAMS slider fixes the visible bug; convention documented | SLIDER-01..05, CONV-01, CONV-02 | 7 |
+| 9 | `dialog` + `select` migrated to reka-ui; consumer APIs preserved | UIPRIM-01..03 | 3 |
 
-**Total:** 28 v1 requirements, 7 phases
+**Total:** 10 v1.1 requirements, 2 phases
 
 ---
 
@@ -68,83 +63,56 @@ Last activity: 2026-06-08 — Milestone v1.1 started
 
 | Metric | Baseline | Current | Target |
 |--------|----------|---------|--------|
-| Requirements Mapped | 0 | 28 | 28 |
-| Phases Defined | 0 | 7 | 7 |
-| Plans Created | 0 | 11 | 11 |
+| Requirements Mapped | 0 | 10 | 10 |
+| Phases Defined | 0 | 2 | 2 |
+| Plans Created | 0 | 0 | TBD |
 | Coverage | 0% | 100% | 100% |
 
 ---
 
 ## Accumulated Context
 
-### Key Decisions (locked after architect review — see `.planning/REVIEW-ARCHITECT.md`)
+### Key Decisions (v1.1)
 
-- **Plain Vue 3 + Vite+ SPA (static `vp build`), not Nuxt, vite-ssg deferred:** one data-heavy page; SPA is simpler, still serverless, and avoids SSG build-time execution of `window`/`location` (kills 2 critical risks).
-- **State = Composition API composables** (no Pinia): single-page scope; lightweight, type-safe.
-- **TypeScript types in Phase 1** (`types/benchmark.ts`): Entry / Spec / Scores / Tiers / Abilities.
-- **Styling = scoped SFC `<style>`, 1:1 CSS port** (Tailwind → v2).
-- **Branch isolation:** all work on `feat/vue-vite-static-site`; live `app/index.html` untouched until the Phase 7 atomic swap.
-- **Phase 1 spike** validates `vp build` static SPA + end-to-end render before Phases 2–7 execute.
-- **Incremental CI:** Playwright selectors validated per-phase (3–6); full 9-point regression in Phase 7.
-- **Strict feature parity first**; enhancements → v2. **Pure-JSON data format preserved**; port `import.mjs` as-is.
+- **reka-ui is already a dependency (v2.9.9) but entirely unused** — every `ui/` component is hand-rolled; v1.1 adopts only the reka-ui-headless-primitive practice, nothing else.
+- **Keep the cva conventions** — this project's `cva` + `cn()` + `VariantProps` is already canonical shadcn-vue; jen-lab's `App*` pattern is a Nuxt-UI-compat shim, explicitly NOT copied.
+- **Slider first (P0):** the PARAMS slider in `FilterBar.vue` (two overlapping native `input[type=range]`) renders broken (two empty circles, no track/fill) — it is the visible bug and Phase 8's keystone.
+- **reka-ui for interactive widgets, plain styled elements for leaf components** — the convention established + documented in Phase 8 (`CLAUDE.md`), followed in Phase 9.
+- **Tight scope:** no Storybook / Velite / unplugin auto-imports / `App*` rename / leaf-component rewrites / data or feature change.
+- **CONV-01 / CONV-02 land in Phase 8** because the slider is the first reka-ui component and sets the precedent for both the documented convention and the cva-preservation contract.
 
 ### Architecture Notes
 
-- App type: **client-rendered SPA**; entry `app/main.ts` mounted into an `index.html` shell; built via `vp build`.
-- Data: `app/data/*.json` (pure arrays) loaded in the browser; settings `app/settings.json` (defaultDevice, parametersBreakpoints, devices).
-- State: composables (`useTableState` / `useFilters` / `useImportState` or similar).
-- Browser-only APIs gated through a `useClientOnly`-style pattern (moot under pure SPA, but explicit).
-- Parser: port `app/lib/import.mjs` + `import.test.mjs` to `vp test` (vitest), green.
-- Export: File System Access API (`showSaveFilePicker`) client-side; Safari falls back to download.
-- Migration safety: new files alongside the legacy app on the branch; atomic swap of `app/index.html` only at Phase 7.
-
-### Phase 2 Planning Notes (2026-06-06)
-
-- **Data serving:** `publicDir: '../public'` with symlinks to app/data and app/settings.json (ensures dev works, files copied to dist on build, pure-JSON contract preserved)
-- **useSettings composable:** Fetches /settings.json, returns reactive { settings, defaultDevice, parametersBreakpoints, devices, isLoading, error }
-- **useBenchmarkData composable:** Watches selectedDevice ref, fetches /data/{device}.json reactively, returns { entries: Entry[], isLoading, error }
-- **DeviceSelector component:** Dropdown bound to selectedDevice via v-model, populated from settings.devices
-- **BenchmarkTable update:** Now accepts entries prop, renders v-for loop instead of hardcoded entry
-- **MVP vertical slices:** Plan 01 = settings infrastructure (user sees loading state, then selector placeholder). Plan 02 = device selection + data loading + table rendering (user sees selector populated, can select device, table updates).
-
-### Phase 5 Planning Notes (2026-06-06)
-
-- **Import UI flow:** Wave 1 = Modal dialog + hostname guard + useImport state setup. Wave 2 = merge logic + unit tests + Playwright checkpoint.
-- **useImport composable:** Manages isModalOpen, importText, parsedEntries (computed via parseImportInput), isApplyEnabled (true when all NEW entries have spec filled), applyImport(currentEntries) function.
-- **ImportModal component:** Modal dialog with textarea, parsed entries list with NEW/OVERWRITE status badges, spec form for NEW entries (params_b, quantization, size_gb), Apply and Cancel buttons.
-- **App.vue wiring:** Mutable entries ref pattern (copy from useBenchmarkData, watch to update), isLocalhost computed (hostname guard), + Import button visible on localhost/127.0.0.1 only.
-- **Merge algorithm:** NEW entries get full Entry with user-filled spec + date + default abilities/tiers/deprecated. OVERWRITE updates scores only, preserves spec/abilities/tiers/deprecated.
+- reka-ui primitives confirmed available in `node_modules/reka-ui@2.9.9`: `SliderRoot` / `SliderTrack` / `SliderRange` / `SliderThumb`, `DialogRoot` / `DialogContent`, `SelectRoot` / `SelectItem` (multi-thumb range supported).
+- **`ui/slider.vue`** (new): wrap the reka-ui Slider parts with `cva`/`cn()` styling; `v-model` as `[min, max]`; `min` / `max` / `step` props.
+- **`FilterBar.vue`** PARAMS filter: swap the two native range inputs for `ui/slider.vue`; keep `paramsLabelAt` `0B…Inf` labels and the `update:paramsMinIdx` / `update:paramsMaxIdx` emit contract (App.vue wiring unchanged).
+- **`ui/dialog.vue`** (Phase 9): migrate to reka-ui `Dialog*`; current public API = props `open` / `title` / `class`, emit `close`, default + `footer` slots — consumed by `ImportModal` and `ExportModal`.
+- **`ui/select.vue`** (Phase 9): migrate to reka-ui `Select*`; current API = `modelValue` / `update:modelValue`, `disabled`, default slot of `<option>` children — consumed by `DeviceSelector`.
+- **Phase 9 consumer-API nuance:** `select.vue` takes native `<option>` slot children; reka-ui `Select` uses `SelectItem`. Reconcile during plan-phase — preserve `DeviceSelector`'s `devices` / `modelValue` props + `update:modelValue` emit while migrating its internal item markup.
 
 ### Todos
 
-- [x] Plan Phase 1: Scaffold + spike → 3 plans (01-01 scaffold/shell · 01-02 types+tests · 01-03 minimal render + `vp build` spike), checker-verified
-- [x] Plan Phase 2: Data Loading & Settings (client-side JSON/settings load, contract preserved) → 2 plans (02-01 vite config + useSettings · 02-02 useBenchmarkData + DeviceSelector + wiring)
-- [x] Plan Phase 3: Table Core (three-tier render, sort, color-code, row actions) → 2 plans, checker-verified
-- [x] Plan Phase 4: Filters (search, tier, metrics, params, deprecated) → 2 plans, checker-verified
-- [x] Plan Phase 5: Import Flow (modal, parser, merge, validation) → 2 plans (05-01 UI setup + hostname guard · 05-02 merge logic + tests + Playwright CP)
-- [ ] Execute Phase 1 (Wave 1: 01-01; Wave 2: 01-02 ∥ 01-03)
-- [ ] Execute Phase 2 (Wave 1: 02-01; Wave 2: 02-02) — requires Phase 1 complete
-- [ ] Execute Phase 3 (Wave 1: 03-01; Wave 2: 03-02) — requires Phase 2 complete
-- [ ] Execute Phase 4 (Wave 1: 04-01; Wave 2: 04-02) — requires Phase 3 complete
-- [ ] Execute Phase 5 (Wave 1: 05-01; Wave 2: 05-02) — requires Phase 4 complete
-- [ ] Plan Phase 6: Labeling & Export (inline edit, File System Access save, dirty state) + labeling/export CPs
-- [ ] Plan Phase 7: Parity, CI & Swap (full Playwright regression, data validation, atomic swap, no regressions)
+- [x] Define v1.1 requirements (SLIDER-01..05, UIPRIM-01..03, CONV-01/02)
+- [x] Roadmap v1.1 → 2 phases (8 Slider & Convention · 9 UI Primitives), 10/10 reqs mapped
+- [ ] Plan Phase 8: Slider & Convention (`/gsd-plan-phase 8`) — build `ui/slider.vue`, swap into FilterBar, verify filtering + a11y, document convention
+- [ ] Execute Phase 8
+- [ ] Plan Phase 9: UI Primitives (`/gsd-plan-phase 9`) — migrate `dialog` + `select`, verify all four consumers + Vitest/Playwright green
+- [ ] Execute Phase 9
 
 ### Blockers
 
-None. Milestone v1.0 complete.
+None.
 
 ---
 
 ## Session Continuity
 
-**Session Start:** 2026-06-06
-**Milestone v1.0 Complete:** 2026-06-06
-**All 7 Phases Executed:** Phases 1–7 complete (16 plans total)
-**Last Phase Completed:** Phase 07 (parity-ci-swap) — 2026-06-06
-**Stopped at:** Milestone v1.0 complete — all phases and plans executed, 11/11 Playwright CPs pass, 35/35 Vitest tests pass, Vue SPA deployed from dist/
-**Next Action:** `/gsd-complete-milestone v1.0` to archive and prepare for v2
+**Milestone v1.0 Complete:** 2026-06-06 (Phases 1–7, 16 plans, 11/11 Playwright CPs, 35/35 Vitest)
+**Milestone v1.1 Started:** 2026-06-08 (reka-ui best-practice alignment)
+**Roadmap v1.1 Written:** 2026-06-08 — phases 8–9, 10/10 requirements mapped
+**Stopped at:** Roadmap complete; REQUIREMENTS.md traceability updated
+**Next Action:** `/gsd-plan-phase 8`
 
 ---
 
-*State initialized: 2026-06-06 · milestone v1.0 complete 2026-06-06*
+*State initialized: 2026-06-06 · v1.0 complete 2026-06-06 · v1.1 roadmapped 2026-06-08*

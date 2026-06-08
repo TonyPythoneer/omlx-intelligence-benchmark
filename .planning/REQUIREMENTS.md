@@ -56,22 +56,22 @@ Tracked, not in this milestone.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SLIDER-01 | TBD | Pending |
-| SLIDER-02 | TBD | Pending |
-| SLIDER-03 | TBD | Pending |
-| SLIDER-04 | TBD | Pending |
-| SLIDER-05 | TBD | Pending |
-| UIPRIM-01 | TBD | Pending |
-| UIPRIM-02 | TBD | Pending |
-| UIPRIM-03 | TBD | Pending |
-| CONV-01 | TBD | Pending |
-| CONV-02 | TBD | Pending |
+| SLIDER-01 | Phase 8 | Pending |
+| SLIDER-02 | Phase 8 | Pending |
+| SLIDER-03 | Phase 8 | Pending |
+| SLIDER-04 | Phase 8 | Pending |
+| SLIDER-05 | Phase 8 | Pending |
+| UIPRIM-01 | Phase 9 | Pending |
+| UIPRIM-02 | Phase 9 | Pending |
+| UIPRIM-03 | Phase 9 | Pending |
+| CONV-01 | Phase 8 | Pending |
+| CONV-02 | Phase 8 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 10 total
-- Mapped to phases: 0 (roadmap pending)
-- Unmapped: 10 ⚠️ (resolved by roadmapper)
+- Mapped to phases: 10 ✓ (Phase 8: SLIDER-01..05 + CONV-01/02; Phase 9: UIPRIM-01..03)
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-06-08*
-*Last updated: 2026-06-08 — milestone v1.1 started*
+*Last updated: 2026-06-08 — milestone v1.1 roadmapped (phases 8–9)*
