@@ -8,7 +8,8 @@
     "test": "vp test",
     "build": "tsc && vp build",
     "preview": "vp preview",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "bundle:report": "vp build && node scripts/bundle-report.ts"
   },
   "dependencies": {
     "@vueuse/core": "^11.0.0",
