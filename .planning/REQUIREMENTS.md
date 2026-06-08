@@ -23,6 +23,12 @@
 - [ ] **UIPRIM-02**: `ui/select.vue` is migrated to reka-ui `Select*` primitives (keyboard navigation, `aria`, typeahead) while preserving its current styling and the API used by `DeviceSelector`.
 - [ ] **UIPRIM-03**: All existing consumers (`ImportModal`, `ExportModal`, `DeviceSelector`, `FilterBar`) work unchanged after migration — verified by the existing Playwright UI-validation checkpoints.
 
+### Labeling (realign to original design — user request)
+
+- [ ] **LABEL-01**: In labeling mode, `BenchmarkTable.vue` swaps the Score column group for the original layout — `Model | Spec(Params/Quant/Size) | Deprecated | Tiers(Opus/Sonnet/Haiku)` — with edit controls rendered **inline inside those locked-width columns**, not a full-width `colspan` stacked panel (matches `app/index.html:1242-1324`).
+- [ ] **LABEL-02**: The Abilities (Thinking/MTP) editor is removed from labeling mode, and `useLabeling.ts` no longer carries `thinking`/`mtp` edit state — Abilities is never a field the user is asked to fill.
+- [ ] **LABEL-03**: Export strips `abilities` from every entry before producing the JSON (matching the original `getExportData` → `({ abilities, ...rest }) => rest`); all other fields (spec/tiers/deprecated/scores/date) preserved.
+
 ### Conventions (P2)
 
 - [ ] **CONV-01**: The convention "reka-ui headless primitives for interactive widgets; plain cva-styled elements for leaf components (input/textarea/label/card)" is documented in `CLAUDE.md` so future components follow it.
@@ -61,15 +67,18 @@ Tracked, not in this milestone.
 | SLIDER-03 | Phase 8 | Pending |
 | SLIDER-04 | Phase 8 | Pending |
 | SLIDER-05 | Phase 8 | Pending |
-| UIPRIM-01 | Phase 9 | Pending |
-| UIPRIM-02 | Phase 9 | Pending |
-| UIPRIM-03 | Phase 9 | Pending |
+| LABEL-01 | Phase 9 | Pending |
+| LABEL-02 | Phase 9 | Pending |
+| LABEL-03 | Phase 9 | Pending |
+| UIPRIM-01 | Phase 10 | Pending |
+| UIPRIM-02 | Phase 10 | Pending |
+| UIPRIM-03 | Phase 10 | Pending |
 | CONV-01 | Phase 8 | Pending |
 | CONV-02 | Phase 8 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 10 total
-- Mapped to phases: 10 ✓ (Phase 8: SLIDER-01..05 + CONV-01/02; Phase 9: UIPRIM-01..03)
+- v1.1 requirements: 13 total
+- Mapped to phases: 13 ✓ (Phase 8: SLIDER-01..05 + CONV-01/02; Phase 9: LABEL-01..03; Phase 10: UIPRIM-01..03)
 - Unmapped: 0 ✓
 
 ---

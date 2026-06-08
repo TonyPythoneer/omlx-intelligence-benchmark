@@ -9,7 +9,7 @@
 ## Milestones
 
 - ✅ **v1.0 — Vue 3 + Vite+ Migration** — Phases 1–7 (shipped 2026-06-06, 28/28 reqs)
-- 🚧 **v1.1 — reka-ui Best-Practice Alignment** — Phases 8–9 (in progress, 10/10 reqs mapped)
+- 🚧 **v1.1 — reka-ui Best-Practice Alignment** — Phases 8–10 (in progress, 13/13 reqs mapped)
 
 ---
 
@@ -26,7 +26,8 @@
 
 <!-- v1.1 (active) -->
 - [ ] **Phase 8: Slider & Convention** - reka-ui-backed dual-thumb PARAMS slider fixes the visible bug; reka-ui-for-interactive convention documented
-- [ ] **Phase 9: UI Primitives (Dialog + Select)** - `dialog` and `select` migrated to reka-ui headless primitives, styling + consumer APIs preserved
+- [ ] **Phase 9: Labeling Realignment** - edit mode returns to the original column-aligned inline editors (Score columns swapped for Deprecated + Tiers); Abilities editor removed; `abilities` stripped on export
+- [ ] **Phase 10: UI Primitives (Dialog + Select)** - `dialog` and `select` migrated to reka-ui headless primitives, styling + consumer APIs preserved
 
 ---
 
@@ -50,7 +51,19 @@
 - [ ] 08-01-PLAN.md — Build reka-ui `ui/slider.vue`, rewire FilterBar PARAMS (emit contract preserved), document convention
 **UI hint:** yes
 
-### Phase 9: UI Primitives (Dialog + Select)
+### Phase 9: Labeling Realignment
+**Goal:** The edit (labeling) mode returns to the original `app/index.html` design — column-aligned inline editors that swap the Score columns for `Deprecated` + `Tiers` columns (locked widths/heights), instead of the Vue rewrite's full-width stacked panel — the Abilities (Thinking/MTP) editor is removed, and `abilities` is stripped from exported JSON, matching the original `getExportData`.
+**Depends on:** Phase 7 (v1.0 labeling/export shipped); independent of Phase 8
+**Requirements:** LABEL-01, LABEL-02, LABEL-03
+**Success Criteria** (what must be TRUE):
+  1. In labeling mode, `BenchmarkTable.vue` swaps the Score column group for `Model | Spec(Params/Quant/Size) | Deprecated | Tiers(Opus/Sonnet/Haiku)`, with edit controls rendered inline inside those locked-width columns (no full-width `colspan` stacked panel), matching the original `app/index.html` layout (`app/index.html:1242-1324`, CSS `445-446`).
+  2. The Abilities (Thinking/MTP) editor is removed from labeling mode, and `useLabeling.ts` no longer carries `thinking`/`mtp` edit state — Abilities is never a field the user fills.
+  3. Export strips `abilities` from every entry (matching original `getExportData` → `({ abilities, ...rest }) => rest`), so exported JSON carries no `abilities` key; all other fields (spec/tiers/deprecated/scores/date) are preserved.
+  4. Existing Vitest suite green (adjust `useLabeling` tests for the removed Abilities fields); existing Playwright UI-validation checkpoints show zero new failures vs baseline.
+**Plans:** TBD (1 anticipated)
+**UI hint:** yes
+
+### Phase 10: UI Primitives (Dialog + Select)
 **Goal:** The hand-rolled interactive `ui/` components that genuinely benefit from a11y primitives — `dialog` and `select` — are migrated to reka-ui headless primitives following the Phase 8 convention, with current `cva` styling and every consumer's public API preserved.
 **Depends on:** Phase 8
 **Requirements:** UIPRIM-01, UIPRIM-02, UIPRIM-03
@@ -61,7 +74,7 @@
 **Plans:** TBD (2 anticipated — migrate `dialog` + verify ImportModal/ExportModal; migrate `select` + verify DeviceSelector)
 **UI hint:** yes
 
-**Planning note (Phase 9):** `select.vue` currently accepts native `<option>` slot children (see `DeviceSelector.vue`). reka-ui `Select` uses `SelectItem` items rather than native `<option>`, so the consumer-facing item-rendering API must be reconciled during plan-phase — preserve `DeviceSelector`'s `devices` / `modelValue` props and `update:modelValue` emit contract while migrating its internal markup to the reka-ui item API. This is the one consumer-API nuance to resolve when planning UIPRIM-02 / UIPRIM-03.
+**Planning note (Phase 10):** `select.vue` currently accepts native `<option>` slot children (see `DeviceSelector.vue`). reka-ui `Select` uses `SelectItem` items rather than native `<option>`, so the consumer-facing item-rendering API must be reconciled during plan-phase — preserve `DeviceSelector`'s `devices` / `modelValue` props and `update:modelValue` emit contract while migrating its internal markup to the reka-ui item API. This is the one consumer-API nuance to resolve when planning UIPRIM-02 / UIPRIM-03.
 
 ---
 
@@ -145,10 +158,12 @@
 | 5. Import Flow | v1.0 | 2/2 | Complete | 2026-06-06 |
 | 6. Labeling & Export | v1.0 | 2/2 | Complete | 2026-06-06 |
 | 7. Parity, CI & Swap | v1.0 | 3/3 | Complete | 2026-06-06 |
-| 8. Slider & Convention | v1.1 | 0/1 | Not started | - |
-| 9. UI Primitives (Dialog + Select) | v1.1 | 0/2 | Not started | - |
+| 8. Slider & Convention | v1.1 | 0/1 | Awaiting verify | - |
+| 9. Labeling Realignment | v1.1 | 0/? | Not started | - |
+| 10. UI Primitives (Dialog + Select) | v1.1 | 0/2 | Not started | - |
 
 ---
 
 *Roadmap created: 2026-06-06 (v1.0) · v1.1 phases added 2026-06-08 (reka-ui best-practice alignment)*
-*v1.1 coverage: 10/10 requirements mapped — SLIDER-01..05 + CONV-01/02 → Phase 8; UIPRIM-01..03 → Phase 9*
+*v1.1 coverage: 13/13 requirements mapped — SLIDER-01..05 + CONV-01/02 → Phase 8; LABEL-01..03 → Phase 9; UIPRIM-01..03 → Phase 10*
+*Phase 9 (Labeling Realignment) added 2026-06-08 — realign edit mode to original `app/index.html` design + drop Abilities (user request).*
