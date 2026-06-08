@@ -42,8 +42,6 @@ export default defineConfig({
       ".github/**",
     ],
   },
-  root: "src",
-  publicDir: "../public",
   plugins: [tailwindcss(), vue()],
   resolve: {
     alias: {
@@ -55,11 +53,11 @@ export default defineConfig({
     host: "localhost",
   },
   build: {
-    outDir: "../dist",
+    outDir: "dist",
     emptyOutDir: true,
   },
   test: {
-    include: ["lib/**/*.test.mjs", "composables/**/*.test.ts"],
+    include: ["src/lib/**/*.test.mjs", "src/composables/**/*.test.ts"],
     globals: true,
   },
 });
