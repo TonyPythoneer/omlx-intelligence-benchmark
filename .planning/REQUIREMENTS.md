@@ -27,9 +27,9 @@
 
 ### reka-ui Select (SEL)
 
-- [ ] **SEL-01**: `ui/select.vue` is rebuilt on reka-ui `Select*` primitives (`SelectRoot`/`SelectTrigger`/`SelectValue`/`SelectPortal`/`SelectContent`/`SelectItem`…), cva/`cn()` styled, replacing the native `<select>`.
-- [ ] **SEL-02**: `DeviceSelector.vue` migrates its `<option>` children to `SelectItem`s while preserving its public API (`devices` / `modelValue` props, `update:modelValue` emit); device selection works identically (keyboard, aria).
-- [ ] **SEL-03**: The CLAUDE.md convention is updated — all interactive widgets (slider, dialog, select) on reka-ui; remove the "native select retained" carve-out.
+- [x] **SEL-01**: `ui/select.vue` is rebuilt on reka-ui `Select*` primitives (`SelectRoot`/`SelectTrigger`/`SelectValue`/`SelectPortal`/`SelectContent`/`SelectItem`…), cva/`cn()` styled, replacing the native `<select>`.
+- [x] **SEL-02**: `DeviceSelector.vue` migrates its `<option>` children to `SelectItem`s while preserving its public API (`devices` / `modelValue` props, `update:modelValue` emit); device selection works identically (keyboard, aria).
+- [x] **SEL-03**: The CLAUDE.md convention is updated — all interactive widgets (slider, dialog, select) on reka-ui; remove the "native select retained" carve-out.
 
 ## Definition of Done
 
@@ -52,7 +52,7 @@
 |-------------|-------|--------|
 | FND-01..05 | Phase 11 | Done |
 | STR-01..05 | Phase 12 | Done |
-| SEL-01..03 | Phase 13 | Pending |
+| SEL-01..03 | Phase 13 | Done |
 
 **Coverage:** 13 requirements → 3 phases (11 Foundation, 12 Structure, 13 Select). 0 unmapped.
 

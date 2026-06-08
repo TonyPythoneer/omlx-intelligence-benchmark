@@ -10,7 +10,7 @@
 
 - ✅ **v1.0 — Vue 3 + Vite+ Migration** — Phases 1–7 (shipped 2026-06-06, 28/28 reqs)
 - ✅ **v1.1 — reka-ui Best-Practice Alignment** — Phases 8–10 (complete 2026-06-08, 13/13 reqs)
-- 🚧 **v1.2 — vp-example Foundation Alignment + reka-ui Select** — Phases 11–13 (in progress, 13/13 reqs mapped)
+- ✅ **v1.2 — vp-example Foundation Alignment + reka-ui Select** — Phases 11–13 (complete 2026-06-08, 13/13 reqs)
 
 ---
 
@@ -33,7 +33,7 @@
 <!-- v1.2 (active) -->
 - [x] **Phase 11: Toolchain Foundation Alignment** - `vite.config`→`vite-plus` defineConfig + staged/fmt/lint; tsconfig→vp-example options; package scripts; `.vite-hooks`/`.zed`/CLAUDE.md vp block; `vp check` clean (FND-01..05)
 - [x] **Phase 12: Structure Alignment** - `index.html`→root + `/src/main.ts`; data→real `public/data` + `public/settings.json`; delete legacy `app/` + symlinks; update CI + docs (STR-01..05)
-- [ ] **Phase 13: reka-ui Select** - `ui/select.vue`→reka-ui `Select*`; DeviceSelector→`SelectItem` (API preserved); update convention (SEL-01..03)
+- [x] **Phase 13: reka-ui Select** - `ui/select.vue`→reka-ui `Select*`; DeviceSelector→`SelectItem` (API preserved); update convention (SEL-01..03)
 
 ---
 
@@ -171,7 +171,7 @@
 | 10. UI Primitives (Dialog + Select) | v1.1 | 1/1 | Complete | 2026-06-08 |
 | 11. Toolchain Foundation Alignment | v1.2 | 1/1 | Complete | 2026-06-08 |
 | 12. Structure Alignment | v1.2 | 1/1 | Complete | 2026-06-08 |
-| 13. reka-ui Select | v1.2 | 0/? | Not started | - |
+| 13. reka-ui Select | v1.2 | 1/1 | Complete | 2026-06-08 |
 
 ---
 
