@@ -1,6 +1,6 @@
 /**
  * Parse benchmark stdout to extract model entries.
- * Input: fixed-width table format (see app/index.html lines 1160-1184)
+ * Input: fixed-width table format (benchmark runner stdout)
  *
  * Example input:
  * Model: gpt-oss-20b-RotorQuant-MLX-8bit
