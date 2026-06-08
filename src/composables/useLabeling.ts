@@ -190,34 +190,32 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
    * When entering: initialize labelEdits from current entries
    * When exiting: discard labelEdits and reset
    */
-  function toggleLabelingMode(entries?: Ref<Entry[]>): void {
+  function toggleLabelingMode(entries?: Ref<Entry[]> | Entry[]): void {
     if (isLabelingMode.value) {
       // Exiting: discard edits
       labelEdits.value = {};
       isLabelingMode.value = false;
     } else {
-      // Entering: initialize labelEdits from current entries
-      if (!entries && !mutableEntries) {
-        // No entries to initialize from
-        isLabelingMode.value = true;
-        return;
-      }
-
-      const entriesToUse = entries ?? mutableEntries;
+      // Entering: initialize labelEdits from current entries.
+      // Resolve to a plain array, tolerating: a Ref (tests), an already-unwrapped
+      // array (Vue templates auto-unwrap refs, so `toggleLabelingMode(mutableEntries)`
+      // in a template passes the array), or fall back to the closure's mutableEntries.
+      const resolved: Entry[] =
+        (Array.isArray(entries) ? entries : entries?.value) ??
+        mutableEntries?.value ??
+        [];
       const edits: Record<string, LabelEdit> = {};
 
-      if (entriesToUse && entriesToUse.value) {
-        for (const entry of entriesToUse.value) {
-          edits[entry.model] = {
-            parameters_b: entry.spec.parameters_b?.toString() ?? '',
-            quantization: entry.spec.quantization ?? '',
-            size_gb: entry.spec.size_gb?.toString() ?? '',
-            deprecated: entry.deprecated ?? false,
-            tier_opus: entry.tiers?.opus ?? false,
-            tier_sonnet: entry.tiers?.sonnet ?? false,
-            tier_haiku: entry.tiers?.haiku ?? false,
-          };
-        }
+      for (const entry of resolved) {
+        edits[entry.model] = {
+          parameters_b: entry.spec.parameters_b?.toString() ?? '',
+          quantization: entry.spec.quantization ?? '',
+          size_gb: entry.spec.size_gb?.toString() ?? '',
+          deprecated: entry.deprecated ?? false,
+          tier_opus: entry.tiers?.opus ?? false,
+          tier_sonnet: entry.tiers?.sonnet ?? false,
+          tier_haiku: entry.tiers?.haiku ?? false,
+        };
       }
 
       labelEdits.value = edits;
