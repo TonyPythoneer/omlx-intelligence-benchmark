@@ -19,11 +19,11 @@
 
 ### Structure alignment (STR)
 
-- [ ] **STR-01**: `index.html` lives at the project **root** with `/src/main.ts` as entry; `vite.config` no longer overrides `root: 'src'` (uses default root + default `public/`).
-- [ ] **STR-02**: Benchmark data is moved to a real `public/` dir — `public/data/*.json` and `public/settings.json` (real files, not symlinks to `app/`); the data-loading fetch paths in code still resolve (served at `/data/*`, `/settings.json`).
-- [ ] **STR-03**: The legacy vanilla `app/` directory (and the `public/` symlinks into it) is removed; no duplicate data sources remain.
-- [ ] **STR-04**: CI is updated for the new layout — `validate-data.yml` (data path), `cd-static.yml` (build/deploy `dist/`), `ci-ui-validation.yml` — and `CLAUDE.md` project docs reflect the new structure and data-edit workflow.
-- [ ] **STR-05**: `make serve` / `vp dev` / `vp build` / `vp test` all work against the new structure; the app renders and loads data identically; build output in `dist/` deploys.
+- [x] **STR-01**: `index.html` lives at the project **root** with `/src/main.ts` as entry; `vite.config` no longer overrides `root: 'src'` (uses default root + default `public/`).
+- [x] **STR-02**: Benchmark data is moved to a real `public/` dir — `public/data/*.json` and `public/settings.json` (real files, not symlinks to `app/`); the data-loading fetch paths in code still resolve (served at `/data/*`, `/settings.json`).
+- [x] **STR-03**: The legacy vanilla `app/` directory (and the `public/` symlinks into it) is removed; no duplicate data sources remain.
+- [x] **STR-04**: CI is updated for the new layout — `validate-data.yml` (data path), `cd-static.yml` (build/deploy `dist/`), `ci-ui-validation.yml` — and `CLAUDE.md` project docs reflect the new structure and data-edit workflow.
+- [x] **STR-05**: `make serve` / `vp dev` / `vp build` / `vp test` all work against the new structure; the app renders and loads data identically; build output in `dist/` deploys.
 
 ### reka-ui Select (SEL)
 
@@ -51,7 +51,7 @@
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FND-01..05 | Phase 11 | Done |
-| STR-01..05 | Phase 12 | Pending |
+| STR-01..05 | Phase 12 | Done |
 | SEL-01..03 | Phase 13 | Pending |
 
 **Coverage:** 13 requirements → 3 phases (11 Foundation, 12 Structure, 13 Select). 0 unmapped.
