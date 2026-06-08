@@ -21,10 +21,11 @@
             <th class="px-4 py-2"></th>
             <template v-if="!isLabelingMode">
               <th
-                v-for="benchmark in visibleBenchmarksInOrder"
+                v-for="(benchmark, bi) in visibleBenchmarksInOrder"
                 :key="benchmark"
                 colspan="2"
-                class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2 border-primary/20"
+                class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2"
+                :class="bi === 0 ? 'border-primary/30' : 'border-primary/20'"
               >{{ benchmark }}</th>
             </template>
             <template v-else>
@@ -51,10 +52,13 @@
               <span v-if="sortCol === col.key" class="ml-0.5">{{ sortDir === 1 ? '↑' : '↓' }}</span>
             </th>
             <template v-if="!isLabelingMode">
-              <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
+              <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
                 <th
-                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2 border-primary/20"
-                  :class="sortCol === `scores.${benchmark}.accuracy` ? 'text-primary bg-primary/5' : 'text-muted-foreground'"
+                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2"
+                  :class="[
+                    bi === 0 ? 'border-primary/30' : 'border-primary/20',
+                    sortCol === `scores.${benchmark}.accuracy` ? 'text-primary bg-primary/5' : 'text-muted-foreground'
+                  ]"
                   @click="onSort(`scores.${benchmark}.accuracy`)"
                 >🎯<span v-if="sortCol === `scores.${benchmark}.accuracy`" class="ml-0.5">{{ sortDir === 1 ? '↑' : '↓' }}</span></th>
                 <th
@@ -86,11 +90,11 @@
                   <span class="text-foreground font-medium text-xs break-all">{{ entry.model }}</span>
                 </div>
               </td>
-              <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap border-l-2 border-primary/20">{{ formatParams(entry.spec.parameters_b) }}</td>
+              <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap border-l-2 border-primary/30">{{ formatParams(entry.spec.parameters_b) }}</td>
               <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{{ entry.spec.quantization || '–' }}</td>
               <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">{{ formatSize(entry.spec.size_gb) }}</td>
-              <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
-                <td class="px-3 py-3 text-center border-l-2 border-primary/20">
+              <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
+                <td class="px-3 py-3 text-center border-l-2" :class="bi === 0 ? 'border-primary/30' : 'border-primary/20'">
                   <span
                     v-if="entry.scores[benchmark]?.accuracy"
                     :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
