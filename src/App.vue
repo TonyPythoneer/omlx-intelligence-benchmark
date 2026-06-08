@@ -77,6 +77,7 @@
         />
 
         <ImportModal
+          v-if="isModalOpen"
           :isOpen="isModalOpen"
           :importText="importText"
           :parsedEntries="enrichedParsedEntries"
@@ -89,6 +90,7 @@
         />
 
         <ExportModal
+          v-if="isExportModalOpen"
           :isOpen="isExportModalOpen"
           :entries="mutableEntries"
           :selectedDevice="selectedDevice || 'benchmark'"
@@ -104,13 +106,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, defineAsyncComponent } from "vue";
 import type { Entry } from "./types/benchmark";
 import BenchmarkTable from "./components/BenchmarkTable.vue";
 import FilterBar from "./components/FilterBar.vue";
 import DeviceSelector from "./components/DeviceSelector.vue";
-import ImportModal from "./components/ImportModal.vue";
-import ExportModal from "./components/ExportModal.vue";
+// Lazy-loaded: the Import/Export modals (and the reka-ui Dialog they alone use)
+// are split into an on-demand chunk so they're off the initial page load.
+const ImportModal = defineAsyncComponent(() => import("./components/ImportModal.vue"));
+const ExportModal = defineAsyncComponent(() => import("./components/ExportModal.vue"));
 import UiButton from "./components/ui/button.vue";
 import { useSettings } from "./composables/useSettings";
 import { useBenchmarkData } from "./composables/useBenchmarkData";
