@@ -46,7 +46,8 @@
   3. PARAMS filtering behaviour is unchanged: dragging either thumb filters rows by the same index→breakpoint mapping; the min thumb cannot cross above the max; keyboard arrows move the focused thumb (reka-ui a11y for free).
   4. The `0B…Inf` breakpoint labels still flank the slider and the existing `update:paramsMinIdx` / `update:paramsMaxIdx` emit contract is preserved, so `App.vue` filtering is wired identically.
   5. `CLAUDE.md` documents the convention — reka-ui headless primitives for interactive widgets; plain `cva`-styled elements for leaf components (input/textarea/label/card) — and `cva` + `VariantProps` + `cn()` remains the styling contract with no `App*` shim or manual variant maps introduced.
-**Plans:** TBD (2 anticipated — build `ui/slider.vue`; swap into FilterBar + verify filtering/a11y + document convention)
+**Plans:** 1 plan
+- [ ] 08-01-PLAN.md — Build reka-ui `ui/slider.vue`, rewire FilterBar PARAMS (emit contract preserved), document convention
 **UI hint:** yes
 
 ### Phase 9: UI Primitives (Dialog + Select)
@@ -144,7 +145,7 @@
 | 5. Import Flow | v1.0 | 2/2 | Complete | 2026-06-06 |
 | 6. Labeling & Export | v1.0 | 2/2 | Complete | 2026-06-06 |
 | 7. Parity, CI & Swap | v1.0 | 3/3 | Complete | 2026-06-06 |
-| 8. Slider & Convention | v1.1 | 0/2 | Not started | - |
+| 8. Slider & Convention | v1.1 | 0/1 | Not started | - |
 | 9. UI Primitives (Dialog + Select) | v1.1 | 0/2 | Not started | - |
 
 ---
