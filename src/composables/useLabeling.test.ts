@@ -132,6 +132,31 @@ describe('useLabeling', () => {
       expect(labeling.labelEdits.value['test-model-2'].tier_sonnet).toBe(true);
     });
 
+    it('should seed labelEdits when passed an unwrapped array (Vue template auto-unwraps refs) — regression for D-09-1', () => {
+      // In a Vue template, `toggleLabelingMode(mutableEntries)` passes the
+      // auto-unwrapped ARRAY, not the Ref. The seed must still populate.
+      const entries: Entry[] = [
+        {
+          model: 'arr-model-1',
+          date: '2026-05-25',
+          spec: { parameters_b: 35, quantization: '4bit', size_gb: 18.19 },
+          deprecated: false,
+          tiers: { opus: true, sonnet: false, haiku: false },
+          scores: {},
+        },
+      ];
+
+      // Pass the raw array, exactly as the template would after ref unwrapping.
+      labeling.toggleLabelingMode(entries);
+
+      expect(labeling.isLabelingMode.value).toBe(true);
+      expect(Object.keys(labeling.labelEdits.value)).toHaveLength(1);
+      expect(labeling.labelEdits.value['arr-model-1'].parameters_b).toBe('35');
+      expect(labeling.labelEdits.value['arr-model-1'].quantization).toBe('4bit');
+      expect(labeling.labelEdits.value['arr-model-1'].size_gb).toBe('18.19');
+      expect(labeling.labelEdits.value['arr-model-1'].tier_opus).toBe(true);
+    });
+
     it('should discard labelEdits when canceling labeling mode', () => {
       labeling.updateLabelEdit('model-1', 'parameters_b', '50');
       labeling.updateLabelEdit('model-1', 'deprecated', true);
