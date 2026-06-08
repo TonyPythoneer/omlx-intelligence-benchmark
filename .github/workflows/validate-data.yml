@@ -3,7 +3,7 @@ name: Validate Data
 on:
   pull_request:
     paths:
-      - 'app/data/**'
+      - 'public/data/**'
       - 'src/lib/**'
       - 'package.json'
       - 'vite.config.ts'
@@ -34,4 +34,4 @@ jobs:
 
       - name: Check data files are valid JSON
         run: |
-          find app/data -name '*.json' -exec sh -c 'echo "Validating {}..." && node -e "JSON.parse(require(\"fs\").readFileSync(\"{}\", \"utf8\"))"' \;
+          find public/data -name '*.json' -exec sh -c 'echo "Validating {}..." && node -e "JSON.parse(require(\"fs\").readFileSync(\"{}\", \"utf8\"))"' \;
