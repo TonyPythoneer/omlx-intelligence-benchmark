@@ -53,11 +53,11 @@ docs/
 outputs/                    — webwright workspaces; machine-generated, machine-verified with context/scenario from human
   ui-validation/            — Playwright UI validation workspace
     plan.md                 — critical points checklist
-    final_script.py         — validated Playwright script (9 CPs, runs against localhost:8080)
+    final_script.py         — Playwright UI-validation (6 CPs) for the Vue/shadcn/reka-ui app; CI builds + static-serves dist/ on :8080, then runs it
     final_runs/             — execution artifacts: screenshots + logs (gitignored)
 
 .github/workflows/          — CI/CD
-  ci-ui-validation.yml      — runs final_script.py on src/ + public/data changes
+  ci-ui-validation.yml      — builds the SPA, static-serves dist/ on :8080, runs final_script.py (on src/ + public/data + index.html + vite.config changes)
   validate-data.yml         — validates data JSON on public/data + src/lib changes
   cd-static.yml             — builds the SPA (vp build) and deploys dist/ to Pages
   auto-data-import.yml      — automates benchmark data import
@@ -100,8 +100,8 @@ Data is fetched at runtime: `useSettings` fetches `/settings.json`, `useBenchmar
   - Default sort by `date DESC`; Model column non-sortable; other columns clickable.
   - Per-row 📋 (copy model name) and 🤗 (open `huggingface.co/models?search=<model>`).
   - **Import Modal** (`+ Import`): paste benchmark stdout → `src/lib/import.mjs` parser → list of NEW/OVERWRITE entries → `Apply` merges into in-memory state (does not write to disk).
-  - **Labeling Mode** (`✏ Label`): inline editors for spec (params/quant/size), abilities (thinking/mtp), deprecated, and tiers (opus/sonnet/haiku). Validation errors disable Export Data.
-  - **Export Data**: appears whenever data is dirty (after Apply or labeling edits) or labeling mode is on. Opens a modal with the full JSON; user copies to clipboard or saves to file via `showSaveFilePicker()` (Safari falls back to download).
+  - **Labeling Mode** (`✏ Label`): column-aligned inline editors that swap the Score columns for `Deprecated` + `Tiers(Opus/Sonnet/Haiku)`, editing spec (params/quant/size), deprecated, and tiers. Editors pre-populate from existing values. **There is no Abilities (thinking/mtp) editor** — it was removed; Abilities is never a field the user fills. Validation errors disable Export Data.
+  - **Export Data**: appears whenever data is dirty (after Apply or labeling edits) or labeling mode is on. Opens a modal with the full JSON (with `abilities` stripped from every entry); user copies to clipboard or saves to file via `showSaveFilePicker()` (Safari falls back to download).
   - **Params slider breakpoints:** edit `parametersBreakpoints` in `public/settings.json` directly; no UI for this (rarely changes).
   - **Hostname guard:** `+ Import` button is hidden when not on `localhost` / `127.0.0.1`.
 
@@ -137,6 +137,10 @@ Safari users can use Import but Save will trigger a download instead of overwrit
 - New devices: copy `public/data/device.json.template`, rename to `<device-key>.json`, add entry to `public/settings.json`.
 - `deprecated: true` entries are filtered by default in the viewer but preserved on save.
 - Import on a duplicate model **only overwrites `scores`**; spec / abilities / tiers / deprecated are preserved.
-- Labeling Mode is the only place to edit spec / abilities / tiers / deprecated post-import.
+- Labeling Mode is the only place to edit spec / tiers / deprecated post-import (Abilities is not editable; `abilities` is stripped on export).
 - File writes require the File System Access API; only the user's Save As confirmation actually writes to disk.
 - Dev server via `vp dev` (`make serve`), tests via `vp test` (`make test`). The site ships as a static build: `vp build` outputs `dist/` (root), which `cd-static.yml` deploys to GitHub Pages. There is no runtime server — all data lives in `public/` and is fetched client-side.
+
+## Toolchain & validation
+
+The project's foundation is aligned to the canonical **`vp project example`**: `vite.config.ts` uses `defineConfig` from `vite-plus` (with `staged`/`fmt`/`lint` — oxlint typeAware + `prefer-vite-plus-imports`), `tsconfig.json` uses the strict vp options (es2023, `vite-plus/client` types, `verbatimModuleSyntax`, `noUnusedLocals`/`Parameters`, `erasableSyntaxOnly`), and a `.vite-hooks/` pre-commit hook auto-runs `vp check --fix`. Before committing, `vp check` (format + lint + typecheck) and `vp test` must be green. UI components follow the reka-ui + `cva`/`cn()` conventions above.
