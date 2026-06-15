@@ -25,20 +25,30 @@ export function parseImportInput(text) {
       .replace(/^Model:/, "")
       .trim();
     const scores = {};
+    const scores_no_thinking = {};
     scoreRe.lastIndex = 0;
 
     let m;
     while ((m = scoreRe.exec(block)) !== null) {
-      const [, bench, accuracy, samples, time_s] = m;
-      scores[bench] = {
+      const [, bench, accuracy, samples, time_s, think] = m;
+      const leaf = {
         accuracy: parseFloat(accuracy),
         samples: parseInt(samples, 10),
         time_s: parseFloat(time_s),
       };
+      if (think.toLowerCase() === "no") {
+        scores_no_thinking[bench] = leaf;
+      } else {
+        scores[bench] = leaf;
+      }
     }
 
-    if (Object.keys(scores).length > 0) {
-      results.push({ model: modelName, scores });
+    if (Object.keys(scores).length > 0 || Object.keys(scores_no_thinking).length > 0) {
+      const entry = { model: modelName, scores };
+      if (Object.keys(scores_no_thinking).length > 0) {
+        entry.scores_no_thinking = scores_no_thinking;
+      }
+      results.push(entry);
     }
   }
 
@@ -61,19 +71,30 @@ export function mergeImport(currentData, detected, today) {
 
   for (const d of detected) {
     if (byModel.has(d.model)) {
-      // OVERWRITE: only update scores
+      // OVERWRITE: only update the score fields present in this run
       const idx = byModel.get(d.model);
-      nextData[idx] = { ...nextData[idx], scores: d.scores };
+      const updates = {};
+      if (d.scores && Object.keys(d.scores).length > 0) {
+        updates.scores = d.scores;
+      }
+      if (d.scores_no_thinking && Object.keys(d.scores_no_thinking).length > 0) {
+        updates.scores_no_thinking = d.scores_no_thinking;
+      }
+      nextData[idx] = { ...nextData[idx], ...updates };
     } else {
       // NEW: push with template defaults
-      nextData.push({
+      const entry = {
         model: d.model,
         date: today,
         spec: { parameters_b: null, quantization: "", size_gb: null },
         deprecated: false,
         starred: false,
         scores: d.scores,
-      });
+      };
+      if (d.scores_no_thinking && Object.keys(d.scores_no_thinking).length > 0) {
+        entry.scores_no_thinking = d.scores_no_thinking;
+      }
+      nextData.push(entry);
     }
   }
 
