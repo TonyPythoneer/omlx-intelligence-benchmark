@@ -6,6 +6,7 @@ import { parseImportInput } from "../lib/import.mjs";
 interface ParsedResult {
   model: string;
   scores: Scores;
+  scores_no_thinking?: Scores;
   status: "NEW" | "OVERWRITE";
   spec: {
     parameters_b: number | null;
@@ -49,7 +50,11 @@ export function useImport(currentEntries: Ref<Entry[]>) {
     return new Date().toISOString().split("T")[0];
   }
 
-  function getRawParsedResults(): Array<{ model: string; scores: Scores }> {
+  function getRawParsedResults(): Array<{
+    model: string;
+    scores: Scores;
+    scores_no_thinking?: Scores;
+  }> {
     if (!importText.value.trim()) return [];
     try {
       return parseImportInput(importText.value);
@@ -91,6 +96,7 @@ export function useImport(currentEntries: Ref<Entry[]>) {
       return {
         model: result.model,
         scores: result.scores,
+        scores_no_thinking: result.scores_no_thinking,
         status,
         spec: {
           parameters_b: null,
@@ -115,9 +121,16 @@ export function useImport(currentEntries: Ref<Entry[]>) {
     for (const parsed of parsedEntries.value) {
       const existingIdx = existingMap.get(parsed.model);
       if (existingIdx !== undefined) {
-        merged[existingIdx] = { ...merged[existingIdx], scores: parsed.scores };
+        const updates: Partial<Entry> = {};
+        if (parsed.scores && Object.keys(parsed.scores).length > 0) {
+          updates.scores = parsed.scores;
+        }
+        if (parsed.scores_no_thinking && Object.keys(parsed.scores_no_thinking).length > 0) {
+          updates.scores_no_thinking = parsed.scores_no_thinking;
+        }
+        merged[existingIdx] = { ...merged[existingIdx], ...updates };
       } else {
-        merged.push({
+        const entry: Entry = {
           model: parsed.model,
           date: today,
           spec: parsed.spec,
@@ -125,7 +138,11 @@ export function useImport(currentEntries: Ref<Entry[]>) {
           tiers: { opus: false, sonnet: false, haiku: false },
           deprecated: false,
           scores: parsed.scores,
-        });
+        };
+        if (parsed.scores_no_thinking && Object.keys(parsed.scores_no_thinking).length > 0) {
+          entry.scores_no_thinking = parsed.scores_no_thinking;
+        }
+        merged.push(entry);
       }
     }
 

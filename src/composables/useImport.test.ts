@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vite-plus/test";
 import { ref } from "vue";
 import { useImport } from "./useImport";
-import type { Entry } from "../types/benchmark";
+import type { Entry, Scores } from "../types/benchmark";
 
 const makeBenchmarkText = (model: string) => `Model: ${model}
 Benchmark         Accuracy   Correct   Total   Time(s)   Think
@@ -21,6 +21,27 @@ const makeEntry = (model: string, overrides: Partial<Entry> = {}): Entry => ({
 
 describe("useImport", () => {
   describe("merge NEW entries", () => {
+    it("includes scores_no_thinking when import has Think=No rows", () => {
+      const currentEntries = ref<Entry[]>([]);
+      const { importText, applyImport } = useImport(currentEntries);
+
+      importText.value = `Model: TestModel-7B
+Benchmark         Accuracy   Correct   Total   Time(s)   Think
+MMLU                 80.0%        24      30     492.9     Yes
+TRUTHFULQA           70.0%        21      30     138.8     No`;
+      applyImport(currentEntries);
+
+      expect(currentEntries.value).toHaveLength(1);
+      const entry = currentEntries.value[0];
+      expect(entry.scores.MMLU).toEqual({ accuracy: 80.0, samples: 30, time_s: 492.9 });
+      expect(entry.scores.TRUTHFULQA).toBeUndefined();
+      expect(entry.scores_no_thinking?.TRUTHFULQA).toEqual({
+        accuracy: 70.0,
+        samples: 30,
+        time_s: 138.8,
+      });
+    });
+
     it("creates Entry with null spec (filled by labeling later)", () => {
       const currentEntries = ref<Entry[]>([]);
       const { importText, applyImport } = useImport(currentEntries);
@@ -44,6 +65,25 @@ describe("useImport", () => {
   });
 
   describe("merge OVERWRITE entries", () => {
+    it("updates scores_no_thinking independently on OVERWRITE", () => {
+      const existing = makeEntry("existing-model", {
+        scores: { MMLU: { accuracy: 80, samples: 30, time_s: 500 } },
+        scores_no_thinking: { MMLU: { accuracy: 70, samples: 30, time_s: 200 } } as Scores,
+      });
+      const currentEntries = ref<Entry[]>([existing]);
+      const { importText, applyImport } = useImport(currentEntries);
+
+      importText.value = `Model: existing-model
+Benchmark         Accuracy   Correct   Total   Time(s)   Think
+MMLU                 75.0%        22      30     180.0     No`;
+      applyImport(currentEntries);
+
+      expect(currentEntries.value).toHaveLength(1);
+      const entry = currentEntries.value[0];
+      expect(entry.scores.MMLU.accuracy).toBe(80); // thinking preserved
+      expect(entry.scores_no_thinking?.MMLU.accuracy).toBe(75); // no-thinking updated
+    });
+
     it("preserves spec/tiers/abilities/deprecated on score-only update", () => {
       const existing = makeEntry("existing-model", {
         spec: { parameters_b: 35, quantization: "4bit", size_gb: 18 },
