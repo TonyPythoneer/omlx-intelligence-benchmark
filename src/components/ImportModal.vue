@@ -24,16 +24,9 @@
             }}</UiBadge>
             <span class="font-mono text-xs text-foreground flex-1 truncate">{{ entry.model }}</span>
           </div>
-          <div
-            v-if="entry.status === 'NEW'"
-            class="mt-1 ml-0.5 text-xs text-muted-foreground flex gap-1 items-center"
-          >
-            <span>{{ entry.spec.parameters_b != null ? `${entry.spec.parameters_b}B` : "—" }}</span>
-            <span class="opacity-40">·</span>
-            <span>{{ entry.spec.quantization || "—" }}</span>
-            <span class="opacity-40">·</span>
+          <div v-if="entry.status === 'NEW'" class="mt-1 ml-0.5 text-xs text-muted-foreground">
             <span v-if="entry.sizeFetching" class="italic opacity-60">fetching size…</span>
-            <span v-else>{{ entry.spec.size_gb != null ? `${entry.spec.size_gb} GB` : "—" }}</span>
+            <span v-else-if="entry.spec.size_gb != null">{{ entry.spec.size_gb }} GB</span>
           </div>
         </div>
       </div>

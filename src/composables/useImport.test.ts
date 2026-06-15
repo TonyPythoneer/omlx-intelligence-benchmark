@@ -21,7 +21,7 @@ const makeEntry = (model: string, overrides: Partial<Entry> = {}): Entry => ({
 
 describe("useImport", () => {
   describe("merge NEW entries", () => {
-    it("creates Entry with auto-detected spec from model name", () => {
+    it("creates Entry with null spec (filled by labeling later)", () => {
       const currentEntries = ref<Entry[]>([]);
       const { importText, applyImport } = useImport(currentEntries);
 
@@ -31,29 +31,15 @@ describe("useImport", () => {
       expect(currentEntries.value).toHaveLength(1);
       const entry = currentEntries.value[0];
       expect(entry.model).toBe("TestModel-20B-MLX-8bit");
-      expect(entry.spec.parameters_b).toBe(20);
-      expect(entry.spec.quantization).toBe("8bit");
-      expect(entry.spec.size_gb).toBeNull();
+      expect(entry.spec.parameters_b).toBeNull();
+      expect(entry.spec.quantization).toBe("");
+      expect(entry.spec.size_gb).toBeNull(); // no HF fetch in unit tests
       expect(entry.abilities?.thinking).toBe(false);
       expect(entry.abilities?.mtp).toBe(false);
       expect(entry.tiers.opus).toBe(false);
-      expect(entry.tiers.sonnet).toBe(false);
-      expect(entry.tiers.haiku).toBe(false);
       expect(entry.deprecated).toBe(false);
       expect(entry.scores.MMLU).toEqual({ accuracy: 80.0, samples: 30, time_s: 492.9 });
       expect(entry.scores.TRUTHFULQA).toEqual({ accuracy: 75.0, samples: 20, time_s: 138.8 });
-    });
-
-    it("parses Q-style quantization from model name", () => {
-      const currentEntries = ref<Entry[]>([]);
-      const { importText, applyImport } = useImport(currentEntries);
-
-      importText.value = makeBenchmarkText("Qwen3-35B-MLX-oQ4-MTP");
-      applyImport(currentEntries);
-
-      const entry = currentEntries.value[0];
-      expect(entry.spec.parameters_b).toBe(35);
-      expect(entry.spec.quantization).toBe("Q4");
     });
   });
 
@@ -101,16 +87,15 @@ MMLU                 60.0%        18      30     150.0     Yes`;
 
       expect(currentEntries.value).toHaveLength(2);
 
-      const modelA = currentEntries.value.find((e) => e.model === "model-a");
-      expect(modelA!.date).toBe("2026-05-25");
-      expect(modelA!.spec.parameters_b).toBe(7);
-      expect(modelA!.scores.MMLU.accuracy).toBe(50.0);
+      const modelA = currentEntries.value.find((e) => e.model === "model-a")!;
+      expect(modelA.date).toBe("2026-05-25"); // preserved
+      expect(modelA.spec.parameters_b).toBe(7); // preserved
+      expect(modelA.scores.MMLU.accuracy).toBe(50.0); // updated
 
-      const modelB = currentEntries.value.find((e) => e.model === "NewModel-13B-MLX-4bit");
-      expect(modelB!.spec.parameters_b).toBe(13);
-      expect(modelB!.spec.quantization).toBe("4bit");
-      expect(modelB!.deprecated).toBe(false);
-      expect(modelB!.scores.MMLU.accuracy).toBe(60.0);
+      const modelB = currentEntries.value.find((e) => e.model === "NewModel-13B-MLX-4bit")!;
+      expect(modelB.spec.parameters_b).toBeNull(); // no auto-detect
+      expect(modelB.deprecated).toBe(false);
+      expect(modelB.scores.MMLU.accuracy).toBe(60.0);
     });
   });
 

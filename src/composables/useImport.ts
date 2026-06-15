@@ -15,32 +15,16 @@ interface ParsedResult {
   sizeFetching: boolean;
 }
 
-function parseParamsB(name: string): number | null {
-  const m = name.match(/(?:^|[-_])(\d+(?:\.\d+)?)B(?:[-_]|$)/i);
-  return m ? parseFloat(m[1]) : null;
-}
-
-function parseQuantization(name: string): string {
-  // 4bit, 8bit, 2bit
-  let m = name.match(/(?:^|[-_])(\d+bit)(?:[-_]|$)/i);
-  if (m) return m[1].toLowerCase();
-  // oQ4, Q4, Q8 — strip optional leading 'o'
-  m = name.match(/(?:^|[-_])o?[Qq](\d+)(?:[-_]|$)/);
-  if (m) return `Q${m[1]}`;
-  // qx86, qx128
-  m = name.match(/(?:^|[-_])(qx\d+)(?:[-_]|$)/i);
-  if (m) return m[1].toLowerCase();
-  return "";
-}
-
 async function fetchModelSize(modelName: string): Promise<number | null> {
   try {
+    // Filter to MLX library repos only — these are the only ones that show a meaningful single size
     const searchRes = await fetch(
-      `https://huggingface.co/api/models?search=${encodeURIComponent(modelName)}&limit=5`,
+      `https://huggingface.co/api/models?search=${encodeURIComponent(modelName)}&library=mlx&limit=5`,
     );
     if (!searchRes.ok) return null;
     const models: Array<{ id: string }> = await searchRes.json();
     if (!models.length) return null;
+    // Prefer exact repo name match, otherwise take first MLX result
     const match = models.find((m) => m.id.split("/").pop() === modelName) ?? models[0];
     const detailRes = await fetch(`https://huggingface.co/api/models/${match.id}?blobs=true`);
     if (!detailRes.ok) return null;
@@ -107,8 +91,8 @@ export function useImport(currentEntries: Ref<Entry[]>) {
         scores: result.scores,
         status,
         spec: {
-          parameters_b: parseParamsB(result.model),
-          quantization: parseQuantization(result.model),
+          parameters_b: null,
+          quantization: "",
           size_gb: modelSizes.value[result.model] ?? null,
         },
         sizeFetching: sizeFetching.value[result.model] ?? false,
