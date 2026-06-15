@@ -13,7 +13,7 @@
             </th>
             <th
               v-if="!isLabelingMode"
-              :colspan="visibleBenchmarksInOrder.length * 2"
+              :colspan="visibleBenchmarksInOrder.length * 2 + 1"
               class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30"
             >
               Score
@@ -38,11 +38,16 @@
             <th class="px-4 py-2 border-l-2 border-primary/30"></th>
             <template v-if="!isLabelingMode">
               <th
+                class="px-2 py-2 text-center text-sm border-l-2 border-primary/30"
+                title="上排 thinking／下排 no thinking"
+              >
+                💡
+              </th>
+              <th
                 v-for="(benchmark, bi) in visibleBenchmarksInOrder"
                 :key="benchmark"
                 colspan="2"
-                class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2"
-                :class="bi === 0 ? 'border-primary/30' : 'border-primary/20'"
+                class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2 border-primary/20"
               >
                 {{ benchmark }}
               </th>
@@ -75,15 +80,23 @@
               <span v-if="sortCol === col.key" class="ml-0.5">{{ sortDir === 1 ? "↑" : "↓" }}</span>
             </th>
             <template v-if="!isLabelingMode">
+              <th
+                class="px-2 py-2.5 text-center text-sm text-muted-foreground cursor-default border-l-2 border-primary/30"
+                title="上排 thinking／下排 no thinking"
+              >
+                <div class="flex flex-col items-center leading-none gap-0.5">
+                  <span>💡</span>
+                  <span class="opacity-30">💡</span>
+                </div>
+              </th>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
                 <th
-                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2"
-                  :class="[
-                    bi === 0 ? 'border-primary/30' : 'border-primary/20',
+                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2 border-primary/20"
+                  :class="
                     sortCol === `scores.${benchmark}.accuracy`
                       ? 'text-primary bg-primary/5'
-                      : 'text-muted-foreground',
-                  ]"
+                      : 'text-muted-foreground'
+                  "
                   @click="onSort(`scores.${benchmark}.accuracy`)"
                 >
                   🎯<span v-if="sortCol === `scores.${benchmark}.accuracy`" class="ml-0.5">{{
@@ -132,7 +145,7 @@
         <tbody class="divide-y divide-border">
           <tr v-if="entries.length === 0">
             <td
-              :colspan="isLabelingMode ? 6 : 2 + visibleBenchmarksInOrder.length * 2"
+              :colspan="isLabelingMode ? 6 : 3 + visibleBenchmarksInOrder.length * 2"
               class="px-4 py-8 text-center text-muted-foreground text-sm"
             >
               No entries loaded
@@ -192,21 +205,38 @@
                   </button>
                 </div>
               </td>
+              <td class="px-2 py-3 text-center border-l-2 border-primary/30">
+                <div class="flex flex-col items-center leading-none gap-1">
+                  <span class="text-sm">💡</span>
+                  <span class="text-sm opacity-30">💡</span>
+                </div>
+              </td>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
-                <td
-                  class="px-3 py-3 text-center border-l-2"
-                  :class="bi === 0 ? 'border-primary/30' : 'border-primary/20'"
-                >
-                  <span
-                    v-if="entry.scores[benchmark]?.accuracy"
-                    :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
-                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-                    >{{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%</span
-                  >
-                  <span v-else class="text-muted-foreground/50 text-xs">–</span>
+                <td class="px-3 py-3 text-center border-l-2 border-primary/20">
+                  <div class="flex flex-col gap-1">
+                    <span
+                      v-if="entry.scores[benchmark]?.accuracy != null"
+                      :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                      >{{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%</span
+                    >
+                    <span v-else class="text-muted-foreground/50 text-xs">–</span>
+                    <span
+                      v-if="entry.scores_no_thinking?.[benchmark]?.accuracy != null"
+                      :class="scoreBadgeClass(entry.scores_no_thinking[benchmark].accuracy)"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold opacity-50"
+                      >{{ formattedAccuracy(entry.scores_no_thinking[benchmark].accuracy) }}%</span
+                    >
+                    <span v-else class="text-muted-foreground/30 text-xs">–</span>
+                  </div>
                 </td>
                 <td class="px-3 py-3 text-center text-xs text-muted-foreground">
-                  {{ formatTime(entry.scores[benchmark]?.time_s) }}
+                  <div class="flex flex-col gap-1">
+                    <span>{{ formatTime(entry.scores[benchmark]?.time_s) }}</span>
+                    <span class="opacity-50">{{
+                      formatTime(entry.scores_no_thinking?.[benchmark]?.time_s)
+                    }}</span>
+                  </div>
                 </td>
               </template>
             </tr>
