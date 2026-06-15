@@ -170,7 +170,7 @@
                   <button
                     v-if="!isLabelingMode && entry.spec.size_gb == null"
                     :disabled="fetchingModels?.includes(entry.model)"
-                    class="inline-flex items-center justify-center w-5 h-5 rounded-full text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-colors disabled:cursor-wait"
+                    class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-sky-50 border border-sky-200 text-sky-500 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-colors disabled:cursor-wait disabled:opacity-50"
                     title="Try to fetch size from HuggingFace"
                     @click.stop="emit('fetchSize', entry.model)"
                   >
