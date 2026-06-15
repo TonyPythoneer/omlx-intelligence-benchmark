@@ -43,7 +43,7 @@
               >
                 <div class="flex justify-center">
                   <span
-                    class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-sm"
+                    class="w-6 h-6 rounded-full bg-orange-400 flex items-center justify-center text-sm"
                     >💡</span
                   >
                 </div>
@@ -91,11 +91,11 @@
               >
                 <div class="flex flex-col items-center gap-0.5">
                   <span
-                    class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-sm"
+                    class="w-6 h-6 rounded-full bg-orange-400 flex items-center justify-center text-sm"
                     >💡</span
                   >
                   <span
-                    class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm opacity-60"
+                    class="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-sm"
                     >💡</span
                   >
                 </div>
@@ -219,11 +219,11 @@
               <td class="px-2 py-3 text-center border-l-2 border-primary/30">
                 <div class="flex flex-col items-center gap-1">
                   <span
-                    class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-sm"
+                    class="w-6 h-6 rounded-full bg-orange-400 flex items-center justify-center text-sm"
                     >💡</span
                   >
                   <span
-                    class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm opacity-60"
+                    class="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-sm"
                     >💡</span
                   >
                 </div>
