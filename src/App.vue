@@ -74,6 +74,7 @@
           :labelEdits="labelEdits"
           :validationErrors="validationErrors"
           :fetchingModels="fetchingModels"
+          :canFetchSize="isLocalhost"
           @update:labelEdit="(modelName, field, value) => updateLabelEdit(modelName, field, value)"
           @fetchSize="tryFetchSize"
         />

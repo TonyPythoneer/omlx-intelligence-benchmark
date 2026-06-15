@@ -58,22 +58,24 @@ export function useImport(currentEntries: Ref<Entry[]>) {
     }
   }
 
-  watch(importText, async (text) => {
+  watch(importText, (text) => {
     if (!text.trim()) {
       modelSizes.value = {};
       sizeFetching.value = {};
       return;
     }
-    const raw = getRawParsedResults();
-    const existingModels = new Set(currentEntries.value.map((e) => e.model));
-
-    for (const result of raw) {
-      if (!existingModels.has(result.model) && !(result.model in modelSizes.value)) {
-        sizeFetching.value = { ...sizeFetching.value, [result.model]: true };
-        void fetchModelSize(result.model).then((size) => {
-          modelSizes.value = { ...modelSizes.value, [result.model]: size };
+    // Use already-computed parsedEntries to avoid re-parsing and to get NEW/OVERWRITE status
+    for (const entry of parsedEntries.value) {
+      if (
+        entry.status === "NEW" &&
+        !(entry.model in modelSizes.value) &&
+        !(entry.model in sizeFetching.value)
+      ) {
+        sizeFetching.value = { ...sizeFetching.value, [entry.model]: true };
+        void fetchModelSize(entry.model).then((size) => {
+          modelSizes.value = { ...modelSizes.value, [entry.model]: size };
           const next = { ...sizeFetching.value };
-          delete next[result.model];
+          delete next[entry.model];
           sizeFetching.value = next;
         });
       }
