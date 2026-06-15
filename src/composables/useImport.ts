@@ -15,7 +15,7 @@ interface ParsedResult {
   sizeFetching: boolean;
 }
 
-async function fetchModelSize(modelName: string): Promise<number | null> {
+export async function fetchModelSize(modelName: string): Promise<number | null> {
   try {
     // Filter to MLX library repos only — these are the only ones that show a meaningful single size
     const searchRes = await fetch(

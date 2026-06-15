@@ -165,7 +165,32 @@
               <td
                 class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap border-l-2 border-primary/30"
               >
-                {{ formatSize(entry.spec.size_gb) }}
+                <div class="flex items-center gap-1.5">
+                  <span>{{ formatSize(entry.spec.size_gb) }}</span>
+                  <button
+                    v-if="!isLabelingMode && entry.spec.size_gb == null"
+                    :disabled="fetchingModels?.includes(entry.model)"
+                    class="inline-flex items-center justify-center w-5 h-5 rounded-full text-muted-foreground/40 hover:text-primary hover:bg-primary/10 transition-colors disabled:cursor-wait"
+                    title="Try to fetch size from HuggingFace"
+                    @click.stop="emit('fetchSize', entry.model)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      :class="fetchingModels?.includes(entry.model) ? 'animate-spin' : ''"
+                    >
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <path d="M21 3v5h-5" />
+                    </svg>
+                  </button>
+                </div>
               </td>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
                 <td
@@ -318,10 +343,12 @@ const props = defineProps<{
   isLabelingMode?: boolean;
   labelEdits?: Record<string, any>;
   validationErrors?: Record<string, Record<string, string[]>>;
+  fetchingModels?: string[];
 }>();
 
 const emit = defineEmits<{
   "update:labelEdit": [modelName: string, field: string, value: any];
+  fetchSize: [model: string];
 }>();
 
 const ALL_BENCHMARKS = ["MMLU", "TRUTHFULQA", "HUMANEVAL", "MBPP", "LIVECODEBENCH"];

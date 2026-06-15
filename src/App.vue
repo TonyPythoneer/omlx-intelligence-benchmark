@@ -73,7 +73,9 @@
           :isLabelingMode="isLabelingMode"
           :labelEdits="labelEdits"
           :validationErrors="validationErrors"
+          :fetchingModels="fetchingModels"
           @update:labelEdit="(modelName, field, value) => updateLabelEdit(modelName, field, value)"
+          @fetchSize="tryFetchSize"
         />
 
         <ImportModal
@@ -117,7 +119,7 @@ import UiButton from "./components/ui/button.vue";
 import { useSettings } from "./composables/useSettings";
 import { useBenchmarkData } from "./composables/useBenchmarkData";
 import { useFilters } from "./composables/useFilters";
-import { useImport } from "./composables/useImport";
+import { useImport, fetchModelSize } from "./composables/useImport";
 import { useLabeling } from "./composables/useLabeling";
 
 const {
@@ -187,6 +189,27 @@ const {
 function applyImport() {
   performApplyImport(mutableEntries);
   setDirty();
+}
+
+const fetchingModels = ref<string[]>([]);
+
+async function tryFetchSize(model: string) {
+  if (fetchingModels.value.includes(model)) return;
+  fetchingModels.value = [...fetchingModels.value, model];
+  try {
+    const size = await fetchModelSize(model);
+    if (size !== null) {
+      const idx = mutableEntries.value.findIndex((e) => e.model === model);
+      if (idx !== -1) {
+        const updated = [...mutableEntries.value];
+        updated[idx] = { ...updated[idx], spec: { ...updated[idx].spec, size_gb: size } };
+        mutableEntries.value = updated;
+        setDirty();
+      }
+    }
+  } finally {
+    fetchingModels.value = fetchingModels.value.filter((m) => m !== model);
+  }
 }
 
 watch(defaultDevice, (device) => {
