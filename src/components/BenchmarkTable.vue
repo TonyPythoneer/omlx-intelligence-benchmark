@@ -231,28 +231,36 @@
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
                 <td class="px-3 py-3 text-center border-l-2 border-primary/20">
                   <div class="flex flex-col gap-1 items-center">
-                    <span
-                      v-if="entry.scores[benchmark]?.accuracy != null"
-                      :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-                      >{{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%</span
-                    >
-                    <span v-else class="text-muted-foreground/50 text-xs">–</span>
-                    <span
-                      v-if="entry.scores_no_thinking?.[benchmark]?.accuracy != null"
-                      :class="scoreBadgeClass(entry.scores_no_thinking[benchmark].accuracy)"
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-                      >{{ formattedAccuracy(entry.scores_no_thinking[benchmark].accuracy) }}%</span
-                    >
-                    <span v-else class="text-muted-foreground/30 text-xs">–</span>
+                    <div class="h-6 flex items-center justify-center">
+                      <span
+                        v-if="entry.scores[benchmark]?.accuracy != null"
+                        :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                        >{{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%</span
+                      >
+                      <span v-else class="text-muted-foreground/50 text-xs">–</span>
+                    </div>
+                    <div class="h-6 flex items-center justify-center">
+                      <span
+                        v-if="entry.scores_no_thinking?.[benchmark]?.accuracy != null"
+                        :class="scoreBadgeClass(entry.scores_no_thinking[benchmark].accuracy)"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                        >{{
+                          formattedAccuracy(entry.scores_no_thinking[benchmark].accuracy)
+                        }}%</span
+                      >
+                      <span v-else class="text-muted-foreground/30 text-xs">–</span>
+                    </div>
                   </div>
                 </td>
                 <td class="px-3 py-3 text-center text-xs text-muted-foreground">
                   <div class="flex flex-col gap-1">
-                    <span>{{ formatTime(entry.scores[benchmark]?.time_s) }}</span>
-                    <span class="opacity-50">{{
-                      formatTime(entry.scores_no_thinking?.[benchmark]?.time_s)
-                    }}</span>
+                    <div class="h-6 flex items-center justify-center">
+                      {{ formatTime(entry.scores[benchmark]?.time_s) }}
+                    </div>
+                    <div class="h-6 flex items-center justify-center opacity-50">
+                      {{ formatTime(entry.scores_no_thinking?.[benchmark]?.time_s) }}
+                    </div>
                   </div>
                 </td>
               </template>
