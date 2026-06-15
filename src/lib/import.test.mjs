@@ -32,7 +32,7 @@ MMLU                 55.8%        17      30     150.0     Yes`;
 
     expect(result).toHaveLength(2);
     expect(result[0].model).toBe("Llama-2-7B");
-    expect(result[0].scores.MMLU.accuracy).toBe(46.2);
+    expect(result[0].scores_no_thinking.MMLU.accuracy).toBe(46.2);
     expect(result[1].model).toBe("Llama-2-13B");
     expect(result[1].scores.MMLU.accuracy).toBe(55.8);
   });
@@ -58,6 +58,33 @@ without any models`;
   it("handles empty input", () => {
     const result = parseImportInput("");
     expect(result).toEqual([]);
+  });
+
+  it("routes Think=No rows to scores_no_thinking", () => {
+    const input = `Model: ModelA
+Benchmark         Accuracy   Correct   Total   Time(s)   Think
+MMLU                 80.0%        24      30     492.9     Yes
+TRUTHFULQA           75.0%        15      30     138.8     No`;
+    const result = parseImportInput(input);
+
+    expect(result).toHaveLength(1);
+    expect(result[0].scores.MMLU).toEqual({ accuracy: 80.0, samples: 30, time_s: 492.9 });
+    expect(result[0].scores.TRUTHFULQA).toBeUndefined();
+    expect(result[0].scores_no_thinking.TRUTHFULQA).toEqual({
+      accuracy: 75.0,
+      samples: 30,
+      time_s: 138.8,
+    });
+    expect(result[0].scores_no_thinking.MMLU).toBeUndefined();
+  });
+
+  it("sets scores_no_thinking only when Think=No rows exist", () => {
+    const input = `Model: ThinkingOnly
+MMLU                 83.3%        25      30     849.6     Yes`;
+    const result = parseImportInput(input);
+
+    expect(result[0].scores.MMLU.accuracy).toBe(83.3);
+    expect(result[0].scores_no_thinking).toBeUndefined();
   });
 });
 
@@ -161,5 +188,48 @@ describe("mergeImport", () => {
     expect(result[0].scores.MMLU.accuracy).toBe(50);
     expect(result[1].model).toBe("New");
     expect(result[1].date).toBe("2026-05-28");
+  });
+
+  it("OVERWRITE: replaces scores_no_thinking independently of scores", () => {
+    const current = [
+      {
+        model: "ExistingModel",
+        date: "2026-05-25",
+        spec: { parameters_b: 35, quantization: "4bit", size_gb: 18 },
+        deprecated: false,
+        starred: false,
+        tiers: { opus: true, sonnet: false, haiku: false },
+        scores: { MMLU: { accuracy: 80, samples: 30, time_s: 500 } },
+        scores_no_thinking: { MMLU: { accuracy: 70, samples: 30, time_s: 200 } },
+      },
+    ];
+    const detected = [
+      {
+        model: "ExistingModel",
+        scores: {},
+        scores_no_thinking: { MMLU: { accuracy: 72, samples: 30, time_s: 180 } },
+      },
+    ];
+    const result = mergeImport(current, detected, "2026-06-16");
+
+    expect(result).toHaveLength(1);
+    expect(result[0].scores.MMLU.accuracy).toBe(80);
+    expect(result[0].scores_no_thinking.MMLU.accuracy).toBe(72);
+    expect(result[0].tiers.opus).toBe(true);
+  });
+
+  it("NEW: includes scores_no_thinking when detected entry has it", () => {
+    const detected = [
+      {
+        model: "BrandNew",
+        scores: { MMLU: { accuracy: 83, samples: 30, time_s: 850 } },
+        scores_no_thinking: { MMLU: { accuracy: 75, samples: 30, time_s: 120 } },
+      },
+    ];
+    const result = mergeImport([], detected, "2026-06-16");
+
+    expect(result).toHaveLength(1);
+    expect(result[0].scores.MMLU.accuracy).toBe(83);
+    expect(result[0].scores_no_thinking.MMLU.accuracy).toBe(75);
   });
 });
