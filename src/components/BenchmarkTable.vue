@@ -38,10 +38,15 @@
             <th class="px-4 py-2 border-l-2 border-primary/30"></th>
             <template v-if="!isLabelingMode">
               <th
-                class="px-2 py-2 text-center text-sm border-l-2 border-primary/30"
+                class="px-2 py-2 text-center border-l-2 border-primary/30"
                 title="上排 thinking／下排 no thinking"
               >
-                💡
+                <div class="flex justify-center">
+                  <span
+                    class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                </div>
               </th>
               <th
                 v-for="(benchmark, bi) in visibleBenchmarksInOrder"
@@ -84,9 +89,15 @@
                 class="px-2 py-2.5 text-center text-sm text-muted-foreground cursor-default border-l-2 border-primary/30"
                 title="上排 thinking／下排 no thinking"
               >
-                <div class="flex flex-col items-center leading-none gap-0.5">
-                  <span>💡</span>
-                  <span class="opacity-30">💡</span>
+                <div class="flex flex-col items-center gap-0.5">
+                  <span
+                    class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                  <span
+                    class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm opacity-60"
+                    >💡</span
+                  >
                 </div>
               </th>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
@@ -206,14 +217,20 @@
                 </div>
               </td>
               <td class="px-2 py-3 text-center border-l-2 border-primary/30">
-                <div class="flex flex-col items-center leading-none gap-1">
-                  <span class="text-sm">💡</span>
-                  <span class="text-sm opacity-30">💡</span>
+                <div class="flex flex-col items-center gap-1">
+                  <span
+                    class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                  <span
+                    class="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center text-sm opacity-60"
+                    >💡</span
+                  >
                 </div>
               </td>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
                 <td class="px-3 py-3 text-center border-l-2 border-primary/20">
-                  <div class="flex flex-col gap-1">
+                  <div class="flex flex-col gap-1 items-center">
                     <span
                       v-if="entry.scores[benchmark]?.accuracy != null"
                       :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
