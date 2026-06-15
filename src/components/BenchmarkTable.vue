@@ -7,14 +7,13 @@
           <tr class="border-b border-border">
             <th class="px-4 py-3 text-left font-semibold text-foreground">Model</th>
             <th
-              colspan="3"
               class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30"
             >
               Spec
             </th>
             <th
               v-if="!isLabelingMode"
-              :colspan="visibleBenchmarksInOrder.length * 2"
+              :colspan="visibleBenchmarksInOrder.length * 2 + 1"
               class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30"
             >
               Score
@@ -37,15 +36,23 @@
           <tr class="border-b border-border">
             <th class="px-4 py-2"></th>
             <th class="px-4 py-2 border-l-2 border-primary/30"></th>
-            <th class="px-4 py-2"></th>
-            <th class="px-4 py-2"></th>
             <template v-if="!isLabelingMode">
+              <th
+                class="px-2 py-2 text-center border-l-2 border-primary/30"
+                title="上排 thinking／下排 no thinking"
+              >
+                <div class="flex justify-center">
+                  <span
+                    class="w-6 h-6 rounded-full bg-orange-400 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                </div>
+              </th>
               <th
                 v-for="(benchmark, bi) in visibleBenchmarksInOrder"
                 :key="benchmark"
                 colspan="2"
-                class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2"
-                :class="bi === 0 ? 'border-primary/30' : 'border-primary/20'"
+                class="px-4 py-2 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2 border-primary/20"
               >
                 {{ benchmark }}
               </th>
@@ -69,7 +76,7 @@
               :key="col.key"
               class="px-4 py-2.5 text-xs font-semibold text-left cursor-pointer whitespace-nowrap select-none transition-colors hover:bg-primary/5"
               :class="[
-                col.key === 'spec.parameters_b' ? 'border-l-2 border-primary/30' : '',
+                col.key === 'spec.size_gb' ? 'border-l-2 border-primary/30' : '',
                 sortCol === col.key ? 'text-primary bg-primary/5' : 'text-muted-foreground',
               ]"
               @click="onSort(col.key)"
@@ -78,15 +85,29 @@
               <span v-if="sortCol === col.key" class="ml-0.5">{{ sortDir === 1 ? "↑" : "↓" }}</span>
             </th>
             <template v-if="!isLabelingMode">
+              <th
+                class="px-2 py-2.5 text-center text-sm text-muted-foreground cursor-default border-l-2 border-primary/30"
+                title="上排 thinking／下排 no thinking"
+              >
+                <div class="flex flex-col items-center gap-0.5">
+                  <span
+                    class="w-6 h-6 rounded-full bg-orange-400 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                  <span
+                    class="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                </div>
+              </th>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
                 <th
-                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2"
-                  :class="[
-                    bi === 0 ? 'border-primary/30' : 'border-primary/20',
+                  class="px-3 py-2.5 text-xs font-semibold cursor-pointer select-none transition-colors hover:bg-primary/5 border-l-2 border-primary/20"
+                  :class="
                     sortCol === `scores.${benchmark}.accuracy`
                       ? 'text-primary bg-primary/5'
-                      : 'text-muted-foreground',
-                  ]"
+                      : 'text-muted-foreground'
+                  "
                   @click="onSort(`scores.${benchmark}.accuracy`)"
                 >
                   🎯<span v-if="sortCol === `scores.${benchmark}.accuracy`" class="ml-0.5">{{
@@ -135,7 +156,7 @@
         <tbody class="divide-y divide-border">
           <tr v-if="entries.length === 0">
             <td
-              :colspan="isLabelingMode ? 8 : 4 + visibleBenchmarksInOrder.length * 2"
+              :colspan="isLabelingMode ? 6 : 3 + visibleBenchmarksInOrder.length * 2"
               class="px-4 py-8 text-center text-muted-foreground text-sm"
             >
               No entries loaded
@@ -168,29 +189,79 @@
               <td
                 class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap border-l-2 border-primary/30"
               >
-                {{ formatParams(entry.spec.parameters_b) }}
+                <div class="flex items-center gap-1.5">
+                  <span>{{ formatSize(entry.spec.size_gb) }}</span>
+                  <button
+                    v-if="canFetchSize && !isLabelingMode && entry.spec.size_gb == null"
+                    :disabled="fetchingModels?.includes(entry.model)"
+                    class="inline-flex items-center justify-center w-5 h-5 rounded-full bg-sky-50 border border-sky-200 text-sky-500 hover:bg-sky-100 hover:border-sky-300 hover:text-sky-700 transition-colors disabled:cursor-wait disabled:opacity-50"
+                    title="Try to fetch size from HuggingFace"
+                    @click.stop="emit('fetchSize', entry.model)"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="11"
+                      height="11"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      :class="fetchingModels?.includes(entry.model) ? 'animate-spin' : ''"
+                    >
+                      <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" />
+                      <path d="M21 3v5h-5" />
+                    </svg>
+                  </button>
+                </div>
               </td>
-              <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                {{ entry.spec.quantization || "–" }}
-              </td>
-              <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                {{ formatSize(entry.spec.size_gb) }}
+              <td class="px-2 py-3 text-center border-l-2 border-primary/30">
+                <div class="flex flex-col items-center gap-1">
+                  <span
+                    class="w-6 h-6 rounded-full bg-orange-400 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                  <span
+                    class="w-6 h-6 rounded-full bg-gray-400 flex items-center justify-center text-sm"
+                    >💡</span
+                  >
+                </div>
               </td>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
-                <td
-                  class="px-3 py-3 text-center border-l-2"
-                  :class="bi === 0 ? 'border-primary/30' : 'border-primary/20'"
-                >
-                  <span
-                    v-if="entry.scores[benchmark]?.accuracy"
-                    :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
-                    class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-                    >{{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%</span
-                  >
-                  <span v-else class="text-muted-foreground/50 text-xs">–</span>
+                <td class="px-3 py-3 text-center border-l-2 border-primary/20">
+                  <div class="flex flex-col gap-1 items-center">
+                    <div class="h-6 flex items-center justify-center">
+                      <span
+                        v-if="entry.scores[benchmark]?.accuracy != null"
+                        :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                        >{{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%</span
+                      >
+                      <span v-else class="text-muted-foreground/50 text-xs">–</span>
+                    </div>
+                    <div class="h-6 flex items-center justify-center">
+                      <span
+                        v-if="entry.scores_no_thinking?.[benchmark]?.accuracy != null"
+                        :class="scoreBadgeClass(entry.scores_no_thinking[benchmark].accuracy)"
+                        class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                        >{{
+                          formattedAccuracy(entry.scores_no_thinking[benchmark].accuracy)
+                        }}%</span
+                      >
+                      <span v-else class="text-muted-foreground/30 text-xs">–</span>
+                    </div>
+                  </div>
                 </td>
                 <td class="px-3 py-3 text-center text-xs text-muted-foreground">
-                  {{ formatTime(entry.scores[benchmark]?.time_s) }}
+                  <div class="flex flex-col gap-1">
+                    <div class="h-6 flex items-center justify-center">
+                      {{ formatTime(entry.scores[benchmark]?.time_s) }}
+                    </div>
+                    <div class="h-6 flex items-center justify-center opacity-50">
+                      {{ formatTime(entry.scores_no_thinking?.[benchmark]?.time_s) }}
+                    </div>
+                  </div>
                 </td>
               </template>
             </tr>
@@ -218,51 +289,8 @@
                   }}</span>
                 </div>
               </td>
-              <!-- Params -->
-              <td class="px-3 py-2 whitespace-nowrap border-l-2 border-primary/20">
-                <input
-                  type="number"
-                  :value="labelEdits?.[entry.model]?.parameters_b ?? ''"
-                  @input="
-                    emit(
-                      'update:labelEdit',
-                      entry.model,
-                      'parameters_b',
-                      ($event.target as HTMLInputElement).value,
-                    )
-                  "
-                  class="h-7 w-20 rounded border px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                  :class="
-                    validationErrors?.[entry.model]?.parameters_b
-                      ? 'border-destructive bg-destructive/5'
-                      : 'border-input bg-background'
-                  "
-                />
-                <p
-                  v-if="validationErrors?.[entry.model]?.parameters_b"
-                  class="text-xs text-destructive mt-0.5"
-                >
-                  {{ validationErrors[entry.model].parameters_b.join(", ") }}
-                </p>
-              </td>
-              <!-- Quant -->
-              <td class="px-3 py-2 whitespace-nowrap">
-                <input
-                  type="text"
-                  :value="labelEdits?.[entry.model]?.quantization ?? ''"
-                  @input="
-                    emit(
-                      'update:labelEdit',
-                      entry.model,
-                      'quantization',
-                      ($event.target as HTMLInputElement).value,
-                    )
-                  "
-                  class="h-7 w-24 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </td>
               <!-- Size -->
-              <td class="px-3 py-2 whitespace-nowrap">
+              <td class="px-3 py-2 whitespace-nowrap border-l-2 border-primary/30">
                 <input
                   type="number"
                   :value="labelEdits?.[entry.model]?.size_gb ?? ''"
@@ -370,19 +398,18 @@ const props = defineProps<{
   isLabelingMode?: boolean;
   labelEdits?: Record<string, any>;
   validationErrors?: Record<string, Record<string, string[]>>;
+  fetchingModels?: string[];
+  canFetchSize?: boolean;
 }>();
 
 const emit = defineEmits<{
   "update:labelEdit": [modelName: string, field: string, value: any];
+  fetchSize: [model: string];
 }>();
 
 const ALL_BENCHMARKS = ["MMLU", "TRUTHFULQA", "HUMANEVAL", "MBPP", "LIVECODEBENCH"];
 
-const specCols = [
-  { key: "spec.parameters_b", label: "Params" },
-  { key: "spec.quantization", label: "Quant" },
-  { key: "spec.size_gb", label: "Size" },
-];
+const specCols = [{ key: "spec.size_gb", label: "Size" }];
 
 const visibleBenchmarksInOrder = computed(() => {
   const visible = props.visibleBenchmarks ?? ALL_BENCHMARKS;
@@ -394,8 +421,6 @@ const sortDir: Ref<1 | -1> = ref(-1);
 
 function getSortValue(entry: Entry, col: string): any {
   if (col === "date") return new Date(entry.date).getTime();
-  if (col === "spec.parameters_b") return entry.spec.parameters_b;
-  if (col === "spec.quantization") return entry.spec.quantization;
   if (col === "spec.size_gb") return entry.spec.size_gb;
   if (col.startsWith("scores.")) {
     const [, bench, key] = col.split(".");
@@ -452,10 +477,6 @@ function formatTime(time_s: number | null | undefined): string {
   if (time_s == null) return "–";
   const secs = Math.round(time_s);
   return secs < 60 ? `${secs}s` : `${Math.round(secs / 60)}m`;
-}
-
-function formatParams(val: number | null | undefined): string {
-  return val != null ? `${val}B` : "–";
 }
 
 function formatSize(val: number | null | undefined): string {

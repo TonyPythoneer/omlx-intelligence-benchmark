@@ -73,20 +73,21 @@
           :isLabelingMode="isLabelingMode"
           :labelEdits="labelEdits"
           :validationErrors="validationErrors"
+          :fetchingModels="fetchingModels"
+          :canFetchSize="isLocalhost"
           @update:labelEdit="(modelName, field, value) => updateLabelEdit(modelName, field, value)"
+          @fetchSize="tryFetchSize"
         />
 
         <ImportModal
           v-if="isModalOpen"
           :isOpen="isModalOpen"
           :importText="importText"
-          :parsedEntries="enrichedParsedEntries"
+          :parsedEntries="parsedEntries"
           :isApplyEnabled="isApplyEnabled"
-          :specForms="specForms"
           @close="closeModal"
           @apply="applyImport"
           @update:importText="importText = $event"
-          @update:specForms="specForms = $event"
         />
 
         <ExportModal
@@ -119,7 +120,7 @@ import UiButton from "./components/ui/button.vue";
 import { useSettings } from "./composables/useSettings";
 import { useBenchmarkData } from "./composables/useBenchmarkData";
 import { useFilters } from "./composables/useFilters";
-import { useImport } from "./composables/useImport";
+import { useImport, fetchModelSize } from "./composables/useImport";
 import { useLabeling } from "./composables/useLabeling";
 
 const {
@@ -179,22 +180,37 @@ const {
 const {
   isModalOpen,
   importText,
-  parsedEntries: rawParsedEntries,
-  specForms,
+  parsedEntries,
   isApplyEnabled,
   openModal,
   closeModal,
   applyImport: performApplyImport,
-  enrichParsedEntries,
-} = useImport();
-
-const enrichedParsedEntries = computed(() =>
-  enrichParsedEntries(rawParsedEntries.value, mutableEntries.value),
-);
+} = useImport(mutableEntries);
 
 function applyImport() {
   performApplyImport(mutableEntries);
   setDirty();
+}
+
+const fetchingModels = ref<string[]>([]);
+
+async function tryFetchSize(model: string) {
+  if (fetchingModels.value.includes(model)) return;
+  fetchingModels.value = [...fetchingModels.value, model];
+  try {
+    const size = await fetchModelSize(model);
+    if (size !== null) {
+      const idx = mutableEntries.value.findIndex((e) => e.model === model);
+      if (idx !== -1) {
+        const updated = [...mutableEntries.value];
+        updated[idx] = { ...updated[idx], spec: { ...updated[idx].spec, size_gb: size } };
+        mutableEntries.value = updated;
+        setDirty();
+      }
+    }
+  } finally {
+    fetchingModels.value = fetchingModels.value.filter((m) => m !== model);
+  }
 }
 
 watch(defaultDevice, (device) => {

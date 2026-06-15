@@ -13,36 +13,20 @@
         v-if="parsedEntries.length > 0"
         class="rounded-md border border-border bg-muted/30 max-h-[260px] overflow-y-auto divide-y divide-border"
       >
-        <div v-for="(entry, idx) in parsedEntries" :key="`${entry.model}-${idx}`" class="px-3 py-3">
-          <div class="flex items-center gap-2 mb-2">
+        <div
+          v-for="(entry, idx) in parsedEntries"
+          :key="`${entry.model}-${idx}`"
+          class="px-3 py-2.5"
+        >
+          <div class="flex items-center gap-2">
             <UiBadge :variant="entry.status === 'NEW' ? 'new' : 'overwrite'">{{
               entry.status
             }}</UiBadge>
             <span class="font-mono text-xs text-foreground flex-1 truncate">{{ entry.model }}</span>
           </div>
-          <div v-if="entry.status === 'NEW'" class="flex gap-2 flex-wrap">
-            <UiInput
-              type="number"
-              :value="specForms[entry.model]?.parameters_b || ''"
-              @input="updateSpecForm(entry.model, 'parameters_b', $event)"
-              placeholder="Params (B)"
-              class="flex-1 min-w-[80px] h-7 text-xs"
-            />
-            <UiInput
-              type="text"
-              :value="specForms[entry.model]?.quantization || ''"
-              @input="updateSpecForm(entry.model, 'quantization', $event)"
-              placeholder="Quantization"
-              class="flex-1 min-w-[80px] h-7 text-xs"
-            />
-            <UiInput
-              type="number"
-              step="0.1"
-              :value="specForms[entry.model]?.size_gb || ''"
-              @input="updateSpecForm(entry.model, 'size_gb', $event)"
-              placeholder="Size (GB)"
-              class="flex-1 min-w-[80px] h-7 text-xs"
-            />
+          <div v-if="entry.status === 'NEW'" class="mt-1 ml-0.5 text-xs text-muted-foreground">
+            <span v-if="entry.sizeFetching" class="italic opacity-60">fetching size…</span>
+            <span v-else-if="entry.spec.size_gb != null">{{ entry.spec.size_gb }} GB</span>
           </div>
         </div>
       </div>
@@ -63,16 +47,15 @@
 import { ref, watch } from "vue";
 import UiDialog from "./ui/dialog.vue";
 import UiTextarea from "./ui/textarea.vue";
-import UiInput from "./ui/input.vue";
 import UiBadge from "./ui/badge.vue";
 import UiButton from "./ui/button.vue";
 
 interface ParsedResult {
   model: string;
-  scores: Record<string, any>;
+  scores: Record<string, unknown>;
   status: "NEW" | "OVERWRITE";
-  specFilled: boolean;
   spec: { parameters_b: number | null; quantization: string; size_gb: number | null };
+  sizeFetching: boolean;
 }
 
 interface Props {
@@ -80,7 +63,6 @@ interface Props {
   importText: string;
   parsedEntries: ParsedResult[];
   isApplyEnabled: boolean;
-  specForms: Record<string, { parameters_b: string; quantization: string; size_gb: string }>;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -88,14 +70,12 @@ const props = withDefaults(defineProps<Props>(), {
   importText: "",
   parsedEntries: () => [],
   isApplyEnabled: false,
-  specForms: () => ({}),
 });
 
 const emit = defineEmits<{
   close: [];
   apply: [];
   "update:importText": [value: string];
-  "update:specForms": [value: Record<string, any>];
 }>();
 
 const importTextLocal = ref(props.importText);
@@ -108,18 +88,6 @@ watch(
 watch(importTextLocal, (v) => {
   emit("update:importText", v);
 });
-
-function updateSpecForm(
-  model: string,
-  field: "parameters_b" | "quantization" | "size_gb",
-  event: Event,
-) {
-  const target = event.target as HTMLInputElement;
-  emit("update:specForms", {
-    ...props.specForms,
-    [model]: { ...props.specForms[model], [field]: target.value },
-  });
-}
 
 function onClose() {
   emit("close");
