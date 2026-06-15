@@ -241,7 +241,7 @@
                     <span
                       v-if="entry.scores_no_thinking?.[benchmark]?.accuracy != null"
                       :class="scoreBadgeClass(entry.scores_no_thinking[benchmark].accuracy)"
-                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold opacity-50"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
                       >{{ formattedAccuracy(entry.scores_no_thinking[benchmark].accuracy) }}%</span
                     >
                     <span v-else class="text-muted-foreground/30 text-xs">–</span>
