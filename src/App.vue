@@ -80,13 +80,11 @@
           v-if="isModalOpen"
           :isOpen="isModalOpen"
           :importText="importText"
-          :parsedEntries="enrichedParsedEntries"
+          :parsedEntries="parsedEntries"
           :isApplyEnabled="isApplyEnabled"
-          :specForms="specForms"
           @close="closeModal"
           @apply="applyImport"
           @update:importText="importText = $event"
-          @update:specForms="specForms = $event"
         />
 
         <ExportModal
@@ -179,18 +177,12 @@ const {
 const {
   isModalOpen,
   importText,
-  parsedEntries: rawParsedEntries,
-  specForms,
+  parsedEntries,
   isApplyEnabled,
   openModal,
   closeModal,
   applyImport: performApplyImport,
-  enrichParsedEntries,
-} = useImport();
-
-const enrichedParsedEntries = computed(() =>
-  enrichParsedEntries(rawParsedEntries.value, mutableEntries.value),
-);
+} = useImport(mutableEntries);
 
 function applyImport() {
   performApplyImport(mutableEntries);

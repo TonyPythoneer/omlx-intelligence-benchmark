@@ -1,260 +1,170 @@
-import { ref, computed, type Ref } from "vue";
+import { ref, computed, watch, type Ref } from "vue";
 import { type Entry, type Scores } from "../types/benchmark";
 // @ts-ignore — import.mjs has no types
 import { parseImportInput } from "../lib/import.mjs";
 
-/**
- * Parsed entry result with status and spec filling state
- */
 interface ParsedResult {
   model: string;
   scores: Scores;
   status: "NEW" | "OVERWRITE";
-  specFilled: boolean;
   spec: {
     parameters_b: number | null;
     quantization: string;
     size_gb: number | null;
   };
+  sizeFetching: boolean;
 }
 
-/**
- * useImport composable - Manage import modal state and entry parsing
- *
- * Provides:
- * - Modal state (isModalOpen, importText)
- * - Parsed entries with NEW/OVERWRITE status detection
- * - Spec form state for NEW entries
- * - Apply enabled/disabled state based on completeness
- * - applyImport function to merge entries
- */
-export function useImport() {
+function parseParamsB(name: string): number | null {
+  const m = name.match(/(?:^|[-_])(\d+(?:\.\d+)?)B(?:[-_]|$)/i);
+  return m ? parseFloat(m[1]) : null;
+}
+
+function parseQuantization(name: string): string {
+  // 4bit, 8bit, 2bit
+  let m = name.match(/(?:^|[-_])(\d+bit)(?:[-_]|$)/i);
+  if (m) return m[1].toLowerCase();
+  // oQ4, Q4, Q8 — strip optional leading 'o'
+  m = name.match(/(?:^|[-_])o?[Qq](\d+)(?:[-_]|$)/);
+  if (m) return `Q${m[1]}`;
+  // qx86, qx128
+  m = name.match(/(?:^|[-_])(qx\d+)(?:[-_]|$)/i);
+  if (m) return m[1].toLowerCase();
+  return "";
+}
+
+async function fetchModelSize(modelName: string): Promise<number | null> {
+  try {
+    const searchRes = await fetch(
+      `https://huggingface.co/api/models?search=${encodeURIComponent(modelName)}&limit=5`,
+    );
+    if (!searchRes.ok) return null;
+    const models: Array<{ id: string }> = await searchRes.json();
+    if (!models.length) return null;
+    const match = models.find((m) => m.id.split("/").pop() === modelName) ?? models[0];
+    const detailRes = await fetch(`https://huggingface.co/api/models/${match.id}?blobs=true`);
+    if (!detailRes.ok) return null;
+    const detail: { siblings?: Array<{ rfilename: string; size?: number }> } =
+      await detailRes.json();
+    const totalBytes = (detail.siblings ?? [])
+      .filter((f) => f.rfilename.endsWith(".safetensors"))
+      .reduce((sum, f) => sum + (f.size ?? 0), 0);
+    return totalBytes > 0 ? parseFloat((totalBytes / 1024 ** 3).toFixed(2)) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function useImport(currentEntries: Ref<Entry[]>) {
   const isModalOpen = ref<boolean>(false);
   const importText = ref<string>("");
+  const modelSizes = ref<Record<string, number | null>>({});
+  const sizeFetching = ref<Record<string, boolean>>({});
 
-  /**
-   * Spec form state: stores user-filled spec values for NEW entries
-   * Key: model name, Value: { parameters_b, quantization, size_gb }
-   */
-  const specForms = ref<
-    Record<string, { parameters_b: string; quantization: string; size_gb: string }>
-  >({});
-
-  /**
-   * Helper: Get today's date in YYYY-MM-DD format
-   */
   function getTodaysDate(): string {
     return new Date().toISOString().split("T")[0];
   }
 
-  /**
-   * Helper: Get raw parsed results from import text (without status enrichment)
-   * Status will be determined by enrichParsedEntries based on current entries
-   */
   function getRawParsedResults(): Array<{ model: string; scores: Scores }> {
-    if (!importText.value.trim()) {
-      specForms.value = {};
-      return [];
-    }
-
+    if (!importText.value.trim()) return [];
     try {
       return parseImportInput(importText.value);
-    } catch (err) {
-      console.error("Error parsing import text:", err);
+    } catch {
       return [];
     }
   }
 
-  /**
-   * Helper: Enrich raw parsed results with status (NEW/OVERWRITE) and spec tracking
-   * This should be called after getRawParsedResults when current entries are available
-   */
-  function enrichParsedEntries(
-    rawResults: Array<{ model: string; scores: Scores }>,
-    currentEntries: Entry[],
-  ): ParsedResult[] {
-    const existingModels = new Set(currentEntries.map((e) => e.model));
+  watch(importText, async (text) => {
+    if (!text.trim()) {
+      modelSizes.value = {};
+      sizeFetching.value = {};
+      return;
+    }
+    const raw = getRawParsedResults();
+    const existingModels = new Set(currentEntries.value.map((e) => e.model));
 
-    return rawResults.map((result) => {
-      const status = existingModels.has(result.model) ? "OVERWRITE" : "NEW";
-
-      // Initialize spec form for NEW entries if not already present
-      if (status === "NEW" && !specForms.value[result.model]) {
-        specForms.value[result.model] = {
-          parameters_b: "",
-          quantization: "",
-          size_gb: "",
-        };
+    for (const result of raw) {
+      if (!existingModels.has(result.model) && !(result.model in modelSizes.value)) {
+        sizeFetching.value = { ...sizeFetching.value, [result.model]: true };
+        void fetchModelSize(result.model).then((size) => {
+          modelSizes.value = { ...modelSizes.value, [result.model]: size };
+          const next = { ...sizeFetching.value };
+          delete next[result.model];
+          sizeFetching.value = next;
+        });
       }
+    }
+  });
 
-      // Check if spec is filled (all three fields non-empty)
-      const form = specForms.value[result.model];
-      const specFilled =
-        status === "NEW"
-          ? form && form.parameters_b !== "" && form.quantization !== "" && form.size_gb !== ""
-          : false;
+  const parsedEntries = computed<ParsedResult[]>(() => {
+    const raw = getRawParsedResults();
+    const existingModels = new Set(currentEntries.value.map((e) => e.model));
 
+    return raw.map((result) => {
+      const status = existingModels.has(result.model) ? "OVERWRITE" : "NEW";
       return {
         model: result.model,
         scores: result.scores,
         status,
-        specFilled,
         spec: {
-          parameters_b: null,
-          quantization: "",
-          size_gb: null,
+          parameters_b: parseParamsB(result.model),
+          quantization: parseQuantization(result.model),
+          size_gb: modelSizes.value[result.model] ?? null,
         },
-      };
-    });
-  }
-
-  /**
-   * Computed: parsedEntries - reactive list of parsed entries
-   * NOTE: This version returns entries without status (all marked as NEW)
-   * Call enrichParsedEntries in parent to add status based on current entries
-   */
-  const parsedEntries = computed<ParsedResult[]>(() => {
-    const raw = getRawParsedResults();
-
-    return raw.map((result: { model: string; scores: Scores }) => {
-      // Initialize spec form if not present
-      if (!specForms.value[result.model]) {
-        specForms.value[result.model] = {
-          parameters_b: "",
-          quantization: "",
-          size_gb: "",
-        };
-      }
-
-      // Check if spec is filled
-      const form = specForms.value[result.model];
-      const specFilled =
-        form && form.parameters_b !== "" && form.quantization !== "" && form.size_gb !== "";
-
-      return {
-        model: result.model,
-        scores: result.scores,
-        status: "NEW" as const,
-        specFilled,
-        spec: {
-          parameters_b: null,
-          quantization: "",
-          size_gb: null,
-        },
+        sizeFetching: sizeFetching.value[result.model] ?? false,
       };
     });
   });
 
-  /**
-   * Computed: isApplyEnabled - true when all NEW entries have complete spec
-   * For entries to be applyable:
-   * 1. importText must be non-empty
-   * 2. All entries with status='NEW' must have spec filled (parameters_b, quantization, size_gb)
-   */
-  const isApplyEnabled = computed<boolean>(() => {
-    if (!importText.value.trim()) {
-      return false;
-    }
+  const isApplyEnabled = computed<boolean>(
+    () => importText.value.trim().length > 0 && parsedEntries.value.length > 0,
+  );
 
-    // All entries must be parsed, and all NEW entries must have specFilled
-    return (
-      parsedEntries.value.length > 0 &&
-      parsedEntries.value.every((entry) => {
-        if (entry.status === "NEW") {
-          return entry.specFilled;
-        }
-        return true; // OVERWRITE entries don't need spec
-      })
-    );
-  });
-
-  /**
-   * Apply import: merge parsed entries into current entries
-   * - NEW entries: add complete Entry with user-filled spec
-   * - OVERWRITE entries: update only scores, preserve all other fields
-   */
   function applyImport(mutableEntries: Ref<Entry[]>): void {
     const current = mutableEntries.value;
     const today = getTodaysDate();
-
-    // Create a map of existing entries by model for quick lookup
     const existingMap = new Map(current.map((e, i) => [e.model, i]));
-
-    // Apply each parsed entry
     const merged = [...current];
 
     for (const parsed of parsedEntries.value) {
       const existingIdx = existingMap.get(parsed.model);
-
       if (existingIdx !== undefined) {
-        // OVERWRITE: only update scores
-        merged[existingIdx] = {
-          ...merged[existingIdx],
-          scores: parsed.scores,
-        };
+        merged[existingIdx] = { ...merged[existingIdx], scores: parsed.scores };
       } else {
-        // NEW: create complete entry with user-filled spec
-        const form = specForms.value[parsed.model];
         merged.push({
           model: parsed.model,
           date: today,
-          spec: {
-            parameters_b: form.parameters_b ? parseFloat(form.parameters_b) : null,
-            quantization: form.quantization,
-            size_gb: form.size_gb ? parseFloat(form.size_gb) : null,
-          },
-          abilities: {
-            thinking: false,
-            mtp: false,
-          },
-          tiers: {
-            opus: false,
-            sonnet: false,
-            haiku: false,
-          },
+          spec: parsed.spec,
+          abilities: { thinking: false, mtp: false },
+          tiers: { opus: false, sonnet: false, haiku: false },
           deprecated: false,
           scores: parsed.scores,
         });
       }
     }
 
-    // Update the mutable entries
     mutableEntries.value = merged;
-
-    // Clear the modal state
     closeModal();
   }
 
-  /**
-   * Open the import modal
-   */
   function openModal(): void {
     isModalOpen.value = true;
   }
 
-  /**
-   * Close the import modal and reset state
-   */
   function closeModal(): void {
     isModalOpen.value = false;
     importText.value = "";
-    specForms.value = {};
+    modelSizes.value = {};
+    sizeFetching.value = {};
   }
 
   return {
-    // State refs
     isModalOpen,
     importText,
-    specForms,
-
-    // Computed properties
     parsedEntries,
     isApplyEnabled,
-
-    // Methods
     openModal,
     closeModal,
     applyImport,
-    enrichParsedEntries,
   };
 }
