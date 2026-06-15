@@ -35,6 +35,7 @@ export interface Entry {
   deprecated: boolean;
   tiers: Tiers;
   scores: Scores;
+  scores_no_thinking?: Scores;
   labelling?: {
     tiers: Tiers;
   };
