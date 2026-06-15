@@ -7,7 +7,6 @@
           <tr class="border-b border-border">
             <th class="px-4 py-3 text-left font-semibold text-foreground">Model</th>
             <th
-              colspan="3"
               class="px-4 py-3 text-left font-semibold text-foreground border-l-2 border-primary/30"
             >
               Spec
@@ -37,8 +36,6 @@
           <tr class="border-b border-border">
             <th class="px-4 py-2"></th>
             <th class="px-4 py-2 border-l-2 border-primary/30"></th>
-            <th class="px-4 py-2"></th>
-            <th class="px-4 py-2"></th>
             <template v-if="!isLabelingMode">
               <th
                 v-for="(benchmark, bi) in visibleBenchmarksInOrder"
@@ -69,7 +66,7 @@
               :key="col.key"
               class="px-4 py-2.5 text-xs font-semibold text-left cursor-pointer whitespace-nowrap select-none transition-colors hover:bg-primary/5"
               :class="[
-                col.key === 'spec.parameters_b' ? 'border-l-2 border-primary/30' : '',
+                col.key === 'spec.size_gb' ? 'border-l-2 border-primary/30' : '',
                 sortCol === col.key ? 'text-primary bg-primary/5' : 'text-muted-foreground',
               ]"
               @click="onSort(col.key)"
@@ -135,7 +132,7 @@
         <tbody class="divide-y divide-border">
           <tr v-if="entries.length === 0">
             <td
-              :colspan="isLabelingMode ? 8 : 4 + visibleBenchmarksInOrder.length * 2"
+              :colspan="isLabelingMode ? 6 : 2 + visibleBenchmarksInOrder.length * 2"
               class="px-4 py-8 text-center text-muted-foreground text-sm"
             >
               No entries loaded
@@ -168,12 +165,6 @@
               <td
                 class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap border-l-2 border-primary/30"
               >
-                {{ formatParams(entry.spec.parameters_b) }}
-              </td>
-              <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
-                {{ entry.spec.quantization || "–" }}
-              </td>
-              <td class="px-4 py-3 text-muted-foreground text-xs whitespace-nowrap">
                 {{ formatSize(entry.spec.size_gb) }}
               </td>
               <template v-for="(benchmark, bi) in visibleBenchmarksInOrder" :key="benchmark">
@@ -218,51 +209,8 @@
                   }}</span>
                 </div>
               </td>
-              <!-- Params -->
-              <td class="px-3 py-2 whitespace-nowrap border-l-2 border-primary/20">
-                <input
-                  type="number"
-                  :value="labelEdits?.[entry.model]?.parameters_b ?? ''"
-                  @input="
-                    emit(
-                      'update:labelEdit',
-                      entry.model,
-                      'parameters_b',
-                      ($event.target as HTMLInputElement).value,
-                    )
-                  "
-                  class="h-7 w-20 rounded border px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                  :class="
-                    validationErrors?.[entry.model]?.parameters_b
-                      ? 'border-destructive bg-destructive/5'
-                      : 'border-input bg-background'
-                  "
-                />
-                <p
-                  v-if="validationErrors?.[entry.model]?.parameters_b"
-                  class="text-xs text-destructive mt-0.5"
-                >
-                  {{ validationErrors[entry.model].parameters_b.join(", ") }}
-                </p>
-              </td>
-              <!-- Quant -->
-              <td class="px-3 py-2 whitespace-nowrap">
-                <input
-                  type="text"
-                  :value="labelEdits?.[entry.model]?.quantization ?? ''"
-                  @input="
-                    emit(
-                      'update:labelEdit',
-                      entry.model,
-                      'quantization',
-                      ($event.target as HTMLInputElement).value,
-                    )
-                  "
-                  class="h-7 w-24 rounded border border-input bg-background px-2 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </td>
               <!-- Size -->
-              <td class="px-3 py-2 whitespace-nowrap">
+              <td class="px-3 py-2 whitespace-nowrap border-l-2 border-primary/30">
                 <input
                   type="number"
                   :value="labelEdits?.[entry.model]?.size_gb ?? ''"
@@ -378,11 +326,7 @@ const emit = defineEmits<{
 
 const ALL_BENCHMARKS = ["MMLU", "TRUTHFULQA", "HUMANEVAL", "MBPP", "LIVECODEBENCH"];
 
-const specCols = [
-  { key: "spec.parameters_b", label: "Params" },
-  { key: "spec.quantization", label: "Quant" },
-  { key: "spec.size_gb", label: "Size" },
-];
+const specCols = [{ key: "spec.size_gb", label: "Size" }];
 
 const visibleBenchmarksInOrder = computed(() => {
   const visible = props.visibleBenchmarks ?? ALL_BENCHMARKS;
@@ -394,8 +338,6 @@ const sortDir: Ref<1 | -1> = ref(-1);
 
 function getSortValue(entry: Entry, col: string): any {
   if (col === "date") return new Date(entry.date).getTime();
-  if (col === "spec.parameters_b") return entry.spec.parameters_b;
-  if (col === "spec.quantization") return entry.spec.quantization;
   if (col === "spec.size_gb") return entry.spec.size_gb;
   if (col.startsWith("scores.")) {
     const [, bench, key] = col.split(".");
@@ -452,10 +394,6 @@ function formatTime(time_s: number | null | undefined): string {
   if (time_s == null) return "–";
   const secs = Math.round(time_s);
   return secs < 60 ? `${secs}s` : `${Math.round(secs / 60)}m`;
-}
-
-function formatParams(val: number | null | undefined): string {
-  return val != null ? `${val}B` : "–";
 }
 
 function formatSize(val: number | null | undefined): string {
