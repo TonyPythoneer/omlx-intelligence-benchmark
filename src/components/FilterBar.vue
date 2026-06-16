@@ -31,26 +31,6 @@
         </div>
       </div>
 
-      <!-- Metrics -->
-      <div class="flex items-center gap-2">
-        <UiLabel>Metrics</UiLabel>
-        <div class="inline-flex border border-border rounded-md overflow-hidden bg-background">
-          <button
-            v-for="opt in metricsOptions"
-            :key="opt.value"
-            class="px-3 py-1.5 text-sm font-medium transition-colors"
-            :class="
-              metricsFilter === opt.value
-                ? 'bg-primary text-primary-foreground'
-                : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
-            "
-            @click="$emit('update:metricsFilter', opt.value)"
-          >
-            {{ opt.label }}
-          </button>
-        </div>
-      </div>
-
       <!-- Show Deprecated -->
       <div class="flex items-center gap-2">
         <input
@@ -78,14 +58,12 @@ import UiLabel from "./ui/label.vue";
 defineEmits<{
   "update:modelSearch": [value: string];
   "update:tierFilter": [value: "all" | "opus" | "sonnet" | "haiku"];
-  "update:metricsFilter": [value: "all" | "basic" | "advanced"];
   "update:showDeprecated": [value: boolean];
 }>();
 
 defineProps<{
   modelSearch: string;
   tierFilter: "all" | "opus" | "sonnet" | "haiku";
-  metricsFilter: "all" | "basic" | "advanced";
   showDeprecated: boolean;
 }>();
 
@@ -94,11 +72,5 @@ const tierOptions = [
   { label: "Opus", value: "opus" as const },
   { label: "Sonnet", value: "sonnet" as const },
   { label: "Haiku", value: "haiku" as const },
-];
-
-const metricsOptions = [
-  { label: "All", value: "all" as const },
-  { label: "Basic", value: "basic" as const },
-  { label: "Advanced", value: "advanced" as const },
 ];
 </script>

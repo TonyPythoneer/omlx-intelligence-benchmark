@@ -56,8 +56,6 @@
           @update:modelSearch="modelSearch = $event"
           :tierFilter="tierFilter"
           @update:tierFilter="tierFilter = $event"
-          :metricsFilter="metricsFilter"
-          @update:metricsFilter="metricsFilter = $event"
           :showDeprecated="showDeprecated"
           @update:showDeprecated="showDeprecated = $event"
         />
@@ -161,14 +159,8 @@ const showExportButton = computed<boolean>(
   () => (isDirty.value || isLabelingMode.value) && !hasValidationErrors.value,
 );
 
-const {
-  filteredEntries,
-  visibleBenchmarks,
-  modelSearch,
-  tierFilter,
-  metricsFilter,
-  showDeprecated,
-} = useFilters(mutableEntries);
+const { filteredEntries, visibleBenchmarks, modelSearch, tierFilter, showDeprecated } =
+  useFilters(mutableEntries);
 
 const {
   isModalOpen,

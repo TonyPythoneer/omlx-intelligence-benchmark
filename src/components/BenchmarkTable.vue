@@ -300,7 +300,7 @@
                     <div class="h-6 flex items-center justify-center">
                       {{ formatTime(entry.scores[benchmark]?.time_s) }}
                     </div>
-                    <div class="h-6 flex items-center justify-center opacity-50">
+                    <div class="h-6 flex items-center justify-center">
                       {{ formatTime(entry.scores_no_thinking?.[benchmark]?.time_s) }}
                     </div>
                   </div>
@@ -530,9 +530,7 @@
                 <td class="px-3 py-2 text-center text-xs text-muted-foreground">
                   <div class="flex flex-col gap-0.5">
                     <span>{{ formatTime(entry.scores[benchmark]?.time_s) }}</span>
-                    <span class="opacity-50">{{
-                      formatTime(entry.scores_no_thinking?.[benchmark]?.time_s)
-                    }}</span>
+                    <span>{{ formatTime(entry.scores_no_thinking?.[benchmark]?.time_s) }}</span>
                   </div>
                 </td>
               </template>
