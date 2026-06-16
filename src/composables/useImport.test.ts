@@ -55,8 +55,7 @@ TRUTHFULQA           70.0%        21      30     138.8     No`;
       expect(entry.spec.parameters_b).toBeNull();
       expect(entry.spec.quantization).toBe("");
       expect(entry.spec.size_gb).toBeNull(); // no HF fetch in unit tests
-      expect(entry.abilities?.thinking).toBe(false);
-      expect(entry.abilities?.mtp).toBe(false);
+      expect(entry.abilities).toBeUndefined();
       expect(entry.tiers.opus).toBe(false);
       expect(entry.deprecated).toBe(false);
       expect(entry.scores.MMLU).toEqual({ accuracy: 80.0, samples: 30, time_s: 492.9 });

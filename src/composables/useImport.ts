@@ -1,7 +1,7 @@
 import { ref, computed, watch, type Ref } from "vue";
 import { type Entry, type Scores } from "../types/benchmark";
 // @ts-ignore — import.mjs has no types
-import { parseImportInput } from "../lib/import.mjs";
+import { parseImportInput, mergeImport } from "../lib/import.mjs";
 
 interface ParsedResult {
   model: string;
@@ -116,40 +116,13 @@ export function useImport(currentEntries: Ref<Entry[]>) {
   );
 
   function applyImport(mutableEntries: Ref<Entry[]>): void {
-    const current = mutableEntries.value;
-    const today = getTodaysDate();
-    const existingMap = new Map(current.map((e, i) => [e.model, i]));
-    const merged = [...current];
-
-    for (const parsed of parsedEntries.value) {
-      const existingIdx = existingMap.get(parsed.model);
-      if (existingIdx !== undefined) {
-        const updates: Partial<Entry> = {};
-        if (parsed.scores && Object.keys(parsed.scores).length > 0) {
-          updates.scores = parsed.scores;
-        }
-        if (parsed.scores_no_thinking && Object.keys(parsed.scores_no_thinking).length > 0) {
-          updates.scores_no_thinking = parsed.scores_no_thinking;
-        }
-        merged[existingIdx] = { ...merged[existingIdx], ...updates };
-      } else {
-        const entry: Entry = {
-          model: parsed.model,
-          date: today,
-          spec: parsed.spec,
-          abilities: { thinking: false, mtp: false },
-          tiers: { opus: false, sonnet: false, haiku: false },
-          deprecated: false,
-          scores: parsed.scores,
-        };
-        if (parsed.scores_no_thinking && Object.keys(parsed.scores_no_thinking).length > 0) {
-          entry.scores_no_thinking = parsed.scores_no_thinking;
-        }
-        merged.push(entry);
-      }
-    }
-
-    mutableEntries.value = merged;
+    const detected = parsedEntries.value.map((p) => ({
+      model: p.model,
+      spec: p.spec,
+      scores: p.scores,
+      scores_no_thinking: p.scores_no_thinking,
+    }));
+    mutableEntries.value = mergeImport(mutableEntries.value, detected, getTodaysDate()) as Entry[];
     closeModal();
   }
 
