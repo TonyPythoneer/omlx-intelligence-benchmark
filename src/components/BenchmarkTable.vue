@@ -169,6 +169,16 @@
                 <div class="flex flex-col gap-0.5">
                   <div class="flex items-center gap-1.5">
                     <button
+                      @click="togglePin(entry.model)"
+                      class="text-base leading-none transition-colors"
+                      :class="
+                        pinnedModel === entry.model ? 'opacity-100' : 'opacity-30 hover:opacity-80'
+                      "
+                      title="Pin for comparison"
+                    >
+                      📌
+                    </button>
+                    <button
                       @click="copyModelName(entry.model)"
                       class="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-base leading-none"
                       title="Copy model name"
@@ -187,9 +197,19 @@
                     }}</span>
                   </div>
                   <div
-                    v-if="entry.tiers?.opus || entry.tiers?.sonnet || entry.tiers?.haiku"
+                    v-if="
+                      entry.deprecated ||
+                      entry.tiers?.opus ||
+                      entry.tiers?.sonnet ||
+                      entry.tiers?.haiku
+                    "
                     class="flex items-center gap-1"
                   >
+                    <span
+                      v-if="entry.deprecated"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-zinc-200 text-zinc-500"
+                      >Deprecated</span
+                    >
                     <span
                       v-if="entry.tiers?.opus"
                       class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-700"
@@ -408,6 +428,120 @@
       </table>
     </div>
   </div>
+
+  <!-- Floating pinned rows overlay -->
+  <Teleport to="body">
+    <div
+      v-if="!isLabelingMode && pinnedEntries.length > 0"
+      class="fixed bottom-0 inset-x-0 z-50 border-t-2 border-amber-300 bg-amber-50 shadow-2xl"
+    >
+      <div class="max-w-[1600px] mx-auto px-6 overflow-x-auto">
+        <table class="w-full text-sm border-collapse">
+          <thead>
+            <tr class="border-b border-amber-200">
+              <th
+                class="px-4 py-1.5 text-left text-xs font-semibold text-amber-700 whitespace-nowrap"
+              >
+                📌 Pinned
+              </th>
+              <th
+                class="px-4 py-1.5 text-left text-xs font-semibold text-muted-foreground border-l-2 border-primary/30 whitespace-nowrap"
+              >
+                Size
+              </th>
+              <th class="px-2 py-1.5 text-center border-l-2 border-primary/30">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span
+                    class="w-5 h-5 rounded-full bg-orange-400 flex items-center justify-center text-xs"
+                    >💡</span
+                  >
+                  <span
+                    class="w-5 h-5 rounded-full bg-gray-400 flex items-center justify-center text-xs"
+                    >💡</span
+                  >
+                </div>
+              </th>
+              <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
+                <th
+                  class="px-4 py-1.5 text-center text-xs font-bold text-muted-foreground uppercase tracking-wider border-l-2 border-primary/20 whitespace-nowrap"
+                  colspan="2"
+                >
+                  {{ benchmark }}
+                </th>
+              </template>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-amber-100">
+            <tr
+              v-for="entry in pinnedEntries"
+              :key="`float-${entry.model}`"
+              class="hover:bg-amber-100/50"
+            >
+              <td class="px-4 py-2">
+                <div class="flex items-center gap-1.5">
+                  <button
+                    @click="togglePin(entry.model)"
+                    class="text-amber-400 hover:text-amber-600 transition-colors text-base leading-none"
+                    title="Unpin"
+                  >
+                    ✕
+                  </button>
+                  <span class="text-foreground font-medium text-xs break-all">{{
+                    entry.model
+                  }}</span>
+                </div>
+              </td>
+              <td
+                class="px-4 py-2 text-muted-foreground text-xs whitespace-nowrap border-l-2 border-primary/30"
+              >
+                {{ formatSize(entry.spec.size_gb) }}
+              </td>
+              <td class="px-2 py-2 text-center border-l-2 border-primary/30">
+                <div class="flex flex-col items-center gap-0.5">
+                  <span
+                    class="w-5 h-5 rounded-full bg-orange-400 flex items-center justify-center text-xs"
+                    >💡</span
+                  >
+                  <span
+                    class="w-5 h-5 rounded-full bg-gray-400 flex items-center justify-center text-xs"
+                    >💡</span
+                  >
+                </div>
+              </td>
+              <template v-for="benchmark in visibleBenchmarksInOrder" :key="benchmark">
+                <td class="px-3 py-2 text-center border-l-2 border-primary/20">
+                  <div class="flex flex-col gap-0.5 items-center">
+                    <span
+                      v-if="entry.scores[benchmark]?.accuracy != null"
+                      :class="scoreBadgeClass(entry.scores[benchmark].accuracy)"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                      >{{ formattedAccuracy(entry.scores[benchmark].accuracy) }}%</span
+                    >
+                    <span v-else class="text-muted-foreground/50 text-xs">–</span>
+                    <span
+                      v-if="entry.scores_no_thinking?.[benchmark]?.accuracy != null"
+                      :class="scoreBadgeClass(entry.scores_no_thinking[benchmark].accuracy)"
+                      class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold opacity-80"
+                      >{{ formattedAccuracy(entry.scores_no_thinking[benchmark].accuracy) }}%</span
+                    >
+                    <span v-else class="text-muted-foreground/30 text-xs">–</span>
+                  </div>
+                </td>
+                <td class="px-3 py-2 text-center text-xs text-muted-foreground">
+                  <div class="flex flex-col gap-0.5">
+                    <span>{{ formatTime(entry.scores[benchmark]?.time_s) }}</span>
+                    <span class="opacity-50">{{
+                      formatTime(entry.scores_no_thinking?.[benchmark]?.time_s)
+                    }}</span>
+                  </div>
+                </td>
+              </template>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -462,6 +596,16 @@ const sortedEntries = computed(() =>
     return sortDir.value * (av - bv);
   }),
 );
+
+const pinnedModel = ref<string | null>(null);
+
+const pinnedEntries = computed(() =>
+  pinnedModel.value ? sortedEntries.value.filter((e) => e.model === pinnedModel.value) : [],
+);
+
+function togglePin(model: string): void {
+  pinnedModel.value = pinnedModel.value === model ? null : model;
+}
 
 function onSort(col: string): void {
   if (sortCol.value === col) {

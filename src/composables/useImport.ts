@@ -109,7 +109,10 @@ export function useImport(currentEntries: Ref<Entry[]>) {
   });
 
   const isApplyEnabled = computed<boolean>(
-    () => importText.value.trim().length > 0 && parsedEntries.value.length > 0,
+    () =>
+      importText.value.trim().length > 0 &&
+      parsedEntries.value.length > 0 &&
+      Object.keys(sizeFetching.value).length === 0,
   );
 
   function applyImport(mutableEntries: Ref<Entry[]>): void {
