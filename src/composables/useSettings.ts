@@ -15,7 +15,6 @@ export interface DeviceMeta {
  */
 export interface Settings {
   defaultDevice: string;
-  parametersBreakpoints: number[];
   devices: Record<string, DeviceMeta>;
 }
 
@@ -29,7 +28,6 @@ export function useSettings() {
   const error = ref<string | null>(null);
 
   const defaultDevice = computed(() => settings.value?.defaultDevice || null);
-  const parametersBreakpoints = computed(() => settings.value?.parametersBreakpoints || []);
   const devices = computed(() => settings.value?.devices || {});
 
   onMounted(async () => {
@@ -63,7 +61,6 @@ export function useSettings() {
   return {
     settings: settings as Ref<Settings | null>,
     defaultDevice: defaultDevice as Ref<string | null>,
-    parametersBreakpoints: parametersBreakpoints as Ref<number[]>,
     devices: devices as Ref<Record<string, DeviceMeta>>,
     isLoading,
     error,

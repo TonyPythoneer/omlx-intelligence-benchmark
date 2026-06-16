@@ -51,26 +51,6 @@
         </div>
       </div>
 
-      <!-- Params Slider -->
-      <div class="flex items-center gap-2">
-        <UiLabel>Params</UiLabel>
-        <div class="flex items-center gap-2 min-w-[200px]">
-          <span class="text-xs text-muted-foreground font-medium min-w-[32px] text-center">{{
-            paramsLabelAt(paramsMinIdxLocal)
-          }}</span>
-          <UiSlider
-            v-model="paramsRange"
-            :min="0"
-            :max="parametersBreakpoints.length"
-            :step="1"
-            class="flex-1"
-          />
-          <span class="text-xs text-muted-foreground font-medium min-w-[32px] text-center">{{
-            paramsLabelAt(paramsMaxIdxLocal)
-          }}</span>
-        </div>
-      </div>
-
       <!-- Show Deprecated -->
       <div class="flex items-center gap-2">
         <input
@@ -91,28 +71,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from "vue";
 import UiCard from "./ui/card.vue";
 import UiInput from "./ui/input.vue";
 import UiLabel from "./ui/label.vue";
-import UiSlider from "./ui/slider.vue";
 
-const emit = defineEmits<{
+defineEmits<{
   "update:modelSearch": [value: string];
   "update:tierFilter": [value: "all" | "opus" | "sonnet" | "haiku"];
   "update:metricsFilter": [value: "all" | "basic" | "advanced"];
-  "update:paramsMinIdx": [value: number];
-  "update:paramsMaxIdx": [value: number];
   "update:showDeprecated": [value: boolean];
 }>();
 
-const props = defineProps<{
+defineProps<{
   modelSearch: string;
   tierFilter: "all" | "opus" | "sonnet" | "haiku";
   metricsFilter: "all" | "basic" | "advanced";
-  paramsMinIdx: number;
-  paramsMaxIdx: number;
-  parametersBreakpoints: number[];
   showDeprecated: boolean;
 }>();
 
@@ -128,50 +101,4 @@ const metricsOptions = [
   { label: "Basic", value: "basic" as const },
   { label: "Advanced", value: "advanced" as const },
 ];
-
-const paramsMinIdxLocal = ref<number>(0);
-const paramsMaxIdxLocal = ref<number>(0);
-
-// Proxy the local refs as a [min, max] array for UiSlider's number[] v-model.
-// Routing updates through the locals keeps the existing swap-guard watcher
-// (below) as the single source of the update:paramsMinIdx/Max emits.
-const paramsRange = computed<number[]>({
-  get: () => [paramsMinIdxLocal.value, paramsMaxIdxLocal.value],
-  set: ([a, b]) => {
-    paramsMinIdxLocal.value = a;
-    paramsMaxIdxLocal.value = b;
-  },
-});
-
-function paramsLabelAt(idx: number): string {
-  if (idx >= props.parametersBreakpoints.length) return "Inf";
-  return `${props.parametersBreakpoints[idx]}B`;
-}
-
-watch([paramsMinIdxLocal, paramsMaxIdxLocal], ([min, max]) => {
-  if (min > max) {
-    paramsMinIdxLocal.value = max;
-    paramsMaxIdxLocal.value = min;
-    emit("update:paramsMinIdx", max);
-    emit("update:paramsMaxIdx", min);
-  } else {
-    emit("update:paramsMinIdx", min);
-    emit("update:paramsMaxIdx", max);
-  }
-});
-
-watch(
-  () => props.paramsMinIdx,
-  (v) => {
-    paramsMinIdxLocal.value = v;
-  },
-  { immediate: true },
-);
-watch(
-  () => props.paramsMaxIdx,
-  (v) => {
-    paramsMaxIdxLocal.value = v;
-  },
-  { immediate: true },
-);
 </script>

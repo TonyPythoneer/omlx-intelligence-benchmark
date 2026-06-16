@@ -58,11 +58,6 @@
           @update:tierFilter="tierFilter = $event"
           :metricsFilter="metricsFilter"
           @update:metricsFilter="metricsFilter = $event"
-          :paramsMinIdx="paramsMinIdx"
-          @update:paramsMinIdx="paramsMinIdx = $event"
-          :paramsMaxIdx="paramsMaxIdx"
-          @update:paramsMaxIdx="paramsMaxIdx = $event"
-          :parametersBreakpoints="parametersBreakpoints"
           :showDeprecated="showDeprecated"
           @update:showDeprecated="showDeprecated = $event"
         />
@@ -123,14 +118,7 @@ import { useFilters } from "./composables/useFilters";
 import { useImport, fetchModelSize } from "./composables/useImport";
 import { useLabeling } from "./composables/useLabeling";
 
-const {
-  settings,
-  defaultDevice,
-  devices,
-  parametersBreakpoints,
-  isLoading: settingsLoading,
-  error: settingsError,
-} = useSettings();
+const { defaultDevice, devices, isLoading: settingsLoading, error: settingsError } = useSettings();
 const selectedDevice = ref<string | null>(null);
 const { entries, isLoading: dataLoading, error: dataError } = useBenchmarkData(selectedDevice);
 
@@ -179,10 +167,8 @@ const {
   modelSearch,
   tierFilter,
   metricsFilter,
-  paramsMinIdx,
-  paramsMaxIdx,
   showDeprecated,
-} = useFilters(mutableEntries, settings);
+} = useFilters(mutableEntries);
 
 const {
   isModalOpen,
