@@ -28,7 +28,7 @@
               variant="secondary"
               size="sm"
               class="bg-violet-100 text-violet-700 hover:bg-violet-200"
-              @click="toggleLabelingMode(mutableEntries)"
+              @click="isLabelingMode ? handleDone() : toggleLabelingMode(mutableEntries)"
               >{{ isLabelingMode ? "✓ Done" : "✏ Label" }}</UiButton
             >
             <UiButton
@@ -93,7 +93,7 @@
         <ExportModal
           v-if="isExportModalOpen"
           :isOpen="isExportModalOpen"
-          :entries="mutableEntries"
+          :entries="entriesWithEdits"
           :selectedDevice="selectedDevice || 'benchmark'"
           @close="isExportModalOpen = false"
         />
@@ -152,7 +152,14 @@ const {
   toggleLabelingMode,
   updateLabelEdit,
   setDirty,
+  entriesWithEdits,
+  commitLabelEdits,
 } = useLabeling(mutableEntries);
+
+function handleDone() {
+  commitLabelEdits(mutableEntries);
+  setDirty();
+}
 
 const isExportModalOpen = ref<boolean>(false);
 

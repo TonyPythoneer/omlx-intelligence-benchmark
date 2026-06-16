@@ -166,24 +166,46 @@
             <!-- Normal row -->
             <tr v-if="!isLabelingMode" class="hover:bg-muted/30 transition-colors">
               <td class="px-4 py-3">
-                <div class="flex items-center gap-1.5">
-                  <button
-                    @click="copyModelName(entry.model)"
-                    class="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-base leading-none"
-                    title="Copy model name"
+                <div class="flex flex-col gap-0.5">
+                  <div class="flex items-center gap-1.5">
+                    <button
+                      @click="copyModelName(entry.model)"
+                      class="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-base leading-none"
+                      title="Copy model name"
+                    >
+                      📋
+                    </button>
+                    <button
+                      @click="searchHuggingFace(entry.model)"
+                      class="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-base leading-none"
+                      title="Search on HuggingFace"
+                    >
+                      🤗
+                    </button>
+                    <span class="text-foreground font-medium text-xs break-all">{{
+                      entry.model
+                    }}</span>
+                  </div>
+                  <div
+                    v-if="entry.tiers?.opus || entry.tiers?.sonnet || entry.tiers?.haiku"
+                    class="flex items-center gap-1"
                   >
-                    📋
-                  </button>
-                  <button
-                    @click="searchHuggingFace(entry.model)"
-                    class="text-muted-foreground/40 hover:text-muted-foreground transition-colors text-base leading-none"
-                    title="Search on HuggingFace"
-                  >
-                    🤗
-                  </button>
-                  <span class="text-foreground font-medium text-xs break-all">{{
-                    entry.model
-                  }}</span>
+                    <span
+                      v-if="entry.tiers?.opus"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-purple-100 text-purple-700"
+                      >Opus</span
+                    >
+                    <span
+                      v-if="entry.tiers?.sonnet"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700"
+                      >Sonnet</span
+                    >
+                    <span
+                      v-if="entry.tiers?.haiku"
+                      class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-teal-100 text-teal-700"
+                      >Haiku</span
+                    >
+                  </div>
                 </div>
               </td>
               <td
@@ -416,7 +438,7 @@ const visibleBenchmarksInOrder = computed(() => {
   return ALL_BENCHMARKS.filter((b) => visible.includes(b));
 });
 
-const sortCol: Ref<string> = ref("date");
+const sortCol: Ref<string> = ref("spec.size_gb");
 const sortDir: Ref<1 | -1> = ref(-1);
 
 function getSortValue(entry: Entry, col: string): any {
