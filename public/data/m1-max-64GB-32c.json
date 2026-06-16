@@ -7,7 +7,7 @@
       "quantization": "4bit",
       "size_gb": 18.19
     },
-    "deprecated": false,
+    "deprecated": true,
     "scores": {
       "MMLU": {
         "accuracy": 83.3,
@@ -197,7 +197,7 @@
       "quantization": "qx86",
       "size_gb": 36.8
     },
-    "deprecated": false,
+    "deprecated": true,
     "scores": {
       "MMLU": {
         "accuracy": 76.7,
@@ -377,7 +377,7 @@
       "quantization": "",
       "size_gb": 34.3
     },
-    "deprecated": false,
+    "deprecated": true,
     "scores": {
       "MMLU": {
         "accuracy": 80,
@@ -399,7 +399,7 @@
       "quantization": "",
       "size_gb": 18.17
     },
-    "deprecated": false,
+    "deprecated": true,
     "scores": {
       "MMLU": {
         "accuracy": 83.3,
@@ -441,7 +441,7 @@
       "quantization": "",
       "size_gb": 11.25
     },
-    "deprecated": false,
+    "deprecated": true,
     "scores": {
       "MMLU": {
         "accuracy": 80,
@@ -525,7 +525,7 @@
       "sonnet": false,
       "haiku": false
     },
-    "deprecated": false,
+    "deprecated": true,
     "scores": {
       "MMLU": {
         "accuracy": 76.7,
@@ -551,6 +551,809 @@
         "accuracy": 60,
         "samples": 30,
         "time_s": 6319.6
+      }
+    }
+  },
+  {
+    "model": "Qwen3.5-0.8B-MLX-4bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 0.58
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    },
+    "deprecated": true,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 23.3,
+        "samples": 30,
+        "time_s": 12.5
+      },
+      "TRUTHFULQA": {
+        "accuracy": 26.7,
+        "samples": 30,
+        "time_s": 6.4
+      },
+      "HUMANEVAL": {
+        "accuracy": 26.7,
+        "samples": 30,
+        "time_s": 26.8
+      },
+      "MBPP": {
+        "accuracy": 20,
+        "samples": 30,
+        "time_s": 11.8
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 3.3,
+        "samples": 30,
+        "time_s": 862.5
+      }
+    }
+  },
+  {
+    "model": "Qwen3.5-2B-MLX-8bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 2.48
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": true
+    },
+    "deprecated": false,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 18.5
+      },
+      "TRUTHFULQA": {
+        "accuracy": 40,
+        "samples": 30,
+        "time_s": 8.9
+      },
+      "HUMANEVAL": {
+        "accuracy": 40,
+        "samples": 30,
+        "time_s": 50.6
+      },
+      "MBPP": {
+        "accuracy": 33.3,
+        "samples": 30,
+        "time_s": 24.5
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 13.3,
+        "samples": 30,
+        "time_s": 957.9
+      }
+    }
+  },
+  {
+    "model": "LFM2.5-1.2B-Instruct-MLX-4bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 0.61
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": true
+    },
+    "deprecated": false,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 16.7,
+        "samples": 30,
+        "time_s": 9.7
+      },
+      "TRUTHFULQA": {
+        "accuracy": 40,
+        "samples": 30,
+        "time_s": 2.2
+      },
+      "HUMANEVAL": {
+        "accuracy": 50,
+        "samples": 30,
+        "time_s": 13.8
+      },
+      "MBPP": {
+        "accuracy": 23.3,
+        "samples": 30,
+        "time_s": 10.5
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 3.3,
+        "samples": 30,
+        "time_s": 62.4
+      }
+    }
+  },
+  {
+    "model": "Qwen3-Coder-30B-A3B-Instruct-MLX-4bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 16
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    },
+    "deprecated": true,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 66.7,
+        "samples": 30,
+        "time_s": 44.3
+      },
+      "TRUTHFULQA": {
+        "accuracy": 66.7,
+        "samples": 30,
+        "time_s": 16.8
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 85.7
+      },
+      "MBPP": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 49.1
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 33.3,
+        "samples": 30,
+        "time_s": 2778.6
+      }
+    }
+  },
+  {
+    "model": "LFM2.5-8B-A1B-MLX-4bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 4.5
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": true,
+      "haiku": false
+    },
+    "deprecated": true,
+    "scores": {
+      "MMLU": {
+        "accuracy": 46.7,
+        "samples": 30,
+        "time_s": 212.7
+      },
+      "TRUTHFULQA": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 99.1
+      }
+    },
+    "scores_no_thinking": {
+      "HUMANEVAL": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 194.6
+      },
+      "MBPP": {
+        "accuracy": 50,
+        "samples": 30,
+        "time_s": 190.1
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 26.7,
+        "samples": 30,
+        "time_s": 1585.5
+      }
+    }
+  },
+  {
+    "model": "gemma-4-E2B-it-UD-MLX-4bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 4.21
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": true,
+      "haiku": false
+    },
+    "deprecated": false,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 8.7
+      },
+      "TRUTHFULQA": {
+        "accuracy": 43.3,
+        "samples": 30,
+        "time_s": 6.9
+      },
+      "HUMANEVAL": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 109.8
+      },
+      "MBPP": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 79.3
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 30,
+        "samples": 30,
+        "time_s": 596.1
+      }
+    }
+  },
+  {
+    "model": "gemma-4-26b-a4b-it-UD-MLX-4bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 15
+    },
+    "tiers": {
+      "opus": true,
+      "sonnet": true,
+      "haiku": false
+    },
+    "deprecated": true,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 73.3,
+        "samples": 30,
+        "time_s": 47.7
+      },
+      "TRUTHFULQA": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 17.7
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 117
+      },
+      "MBPP": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 133.1
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 46.7,
+        "samples": 30,
+        "time_s": 925.4
+      }
+    }
+  },
+  {
+    "model": "gemma-4-12B-it-4bit",
+    "date": "2026-06-15",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 6.28
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    },
+    "deprecated": true,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 63.3,
+        "samples": 30,
+        "time_s": 119
+      },
+      "TRUTHFULQA": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 27.7
+      },
+      "HUMANEVAL": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 270.6
+      },
+      "MBPP": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 387.8
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 16.7,
+        "samples": 30,
+        "time_s": 11932.5
+      }
+    }
+  },
+  {
+    "model": "Qwen3.6-35B-A3B-MTP-Holo3-Qwopus-qx64-hi-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 28.71
+    },
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 47
+      },
+      "TRUTHFULQA": {
+        "accuracy": 96.7,
+        "samples": 30,
+        "time_s": 17.6
+      },
+      "HUMANEVAL": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 94.1
+      },
+      "MBPP": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 55.1
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 43.3,
+        "samples": 30,
+        "time_s": 507.7
+      }
+    }
+  },
+  {
+    "model": "gemma-4-E2B-it-mxfp4-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 3.2
+    },
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": false
+    },
+    "deprecated": true,
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 43.3,
+        "samples": 30,
+        "time_s": 18.8
+      },
+      "TRUTHFULQA": {
+        "accuracy": 46.7,
+        "samples": 30,
+        "time_s": 7.9
+      },
+      "HUMANEVAL": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 110
+      },
+      "MBPP": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 104.6
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 23.3,
+        "samples": 30,
+        "time_s": 1206.4
+      }
+    }
+  },
+  {
+    "model": "Qwen3.6-35B-A3B-MTP-Holo3-Qwopus-mxfp4-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 17.99
+    },
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
+    },
+    "deprecated": false,
+    "scores": {
+      "MMLU": {
+        "accuracy": 73.3,
+        "samples": 30,
+        "time_s": 40.9
+      },
+      "TRUTHFULQA": {
+        "accuracy": 96.7,
+        "samples": 30,
+        "time_s": 16.1
+      },
+      "HUMANEVAL": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 73.9
+      },
+      "MBPP": {
+        "accuracy": 83.3,
+        "samples": 30,
+        "time_s": 41.8
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 40,
+        "samples": 30,
+        "time_s": 407.2
+      }
+    }
+  },
+  {
+    "model": "Qwen3.6-27B-Architect-Polaris-Deckard-qx86-hi-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 24.48
+    },
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
+    },
+    "deprecated": true,
+    "scores": {
+      "MMLU": {
+        "accuracy": 73.3,
+        "samples": 30,
+        "time_s": 260.5
+      },
+      "TRUTHFULQA": {
+        "accuracy": 100,
+        "samples": 30,
+        "time_s": 57.4
+      },
+      "HUMANEVAL": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 441
+      },
+      "MBPP": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 163.8
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 43.3,
+        "samples": 30,
+        "time_s": 2590.2
+      }
+    }
+  },
+  {
+    "model": "Qwen3.6-27B-Polaris-Heretic-mxfp4-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 14.17
+    },
+    "deprecated": true,
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
+    },
+    "scores": {
+      "MMLU": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 213.4
+      },
+      "TRUTHFULQA": {
+        "accuracy": 93.3,
+        "samples": 30,
+        "time_s": 50.4
+      },
+      "HUMANEVAL": {
+        "accuracy": 86.7,
+        "samples": 30,
+        "time_s": 217.3
+      },
+      "MBPP": {
+        "accuracy": 73.3,
+        "samples": 30,
+        "time_s": 125.5
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 46.7,
+        "samples": 30,
+        "time_s": 1105.3
+      }
+    }
+  },
+  {
+    "model": "granite-4.1-8b-mxfp8-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 8.44
+    },
+    "deprecated": false,
+    "tiers": {
+      "opus": false,
+      "sonnet": true,
+      "haiku": false
+    },
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 50,
+        "samples": 30,
+        "time_s": 127.8
+      },
+      "TRUTHFULQA": {
+        "accuracy": 46.7,
+        "samples": 30,
+        "time_s": 62.2
+      },
+      "HUMANEVAL": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 84.8
+      },
+      "MBPP": {
+        "accuracy": 63.3,
+        "samples": 30,
+        "time_s": 85.3
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 20,
+        "samples": 30,
+        "time_s": 297.5
+      }
+    }
+  },
+  {
+    "model": "granite-4.1-30b-Claude-X2B-Thinking-mxfp8-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 28.12
+    },
+    "deprecated": true,
+    "tiers": {
+      "opus": true,
+      "sonnet": false,
+      "haiku": false
+    },
+    "scores": {
+      "MMLU": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 249.2
+      },
+      "TRUTHFULQA": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 55.7
+      },
+      "HUMANEVAL": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 779.9
+      },
+      "MBPP": {
+        "accuracy": 90,
+        "samples": 30,
+        "time_s": 2372.3
+      }
+    }
+  },
+  {
+    "model": "Qwen3.5-0.8B-mxfp4-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 0.56
+    },
+    "deprecated": false,
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": true
+    },
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 16.7,
+        "samples": 30,
+        "time_s": 15.2
+      },
+      "TRUTHFULQA": {
+        "accuracy": 36.7,
+        "samples": 30,
+        "time_s": 6.7
+      },
+      "HUMANEVAL": {
+        "accuracy": 30,
+        "samples": 30,
+        "time_s": 123.9
+      },
+      "MBPP": {
+        "accuracy": 16.7,
+        "samples": 30,
+        "time_s": 79.4
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 3.3,
+        "samples": 30,
+        "time_s": 1833.9
+      }
+    }
+  },
+  {
+    "model": "Qwen3-4B-Element18-mxfp4-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 1.99
+    },
+    "deprecated": false,
+    "tiers": {
+      "opus": false,
+      "sonnet": true,
+      "haiku": true
+    },
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 66.7,
+        "samples": 30,
+        "time_s": 35.8
+      },
+      "TRUTHFULQA": {
+        "accuracy": 46.7,
+        "samples": 30,
+        "time_s": 13.2
+      },
+      "HUMANEVAL": {
+        "accuracy": 80,
+        "samples": 30,
+        "time_s": 40.8
+      },
+      "MBPP": {
+        "accuracy": 66.7,
+        "samples": 30,
+        "time_s": 27.6
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 30,
+        "samples": 30,
+        "time_s": 791.8
+      }
+    }
+  },
+  {
+    "model": "Qwen3.5-4B-Element-dwq4-mlx",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 2.45
+    },
+    "deprecated": false,
+    "tiers": {
+      "opus": false,
+      "sonnet": false,
+      "haiku": true
+    },
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 40.7
+      },
+      "TRUTHFULQA": {
+        "accuracy": 63.3,
+        "samples": 30,
+        "time_s": 13.3
+      },
+      "HUMANEVAL": {
+        "accuracy": 70,
+        "samples": 30,
+        "time_s": 74.9
+      },
+      "MBPP": {
+        "accuracy": 46.7,
+        "samples": 30,
+        "time_s": 60.7
+      },
+      "LIVECODEBENCH": {
+        "accuracy": 13.3,
+        "samples": 30,
+        "time_s": 795.3
+      }
+    }
+  },
+  {
+    "model": "Huihui-Qwen3.5-9B-abliterated-mlx-4bit",
+    "date": "2026-06-16",
+    "spec": {
+      "parameters_b": null,
+      "quantization": "",
+      "size_gb": 4.69
+    },
+    "deprecated": false,
+    "tiers": {
+      "opus": false,
+      "sonnet": true,
+      "haiku": false
+    },
+    "scores": {},
+    "scores_no_thinking": {
+      "MMLU": {
+        "accuracy": 73.3,
+        "samples": 30,
+        "time_s": 67.3
+      },
+      "TRUTHFULQA": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 17.9
+      },
+      "HUMANEVAL": {
+        "accuracy": 76.7,
+        "samples": 30,
+        "time_s": 133.9
+      },
+      "MBPP": {
+        "accuracy": 60,
+        "samples": 30,
+        "time_s": 52.4
       }
     }
   }

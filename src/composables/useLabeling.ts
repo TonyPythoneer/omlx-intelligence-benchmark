@@ -126,56 +126,66 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
   }
 
   /**
+   * Apply a single LabelEdit to an Entry (pure, no side effects)
+   */
+  function applyEdit(entry: Entry, edit: LabelEdit): Entry {
+    const updated: Entry = {
+      ...entry,
+      spec: { ...entry.spec },
+      tiers: { ...(entry.tiers ?? { opus: false, sonnet: false, haiku: false }) },
+    };
+
+    if (edit.parameters_b !== undefined) {
+      updated.spec.parameters_b = edit.parameters_b !== "" ? parseFloat(edit.parameters_b!) : null;
+    }
+    if (edit.quantization !== undefined) {
+      updated.spec.quantization = edit.quantization ?? entry.spec.quantization;
+    }
+    if (edit.size_gb !== undefined) {
+      updated.spec.size_gb = edit.size_gb !== "" ? parseFloat(edit.size_gb!) : null;
+    }
+    if (edit.deprecated !== undefined) {
+      updated.deprecated = edit.deprecated;
+    }
+    if (
+      edit.tier_opus !== undefined ||
+      edit.tier_sonnet !== undefined ||
+      edit.tier_haiku !== undefined
+    ) {
+      updated.tiers = {
+        opus: edit.tier_opus !== undefined ? edit.tier_opus : (entry.tiers?.opus ?? false),
+        sonnet: edit.tier_sonnet !== undefined ? edit.tier_sonnet : (entry.tiers?.sonnet ?? false),
+        haiku: edit.tier_haiku !== undefined ? edit.tier_haiku : (entry.tiers?.haiku ?? false),
+      };
+    }
+
+    return updated;
+  }
+
+  /**
+   * Reactive view of mutableEntries with active labelEdits applied.
+   * Used by ExportModal so exports always reflect in-progress edits.
+   */
+  const entriesWithEdits = computed<Entry[]>(() => {
+    if (!mutableEntries) return [];
+    return mutableEntries.value.map((entry) => {
+      const edit = labelEdits.value[entry.model];
+      if (!edit || Object.keys(edit).length === 0) return entry;
+      return applyEdit(entry, edit);
+    });
+  });
+
+  /**
    * Commit label edits to mutable entries
    * Converts string fields to numbers, applies all edits to entries, clears labelEdits
    */
   function commitLabelEdits(entries: Ref<Entry[]>): void {
     if (hasValidationErrors.value) return;
 
-    // Apply edits to mutableEntries
     entries.value = entries.value.map((entry) => {
       const edit = labelEdits.value[entry.model];
       if (!edit || Object.keys(edit).length === 0) return entry;
-
-      // Build updated entry with edits applied
-      const updated: Entry = {
-        ...entry,
-        spec: { ...entry.spec },
-        tiers: { ...(entry.tiers ?? { opus: false, sonnet: false, haiku: false }) },
-      };
-
-      // Apply spec edits
-      if (edit.parameters_b !== undefined) {
-        updated.spec.parameters_b =
-          edit.parameters_b !== "" ? parseFloat(edit.parameters_b!) : null;
-      }
-      if (edit.quantization !== undefined) {
-        updated.spec.quantization = edit.quantization ?? entry.spec.quantization;
-      }
-      if (edit.size_gb !== undefined) {
-        updated.spec.size_gb = edit.size_gb !== "" ? parseFloat(edit.size_gb!) : null;
-      }
-
-      // Apply deprecated edit
-      if (edit.deprecated !== undefined) {
-        updated.deprecated = edit.deprecated ?? entry.deprecated ?? false;
-      }
-
-      // Apply tiers edits
-      if (
-        edit.tier_opus !== undefined ||
-        edit.tier_sonnet !== undefined ||
-        edit.tier_haiku !== undefined
-      ) {
-        updated.tiers = {
-          opus: edit.tier_opus !== undefined ? edit.tier_opus : (entry.tiers?.opus ?? false),
-          sonnet:
-            edit.tier_sonnet !== undefined ? edit.tier_sonnet : (entry.tiers?.sonnet ?? false),
-          haiku: edit.tier_haiku !== undefined ? edit.tier_haiku : (entry.tiers?.haiku ?? false),
-        };
-      }
-
-      return updated;
+      return applyEdit(entry, edit);
     });
 
     // Clear edits and exit mode, keep isDirty true
@@ -236,6 +246,7 @@ export function useLabeling(mutableEntries?: Ref<Entry[]>) {
     // Computed
     validationErrors,
     hasValidationErrors,
+    entriesWithEdits,
 
     // Methods
     setDirty,

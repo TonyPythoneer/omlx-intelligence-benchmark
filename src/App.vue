@@ -28,7 +28,7 @@
               variant="secondary"
               size="sm"
               class="bg-violet-100 text-violet-700 hover:bg-violet-200"
-              @click="toggleLabelingMode(mutableEntries)"
+              @click="isLabelingMode ? handleDone() : toggleLabelingMode(mutableEntries)"
               >{{ isLabelingMode ? "✓ Done" : "✏ Label" }}</UiButton
             >
             <UiButton
@@ -56,13 +56,6 @@
           @update:modelSearch="modelSearch = $event"
           :tierFilter="tierFilter"
           @update:tierFilter="tierFilter = $event"
-          :metricsFilter="metricsFilter"
-          @update:metricsFilter="metricsFilter = $event"
-          :paramsMinIdx="paramsMinIdx"
-          @update:paramsMinIdx="paramsMinIdx = $event"
-          :paramsMaxIdx="paramsMaxIdx"
-          @update:paramsMaxIdx="paramsMaxIdx = $event"
-          :parametersBreakpoints="parametersBreakpoints"
           :showDeprecated="showDeprecated"
           @update:showDeprecated="showDeprecated = $event"
         />
@@ -93,7 +86,7 @@
         <ExportModal
           v-if="isExportModalOpen"
           :isOpen="isExportModalOpen"
-          :entries="mutableEntries"
+          :entries="entriesWithEdits"
           :selectedDevice="selectedDevice || 'benchmark'"
           @close="isExportModalOpen = false"
         />
@@ -123,14 +116,7 @@ import { useFilters } from "./composables/useFilters";
 import { useImport, fetchModelSize } from "./composables/useImport";
 import { useLabeling } from "./composables/useLabeling";
 
-const {
-  settings,
-  defaultDevice,
-  devices,
-  parametersBreakpoints,
-  isLoading: settingsLoading,
-  error: settingsError,
-} = useSettings();
+const { defaultDevice, devices, isLoading: settingsLoading, error: settingsError } = useSettings();
 const selectedDevice = ref<string | null>(null);
 const { entries, isLoading: dataLoading, error: dataError } = useBenchmarkData(selectedDevice);
 
@@ -152,7 +138,14 @@ const {
   toggleLabelingMode,
   updateLabelEdit,
   setDirty,
+  entriesWithEdits,
+  commitLabelEdits,
 } = useLabeling(mutableEntries);
+
+function handleDone() {
+  commitLabelEdits(mutableEntries);
+  setDirty();
+}
 
 const isExportModalOpen = ref<boolean>(false);
 
@@ -166,16 +159,8 @@ const showExportButton = computed<boolean>(
   () => (isDirty.value || isLabelingMode.value) && !hasValidationErrors.value,
 );
 
-const {
-  filteredEntries,
-  visibleBenchmarks,
-  modelSearch,
-  tierFilter,
-  metricsFilter,
-  paramsMinIdx,
-  paramsMaxIdx,
-  showDeprecated,
-} = useFilters(mutableEntries, settings);
+const { filteredEntries, visibleBenchmarks, modelSearch, tierFilter, showDeprecated } =
+  useFilters(mutableEntries);
 
 const {
   isModalOpen,

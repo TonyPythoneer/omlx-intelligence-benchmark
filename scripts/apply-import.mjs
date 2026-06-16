@@ -1,7 +1,7 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { execSync } from 'child_process';
-import { parseImportInput, mergeImport } from '../app/lib/import.mjs';
+import { parseImportInput, mergeImport } from '../src/lib/import.mjs';
 
 /**
  * Extract a field from GitHub Issue body by visible label heading.
@@ -37,7 +37,7 @@ export async function applyImport(issueNumber, issueBody, today = new Date().toI
       return { success: false, error: 'Missing Device or Benchmark stdout field in Issue' };
     }
 
-    const settingsPath = path.resolve('app/settings.json');
+    const settingsPath = path.resolve('public/settings.json');
     const settingsRaw = await fs.readFile(settingsPath, 'utf8');
     const settings = JSON.parse(settingsRaw);
 
@@ -50,7 +50,7 @@ export async function applyImport(issueNumber, issueBody, today = new Date().toI
       return { success: false, error: 'No models detected in benchmark output' };
     }
 
-    const dataPath = path.resolve(`app/data/${device}.json`);
+    const dataPath = path.resolve(`public/data/${device}.json`);
     let currentData = [];
     try {
       const dataRaw = await fs.readFile(dataPath, 'utf8');
@@ -70,7 +70,7 @@ export async function applyImport(issueNumber, issueBody, today = new Date().toI
       execSync(`git config user.name "github-actions[bot]"`, { stdio: 'inherit' });
       execSync(`git config user.email "github-actions[bot]@users.noreply.github.com"`, { stdio: 'inherit' });
       execSync(`git checkout -b ${branchName}`, { stdio: 'inherit' });
-      execSync(`git add app/data/${device}.json`, { stdio: 'inherit' });
+      execSync(`git add public/data/${device}.json`, { stdio: 'inherit' });
       execSync(`git commit -m "data: auto-import benchmark results for ${device}"`, { stdio: 'inherit' });
       execSync(`git push origin ${branchName}`, { stdio: 'inherit' });
     } catch (e) {

@@ -82,13 +82,13 @@ export function mergeImport(currentData, detected, today) {
       }
       nextData[idx] = { ...nextData[idx], ...updates };
     } else {
-      // NEW: push with template defaults
+      // NEW: push with template defaults; caller may pre-populate d.spec (e.g. UI with auto-fetched size)
       const entry = {
         model: d.model,
         date: today,
-        spec: { parameters_b: null, quantization: "", size_gb: null },
+        spec: d.spec ?? { parameters_b: null, quantization: "", size_gb: null },
         deprecated: false,
-        starred: false,
+        tiers: { opus: false, sonnet: false, haiku: false },
         scores: d.scores,
       };
       if (d.scores_no_thinking && Object.keys(d.scores_no_thinking).length > 0) {

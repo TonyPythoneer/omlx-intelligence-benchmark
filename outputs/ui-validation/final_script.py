@@ -70,21 +70,16 @@ async def main() -> None:
             log(f"  FAIL: {e}")
             await snap(page, "cp2_table.png")
 
-        # CP3 — filter controls present (Tier/Metrics segmented, checkbox, slider)
-        log("CP3: filter controls — Tier/Metrics segmented buttons, Show Deprecated, Params slider")
+        # CP3 — filter controls present (Tier segmented, Show Deprecated checkbox)
+        log("CP3: filter controls — Tier segmented buttons, Show Deprecated checkbox")
         try:
             for label in ("All", "Opus", "Sonnet", "Haiku"):
                 assert await page.get_by_role("button", name=label, exact=True).count() >= 1, \
                     f"tier button {label!r} missing"
-            for label in ("Basic", "Advanced"):
-                assert await page.get_by_role("button", name=label, exact=True).count() >= 1, \
-                    f"metrics button {label!r} missing"
             assert await page.locator("#show-deprecated").count() == 1, "Show Deprecated checkbox missing"
             assert await page.get_by_text("Show Deprecated").count() >= 1, "Show Deprecated label missing"
-            thumbs = await page.get_by_role("slider").count()
-            assert thumbs == 2, f"expected 2 reka-ui slider thumbs, got {thumbs}"
             passed.append("CP3")
-            log(f"  PASS: slider thumbs={thumbs}, segmented + checkbox present")
+            log("  PASS: tier buttons + checkbox present")
         except Exception as e:
             failed.append("CP3")
             log(f"  FAIL: {e}")

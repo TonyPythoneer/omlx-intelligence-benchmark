@@ -107,7 +107,7 @@ describe("mergeImport", () => {
       date: "2026-05-28",
       spec: { parameters_b: null, quantization: "", size_gb: null },
       deprecated: false,
-      starred: false,
+      tiers: { opus: false, sonnet: false, haiku: false },
       scores: {
         MMLU: { accuracy: 50, samples: 30, time_s: 100 },
       },
